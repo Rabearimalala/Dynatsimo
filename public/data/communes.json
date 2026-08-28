@@ -1,0 +1,1577 @@
+[
+  {
+    "code": "MG51504050",
+    "nom": "Ambahikily",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518151",
+    "nom": "Ambahita",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517070",
+    "nom": "Ambalasoa",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51521032",
+    "nom": "Ambalavato",
+    "region": "Atsimo Andrefana",
+    "district": "Benenitra",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516031",
+    "nom": "Ambanisarika",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515112",
+    "nom": "Ambatoabo",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517350",
+    "nom": "Ambatomivary",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518091",
+    "nom": "Ambatosola",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506013",
+    "nom": "Ambatry Mitsinjo",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516092",
+    "nom": "Ambazoa",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512150",
+    "nom": "Ambinany",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519010",
+    "nom": "Amboasary Atsimo",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520111",
+    "nom": "Ambohimahavelona",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516033",
+    "nom": "Ambohimalaza",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520150",
+    "nom": "Ambolofoty",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516050",
+    "nom": "Ambonaivo",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516091",
+    "nom": "Ambondro",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507050",
+    "nom": "Amborompotsy",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512070",
+    "nom": "Amboronabo",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516011",
+    "nom": "Ambovombe",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516152",
+    "nom": "Ampamata",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507010",
+    "nom": "Ampanihy Ouest",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515230",
+    "nom": "Ampasimena",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515031",
+    "nom": "Ampasy Nahampoana",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520132",
+    "nom": "Anakao",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515252",
+    "nom": "Analamary",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517110",
+    "nom": "Analamary",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516032",
+    "nom": "Analamary",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520330",
+    "nom": "Analamisampy",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515114",
+    "nom": "Analapatsy",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516151",
+    "nom": "Andalatanosy",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512111",
+    "nom": "Andamasiny Vineta",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515115",
+    "nom": "Andranobory",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520112",
+    "nom": "Andranohinaly",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512130",
+    "nom": "Andranolava",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51505050",
+    "nom": "Andranomafana",
+    "region": "Atsimo Andrefana",
+    "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506191",
+    "nom": "Andranomangatsiaka",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520270",
+    "nom": "Andranovory",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517331",
+    "nom": "Andriandampy",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507230",
+    "nom": "Androka",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518290",
+    "nom": "Anivorano Mitsinjo",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518050",
+    "nom": "Anja Nord",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514032",
+    "nom": "Anjampaly",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516014",
+    "nom": "Anjeky Ankilikira",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515090",
+    "nom": "Ankaramena",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518031",
+    "nom": "Ankaranabo Nord",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515113",
+    "nom": "Ankariera",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51505011",
+    "nom": "Ankazoabo Sud",
+    "region": "Atsimo Andrefana",
+    "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506014",
+    "nom": "Ankazomanga Ouest",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506130",
+    "nom": "Ankazombalala",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507030",
+    "nom": "Ankiliabo",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520310",
+    "nom": "Ankililoaka",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520170",
+    "nom": "Ankilimalinike",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507130",
+    "nom": "Ankilimivory",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506192",
+    "nom": "Ankilivalo",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507070",
+    "nom": "Ankilizato",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507110",
+    "nom": "Antaly",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520191",
+    "nom": "Antanimena Onilahy",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504130",
+    "nom": "Antanimieva",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516130",
+    "nom": "Antanimora Atsimo",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514071",
+    "nom": "Antaritarika",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506070",
+    "nom": "Antohabato",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504070",
+    "nom": "Antongo Vaovao",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518070",
+    "nom": "Antsakoamaro",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506312",
+    "nom": "Antsavoa",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504150",
+    "nom": "Basibasy",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507190",
+    "nom": "Beahitse",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517190",
+    "nom": "Beampombo I",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517292",
+    "nom": "Beampombo II",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506030",
+    "nom": "Beantake",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504030",
+    "nom": "Befandefa",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504110",
+    "nom": "Befandriana Sud",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52513092",
+    "nom": "Behabobo",
+    "region": "Androy",
+    "district": "Beloha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519030",
+    "nom": "Behara",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520358",
+    "nom": "Beheloka",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503050",
+    "nom": "Behisatsy",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520072",
+    "nom": "Behompy",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518230",
+    "nom": "Bekitro",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517250",
+    "nom": "Bekorobo",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507170",
+    "nom": "Belafike Haut",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520030",
+    "nom": "Belalanda",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506311",
+    "nom": "Belamoty",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518170",
+    "nom": "Belindo Mahasoa",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52513010",
+    "nom": "Beloha",
+    "region": "Androy",
+    "district": "Beloha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503012",
+    "nom": "Bemavo",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517150",
+    "nom": "Benato Toby",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51521010",
+    "nom": "Benenitra",
+    "region": "Atsimo Andrefana",
+    "district": "Benenitra",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518251",
+    "nom": "Beraketa",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512090",
+    "nom": "Bereketa",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51505071",
+    "nom": "Berenty",
+    "region": "Atsimo Andrefana",
+    "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503011",
+    "nom": "Beroroha",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507270",
+    "nom": "Beroy Atsimo",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51501006",
+    "nom": "Besakoa",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-I",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518032",
+    "nom": "Besakoa",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506112",
+    "nom": "Besely",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51501005",
+    "nom": "Betania",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-I",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514031",
+    "nom": "Betanty (Faux Cap)",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518190",
+    "nom": "Beteza",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506011",
+    "nom": "Betioky Atsimo",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517010",
+    "nom": "Betroka",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520050",
+    "nom": "Betsinjaka",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518270",
+    "nom": "Bevitiky",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515210",
+    "nom": "Bevoay",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506150",
+    "nom": "Bezaha",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504010",
+    "nom": "Cu Morombe",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519291",
+    "nom": "Ebelo",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51521050",
+    "nom": "Ehara",
+    "region": "Atsimo Andrefana",
+    "district": "Benenitra",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507150",
+    "nom": "Ejeda",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519150",
+    "nom": "Elonty",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515192",
+    "nom": "Emagnobo",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515170",
+    "nom": "Enakara-Haut",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515151",
+    "nom": "Enaniliha",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516013",
+    "nom": "Erada",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519170",
+    "nom": "Esira",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503030",
+    "nom": "Fanjakana",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506230",
+    "nom": "Fenoandala",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515152",
+    "nom": "Fenoevo-Efita",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515010",
+    "nom": "Fort-Dauphin",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507290",
+    "nom": "Fotadrevo",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51505012",
+    "nom": "Fotivolo",
+    "region": "Atsimo Andrefana",
+    "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507210",
+    "nom": "Gogogogo",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515132",
+    "nom": "Iaboakoho",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517270",
+    "nom": "Iaborotra",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517130",
+    "nom": "Ianabinda",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517310",
+    "nom": "Ianakafy",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51521031",
+    "nom": "Ianapera",
+    "region": "Atsimo Andrefana",
+    "district": "Benenitra",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515051",
+    "nom": "Ifarantsa",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519090",
+    "nom": "Ifotaka",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51505072",
+    "nom": "Ilemby",
+    "region": "Atsimo Andrefana",
+    "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516190",
+    "nom": "Imanombo",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514072",
+    "nom": "Imongy",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515052",
+    "nom": "Isaka-Ivondro",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517291",
+    "nom": "Isoanala",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507310",
+    "nom": "Itampolo",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517090",
+    "nom": "Ivahona",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516170",
+    "nom": "Jafaro",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517210",
+    "nom": "Jangany",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52513050",
+    "nom": "Kopoky",
+    "region": "Androy",
+    "district": "Beloha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506330",
+    "nom": "Lazarivo",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517170",
+    "nom": "Mahabo",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512050",
+    "nom": "Mahaboboka",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519190",
+    "nom": "Mahaly",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517230",
+    "nom": "Mahasoa Est",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515131",
+    "nom": "Mahatalaky",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51501003",
+    "nom": "Mahavatse I",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-I",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51501004",
+    "nom": "Mahavatse II",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-I",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518130",
+    "nom": "Manakompy",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506170",
+    "nom": "Manalobe",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515071",
+    "nom": "Manambaro",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515251",
+    "nom": "Manantenina",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515053",
+    "nom": "Mandiso",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515032",
+    "nom": "Mandromondromotra",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503091",
+    "nom": "Mandronarivo",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519210",
+    "nom": "Manevy",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507090",
+    "nom": "Maniry",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520250",
+    "nom": "Manombo Sud",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520192",
+    "nom": "Manorofify",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503070",
+    "nom": "Marerano",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516071",
+    "nom": "Maroalomainty",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516072",
+    "nom": "Maroalopoty",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506015",
+    "nom": "Maroarivo Ankazomanga",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520210",
+    "nom": "Marofoty",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52513070",
+    "nom": "Marolinta",
+    "region": "Androy",
+    "district": "Beloha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519130",
+    "nom": "Maromby",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520090",
+    "nom": "Maromiandra",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506252",
+    "nom": "Marosavoa",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519250",
+    "nom": "Marotsiraka",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514050",
+    "nom": "Marovato",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516112",
+    "nom": "Marovato Befeno",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518152",
+    "nom": "Maroviro",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506050",
+    "nom": "Masiaboay",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520071",
+    "nom": "Miary Ambohibola",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512030",
+    "nom": "Miary Lamatihy",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512012",
+    "nom": "Miary Taheza",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512112",
+    "nom": "Mihavatsy",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512171",
+    "nom": "Mikoboka",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520290",
+    "nom": "Milenaka",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512172",
+    "nom": "Mitsinjo",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520010",
+    "nom": "Mitsinjo Betanimena",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506313",
+    "nom": "Montifeno",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518010",
+    "nom": "Morafeno Bekily",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517293",
+    "nom": "Nanarena Besakoa",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517050",
+    "nom": "Naninora",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514012",
+    "nom": "Nikoly",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51504090",
+    "nom": "Nosy Ambositra",
+    "region": "Atsimo Andrefana",
+    "district": "Morombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519292",
+    "nom": "Ranobe",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515191",
+    "nom": "Ranomafana",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515111",
+    "nom": "Ranopiso",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520131",
+    "nom": "Saint Augustin",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517332",
+    "nom": "Sakamahily",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506012",
+    "nom": "Sakamasay",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51512011",
+    "nom": "Sakaraha",
+    "region": "Atsimo Andrefana",
+    "district": "Sakaraha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503093",
+    "nom": "Sakena",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506270",
+    "nom": "Salobe",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519070",
+    "nom": "Sampona",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515072",
+    "nom": "Sarisambo",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516111",
+    "nom": "Sihanamaro",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520133",
+    "nom": "Soalara Sud",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506210",
+    "nom": "Soamanonga",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515033",
+    "nom": "Soanierana",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506251",
+    "nom": "Soaserana",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53515253",
+    "nom": "Soavary",
+    "region": "Anosy",
+    "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506090",
+    "nom": "Tameantsoa",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51503092",
+    "nom": "Tanamary",
+    "region": "Atsimo Andrefana",
+    "district": "Beroroha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506290",
+    "nom": "Tanambao Haut",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51501001",
+    "nom": "Tanambao I",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-I",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51501002",
+    "nom": "Tanambao II Tsf Nord",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-I",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518210",
+    "nom": "Tanandava",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519050",
+    "nom": "Tanandava Sud",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51505030",
+    "nom": "Tandrano",
+    "region": "Atsimo Andrefana",
+    "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519270",
+    "nom": "Tomboarivo",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506111",
+    "nom": "Tongobory",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519110",
+    "nom": "Tranomaro",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52513091",
+    "nom": "Tranoroa",
+    "region": "Androy",
+    "district": "Beloha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52513030",
+    "nom": "Tranovaho",
+    "region": "Androy",
+    "district": "Beloha",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53517030",
+    "nom": "Tsaraitso",
+    "region": "Anosy",
+    "district": "Betroka",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51520230",
+    "nom": "Tsianisiha",
+    "region": "Atsimo Andrefana",
+    "district": "Toliary-II",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52514011",
+    "nom": "Tsihombe",
+    "region": "Androy",
+    "district": "Tsihombe",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518110",
+    "nom": "Tsikolaky",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52516012",
+    "nom": "Tsimananada",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518092",
+    "nom": "Tsirandrany",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG53519230",
+    "nom": "Tsivory",
+    "region": "Anosy",
+    "district": "Amboasary-Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51506113",
+    "nom": "Vatolatsaka",
+    "region": "Atsimo Andrefana",
+    "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG52518252",
+    "nom": "Vohimanga",
+    "region": "Androy",
+    "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG51507250",
+    "nom": "Vohitany",
+    "region": "Atsimo Andrefana",
+    "district": "Ampanihy Ouest",
+    "ecoregion": null
+  }
+]

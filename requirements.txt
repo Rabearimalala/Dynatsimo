@@ -1,0 +1,6 @@
+geopandas
+numpy
+pandas
+psycopg2-binary
+rasterstats
+sqlalchemy

@@ -1,0 +1,50 @@
+[
+  {
+    "month": "Jan",
+    "precip": 186.95
+  },
+  {
+    "month": "Fev",
+    "precip": 145.14
+  },
+  {
+    "month": "Mar",
+    "precip": 106.13
+  },
+  {
+    "month": "Avr",
+    "precip": 25.67
+  },
+  {
+    "month": "Mai",
+    "precip": 24.04
+  },
+  {
+    "month": "Jun",
+    "precip": 30.65
+  },
+  {
+    "month": "Jul",
+    "precip": 10.87
+  },
+  {
+    "month": "Aou",
+    "precip": 8.91
+  },
+  {
+    "month": "Sep",
+    "precip": 12.87
+  },
+  {
+    "month": "Oct",
+    "precip": 27.89
+  },
+  {
+    "month": "Nov",
+    "precip": 52.02
+  },
+  {
+    "month": "Dec",
+    "precip": 139.5
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "landsat_reference": {
+    "bounds": [
+      [-25.6, 43.0],
+      [-21.5, 47.2]
+    ],
+    "label": "2000-2011",
+    "png": "/data/clusters/LANDSAT/Clusters_2000_2011_REFERENCE.png"
+  },
+  "landsat_projected": {
+    "bounds": [
+      [-25.6, 43.0],
+      [-21.5, 47.2]
+    ],
+    "label": "2012-2025",
+    "png": "/data/clusters/LANDSAT/Clusters_2012_2025_PROJECTED.png"
+  }
+}

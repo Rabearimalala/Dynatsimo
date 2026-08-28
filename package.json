@@ -1,0 +1,29 @@
+{
+  "name": "dynatsimo-react",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "api": "python scripts/api-server.py",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite",
+    "ndvi:import": "python scripts/import-ndvi-geotiff.py",
+    "ndvi:export-classes": "python scripts/export_ndvi_6classes.py",
+    "build": "vite build",
+    "format": "prettier --write .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "leaflet": "^1.9.4",
+    "react": "latest",
+    "react-data-table-component": "^8.3.0",
+    "react-dom": "latest",
+    "react-leaflet": "^5.0.0",
+    "recharts": "^3.8.1",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3"
+  }
+}
