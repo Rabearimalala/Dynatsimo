@@ -25,11 +25,8 @@ import {
 
 const tabs = [
   { id: "overview", label: "Vue d'ensemble" },
-  { id: "vegetation", label: "Suivi Végétation" },
-  { id: "saison", label: "Saison des pluies" },
-  { id: "stats", label: "Statistiques" },
   { id: "carte", label: "Cartographie" },
-  { id: "sensors", label: "Comparaison Capteurs" },
+  { id: "stats", label: "Statistiques & Analyses" },
   { id: "data", label: "Base de Données" },
 ];
 
@@ -46,6 +43,7 @@ const staticDataFiles = {
   communesGeojson: "/data/communes.geojson",
   vegetationData: "/data/vegetation-data.json",
   ndviClasses: "/data/ndvi_classes_metadata.json",
+  isohyetesMeta: "/data/isohyetes_metadata.json",
 };
 
 const Icons = {
@@ -118,6 +116,16 @@ const Icons = {
   Alert: () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+  ),
+  Menu: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+  ),
+  Close: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
 };
@@ -262,6 +270,22 @@ function computeIDWGrid(points, gridSize = 35, power = 2) {
   return { cells, minVal, maxVal };
 }
 
+// Palette de référence des précipitations et des courbes isohyètes (6 teintes de bleu contrastées et bien visibles)
+const PRECIP_BLUE_PALETTE = [
+  "#dbeafe", // Bleu très clair / ciel
+  "#93c5fd", // Bleu ciel
+  "#3b82f6", // Bleu azur éclatant
+  "#1d4ed8", // Bleu roi soutenu
+  "#1e40af", // Bleu marine foncé
+  "#172554", // Bleu nuit très profond
+];
+
+function getIsohyeteColor(val, minVal = 0, maxVal = 1000) {
+  const ratio = maxVal > minVal ? Math.max(0, Math.min(1, (val - minVal) / (maxVal - minVal))) : 0.5;
+  const idx = Math.min(PRECIP_BLUE_PALETTE.length - 1, Math.floor(ratio * PRECIP_BLUE_PALETTE.length));
+  return PRECIP_BLUE_PALETTE[idx];
+}
+
 async function fetchJson(path) {
   const response = await fetch(path);
   if (!response.ok) {
@@ -305,10 +329,20 @@ async function loadStaticData() {
 async function loadAppData() {
   const apiData = await fetchJson(`${API_BASE_URL}/api/data`);
   try {
-    const ndviClasses = await fetchJson(`/data/ndvi_classes_metadata.json`);
-    apiData.ndviClasses = ndviClasses;
+    if (!apiData.ndviClasses) {
+      const ndviClasses = await fetchJson(`/data/ndvi_classes_metadata.json`);
+      apiData.ndviClasses = ndviClasses;
+    }
   } catch (e) {
-    console.warn("ndviclasses non trouvées", e);
+    console.warn("ndviClasses non trouvées", e);
+  }
+  try {
+    if (!apiData.isohyetesMeta) {
+      const isohyetesMeta = await fetchJson(`/data/isohyetes_metadata.json`);
+      apiData.isohyetesMeta = isohyetesMeta;
+    }
+  } catch (e) {
+    console.warn("isohyetesMeta non trouvées", e);
   }
   return {
     data: apiData,
@@ -318,6 +352,9 @@ async function loadAppData() {
 
 function App() {
   const [activeTab, setActiveTab] = React.useState("overview");
+  const [statsCategory, setStatsCategory] = React.useState("precip");
+  const [mapSubItem, setMapSubItem] = React.useState("precip");
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const [selectedCommune, setSelectedCommune] = React.useState("MG1102");
   const [selectedRegion, setSelectedRegion] = React.useState("");
   const [data, setData] = React.useState(null);
@@ -391,10 +428,29 @@ function App() {
     }
   }, [data, selectedCommune]);
 
+  const regionsList = React.useMemo(() => {
+    if (!data?.communes) return [];
+    return [...new Set(data.communes.map((c) => c.region).filter(Boolean))].sort();
+  }, [data]);
+
+  const selectedCommuneObj = React.useMemo(() => {
+    if (!data?.communes) return null;
+    return data.communes.find((c) => c.code === selectedCommune) || data.communes[0] || null;
+  }, [data, selectedCommune]);
+
+  const selectedCommuneName = selectedCommuneObj?.nom || "";
+
   if (loadError) {
     return (
       <div className="state-screen">
-        <strong>Erreur de chargement</strong>
+        <div className="state-brand">
+          <span className="brand-mark brand-mark-lg">D</span>
+          <div className="state-brand-text">
+            <strong className="state-brand-title">DYNATSIMO</strong>
+            <span className="state-brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
+          </div>
+        </div>
+        <strong style={{ marginTop: "8px", fontSize: "16px", color: "var(--danger)" }}>Erreur de chargement</strong>
         <p>{loadError}</p>
         <button onClick={() => setRetryTrigger((prev) => prev + 1)}>Réessayer</button>
       </div>
@@ -404,56 +460,216 @@ function App() {
   if (loading || !data) {
     return (
       <div className="state-screen">
-        <div className="loader-spinner"></div>
-        <strong>Dynatsimo</strong>
-        <p>Connexion à la base de données et chargement des ressources...</p>
+        <div className="state-brand">
+          <span className="brand-mark brand-mark-lg">D</span>
+          <div className="state-brand-text">
+            <strong className="state-brand-title">DYNATSIMO</strong>
+            <span className="state-brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
+          </div>
+        </div>
+        <div className="loader-spinner" style={{ marginTop: "6px" }}></div>
+        <p style={{ marginTop: "10px", color: "var(--text-muted)", fontSize: "13px" }}>Connexion à la base de données et chargement des ressources...</p>
       </div>
     );
   }
 
-  const filteredCommunesList = selectedRegion
-    ? data.communes.filter((c) => c.region === selectedRegion)
-    : data.communes;
-
-  const currentCommune = selectedCommune || filteredCommunesList[0]?.code || "";
-  const selectedCommuneObj =
-    data.communes.find((commune) => commune.code === currentCommune) || data.communes[0];
-  const selectedCommuneName = selectedCommuneObj?.nom ?? "Commune";
-
-  const regionsList = [...new Set(data.communes.map((c) => c.region).filter(Boolean))].sort();
-
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {mobileNavOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`sidebar ${mobileNavOpen ? "mobile-open" : ""}`}>
         <div>
-          <div className="brand">
-            <span className="brand-mark">D</span>
-            <div>
-              <strong>DYNATSIMO</strong>
-              <span>Gestion Agro-Végétale</span>
+          <div
+            className="brand"
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "nowrap",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              width: "100%",
+              marginBottom: "20px",
+              padding: 0,
+              gap: "8px",
+            }}
+          >
+            <div
+              className="brand-wrapper"
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "nowrap",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                gap: "8px",
+                flex: "0 0 auto",
+              }}
+            >
+              <span
+                className="brand-mark"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "32px",
+                  height: "32px",
+                  minWidth: "32px",
+                  maxWidth: "32px",
+                  flex: "0 0 32px",
+                  borderRadius: "7px",
+                  background: "linear-gradient(165deg, #38bdf8 0%, #2563eb 45%, #059669 100%)",
+                  color: "#ffffff",
+                  fontSize: "16px",
+                  fontWeight: "800",
+                  boxShadow: "0 2px 6px rgba(37, 99, 235, 0.2)",
+                  userSelect: "none",
+                  margin: 0,
+                }}
+              >
+                D
+              </span>
+              <div
+                className="brand-text"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                  whiteSpace: "nowrap",
+                  textAlign: "left",
+                  margin: 0,
+                  padding: 0,
+                  lineHeight: 1,
+                  flex: "0 0 auto",
+                }}
+              >
+                <strong
+                  className="brand-title"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "800",
+                    color: "#020617",
+                    letterSpacing: "0.5px",
+                    lineHeight: "1.15",
+                    margin: 0,
+                    padding: 0,
+                    textAlign: "left",
+                    whiteSpace: "nowrap",
+                    display: "block",
+                  }}
+                >
+                  DYNATSIMO
+                </strong>
+                <span
+                  className="brand-subtitle"
+                  style={{
+                    fontSize: "8px",
+                    fontWeight: "600",
+                    color: "#64748b",
+                    textTransform: "uppercase",
+                    letterSpacing: "1.1px",
+                    lineHeight: "1.2",
+                    marginTop: "2px",
+                    textAlign: "left",
+                    whiteSpace: "nowrap",
+                    display: "block",
+                  }}
+                >
+                  GESTION AGRO-VÉGÉTALE
+                </span>
+              </div>
             </div>
+            <button
+              className="mobile-sidebar-close"
+              onClick={() => setMobileNavOpen(false)}
+              aria-label="Fermer le menu"
+              type="button"
+            >
+              <Icons.Close />
+            </button>
           </div>
 
           <nav className="nav-list" aria-label="Navigation principale">
             {tabs.map((tab) => {
               let Icon = Icons.Overview;
-              if (tab.id === "vegetation") Icon = Icons.Leaf;
-              if (tab.id === "saison") Icon = Icons.Rain;
               if (tab.id === "stats") Icon = Icons.Stats;
               if (tab.id === "carte") Icon = Icons.Map;
-              if (tab.id === "sensors") Icon = Icons.Layers;
               if (tab.id === "data") Icon = Icons.Database;
 
+              const isStats = tab.id === "stats";
+              const isCarte = tab.id === "carte";
+
               return (
-                <button
-                  key={tab.id}
-                  className={activeTab === tab.id ? "nav-item active" : "nav-item"}
-                  onClick={() => setActiveTab(tab.id)}
-                  type="button"
-                >
-                  <Icon />
-                  {tab.label}
-                </button>
+                <div key={tab.id} style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <button
+                    className={activeTab === tab.id ? "nav-item active" : "nav-item"}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setMobileNavOpen(false);
+                    }}
+                    type="button"
+                  >
+                    <Icon />
+                    <span>{tab.label}</span>
+                  </button>
+
+                  {/* Sous-onglets de Cartographie dans la barre latérale gauche */}
+                  {isCarte && activeTab === "carte" && (
+                    <div className="nav-sub-list">
+                      {[
+                        { id: "precip", label: "🌧️ Précipitations" },
+                        { id: "deficit", label: "📉 Déficit 2020-22" },
+                        { id: "ndvi_classes", label: "🌿 Végétation (NDVI)" },
+                      ].map((sub) => (
+                        <button
+                          key={sub.id}
+                          className={`nav-sub-item ${mapSubItem === sub.id ? "active" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab("carte");
+                            setMapSubItem(sub.id);
+                            setMobileNavOpen(false);
+                          }}
+                          type="button"
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Sous-onglets de Statistiques & Analyses dans la barre latérale gauche */}
+                  {isStats && activeTab === "stats" && (
+                    <div className="nav-sub-list">
+                      {[
+                        { id: "precip", label: "🌧️ Précipitations" },
+                        { id: "vegetation", label: "🌿 Suivi Végétation" },
+                        { id: "saison", label: "🗓️ Saison des Pluies" },
+                        { id: "sensors", label: "🛰️ Capteurs" },
+                      ].map((sub) => (
+                        <button
+                          key={sub.id}
+                          className={`nav-sub-item ${statsCategory === sub.id ? "active" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab("stats");
+                            setStatsCategory(sub.id);
+                            setMobileNavOpen(false);
+                          }}
+                          type="button"
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -475,10 +691,20 @@ function App() {
 
       <div className="main-stage">
         <header className="navbar-top">
-          <div className="breadcrumb">
-            <span>Dynatsimo</span>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-active">{tabs.find((t) => t.id === activeTab)?.label}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Ouvrir le menu"
+              type="button"
+            >
+              <Icons.Menu />
+            </button>
+            <div className="breadcrumb">
+              <span className="breadcrumb-root">Dynatsimo</span>
+              <span className="breadcrumb-separator">/</span>
+              <span className="breadcrumb-active">{tabs.find((t) => t.id === activeTab)?.label}</span>
+            </div>
           </div>
 
           <div className="navbar-right">
@@ -525,40 +751,6 @@ function App() {
               vegData={data.vegetationData}
             />
           )}
-          {activeTab === "vegetation" && (
-            <SuiviVegetation
-              communes={data.communes}
-              regions={regionsList}
-              selectedRegion={selectedRegion}
-              setSelectedRegion={setSelectedRegion}
-              selectedCommune={currentCommune}
-              setSelectedCommune={setSelectedCommune}
-              selectedCommuneName={selectedCommuneName}
-              vegData={data.vegetationData}
-            />
-          )}
-          {activeTab === "saison" && (
-            <Saison
-              communes={filteredCommunesList}
-              regions={regionsList}
-              selectedRegion={selectedRegion}
-              setSelectedRegion={setSelectedRegion}
-              seasonData={data.seasonData}
-              selectedCommune={currentCommune}
-              selectedCommuneName={selectedCommuneName}
-              setSelectedCommune={setSelectedCommune}
-            />
-          )}
-          {activeTab === "stats" && (
-            <Statistiques
-              communes={data.communes}
-              annualData={data.annualData}
-              seasonData={data.seasonData}
-              monthlyClimatology={data.monthlyClimatology}
-              anomalies={data.anomalies}
-              precipRecords={data.precipRecords}
-            />
-          )}
           {activeTab === "carte" && (
             <Carte
               geojson={data.communesGeojson}
@@ -566,10 +758,29 @@ function App() {
               precipRecords={data.precipRecords}
               annualData={data.annualData}
               ndviClasses={data.ndviClasses}
+              isohyetesMeta={data.isohyetesMeta}
+              mapSubItem={mapSubItem}
+              setMapSubItem={setMapSubItem}
             />
           )}
-          {activeTab === "sensors" && (
-            <ComparaisonCapteurs vegData={data.vegetationData} selectedCommune={currentCommune} />
+          {activeTab === "stats" && (
+            <Statistiques
+              communes={data.communes}
+              regions={regionsList}
+              selectedRegion={selectedRegion}
+              setSelectedRegion={setSelectedRegion}
+              annualData={data.annualData}
+              seasonData={data.seasonData}
+              monthlyClimatology={data.monthlyClimatology}
+              anomalies={data.anomalies}
+              precipRecords={data.precipRecords}
+              vegData={data.vegetationData}
+              selectedCommune={selectedCommune}
+              setSelectedCommune={setSelectedCommune}
+              selectedCommuneName={selectedCommuneName}
+              statsCategory={statsCategory}
+              setStatsCategory={setStatsCategory}
+            />
           )}
           {activeTab === "data" && (
             <TableauExplorer geojson={data.communesGeojson} communesList={data.communes} />
@@ -586,6 +797,7 @@ function Metric({ label, value, type }) {
   if (type === "years") Icon = Icons.Stats;
   if (type === "records") Icon = Icons.Database;
   if (type === "ndvi") Icon = Icons.Leaf;
+  if (type === "precip" || type === "rain") Icon = Icons.Rain;
 
   return (
     <article className="metric-card">
@@ -636,15 +848,16 @@ function Overview({ annualData, communes, overview, vegData }) {
     return null;
   };
 
-  const avgNDVI = React.useMemo(() => {
-    if (!vegData?.ecoregions) return "0.38";
+  const avgPrecip = React.useMemo(() => {
+    if (!annualData || annualData.length === 0) return "—";
     const average = averageFinite(
-      Object.values(vegData.ecoregions).map((e) => e?.baselineNdvi?.[5]),
-      2,
-      0.38
+      annualData.map((d) => d.precip),
+      1,
+      null
     );
-    return average.toFixed(2);
-  }, [vegData]);
+    if (average === null) return "—";
+    return `${average.toLocaleString("fr-FR")} mm`;
+  }, [annualData]);
 
   return (
     <>
@@ -654,7 +867,7 @@ function Overview({ annualData, communes, overview, vegData }) {
           value={overview.nb_communes ?? communes.length}
           type="communes"
         />
-        <Metric label="NDVI Moyen (Pic)" value={avgNDVI} type="ndvi" />
+        <Metric label="Précipitation Moyenne" value={avgPrecip} type="precip" />
         <Metric label="Historique Données" value={overview.nb_years} type="years" />
       </section>
 
@@ -728,6 +941,7 @@ function Overview({ annualData, communes, overview, vegData }) {
   );
 }
 
+
 function SuiviVegetation({
   communes,
   regions,
@@ -737,6 +951,8 @@ function SuiviVegetation({
   setSelectedCommune,
   selectedCommuneName,
   vegData,
+  statsCategory,
+  setStatsCategory,
 }) {
   const [selectedDistrict, setSelectedDistrict] = React.useState("");
   const [selectedEcoregionTab, setSelectedEcoregionTab] = React.useState("spiny");
@@ -850,7 +1066,7 @@ function SuiviVegetation({
   return (
     <section className="split-layout">
       <aside className="filters-panel">
-        <h2>Localisation</h2>
+        <h2>Paramètres Végétation</h2>
 
         <div className="filter-group">
           <label htmlFor="region-sel">Région</label>
@@ -1002,94 +1218,6 @@ function SuiviVegetation({
             </div>
           </div>
         </div>
-
-        {/* Ecoregions Classification Info Panel */}
-        <div className="panel">
-          <div className="panel-heading">
-            <h2>
-              <Icons.Layers /> Reconnaissance automatique de l'Occupation du Sol par Écorégion
-            </h2>
-            <span>Classification spectrale automatique (2025)</span>
-          </div>
-
-          <div className="ecoregion-grid">
-            {vegData &&
-              vegData.ecoregions &&
-              Object.values(vegData.ecoregions).map((eco) => {
-                const isActive = eco.id === activeEcoregion;
-                const distrib = eco.classificationDistrib || {};
-                return (
-                  <div
-                    key={eco.id}
-                    className={`ecoregion-card ${isActive ? "active" : ""}`}
-                    onClick={() => setSelectedEcoregionTab(eco.id)}
-                  >
-                    <div className="ecoregion-header">
-                      <span className="ecoregion-name">{eco.name}</span>
-                      {eco.id === activeEcoregion && (
-                        <span className="alert-badge stable" style={{ fontSize: "8px" }}>
-                          Actuelle
-                        </span>
-                      )}
-                    </div>
-                    <p className="ecoregion-desc">{eco.description}</p>
-
-                    <div>
-                      <div className="distrib-bar-container">
-                        <div
-                          className="distrib-bar-segment segment-forest"
-                          style={{ width: `${distrib.foret_dense}%` }}
-                          title={`Forêt Dense: ${toFiniteNumber(distrib.foret_dense, 0)}%`}
-                        ></div>
-                        <div
-                          className="distrib-bar-segment segment-degraded"
-                          style={{ width: `${distrib.foret_degradee}%` }}
-                          title={`Forêt Dégradée: ${toFiniteNumber(distrib.foret_degradee, 0)}%`}
-                        ></div>
-                        <div
-                          className="distrib-bar-segment segment-thicket"
-                          style={{ width: `${distrib.fourre}%` }}
-                          title={`Fourré: ${toFiniteNumber(distrib.fourre, 0)}%`}
-                        ></div>
-                        <div
-                          className="distrib-bar-segment segment-crops"
-                          style={{ width: `${distrib.culture}%` }}
-                          title={`Cultures: ${toFiniteNumber(distrib.culture, 0)}%`}
-                        ></div>
-                        <div
-                          className="distrib-bar-segment segment-soil"
-                          style={{ width: `${distrib.sol_nu}%` }}
-                          title={`Sols nus/autres: ${toFiniteNumber(distrib.sol_nu, 0)}%`}
-                        ></div>
-                      </div>
-
-                      <div className="distrib-legend">
-                        <div className="legend-item">
-                          <span className="legend-color segment-forest"></span> F. Dense (
-                          {distrib.foret_dense}%)
-                        </div>
-                        <div className="legend-item">
-                          <span className="legend-color segment-degraded"></span> F. Dégr (
-                          {distrib.foret_degradee}%)
-                        </div>
-                        <div className="legend-item">
-                          <span className="legend-color segment-thicket"></span> Fourré (
-                          {distrib.fourre}%)
-                        </div>
-                        <div className="legend-item">
-                          <span className="legend-color segment-crops"></span> Cult. (
-                          {distrib.culture}%)
-                        </div>
-                        <div className="legend-item">
-                          <span className="legend-color segment-soil"></span> Nu ({distrib.sol_nu}%)
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -1105,6 +1233,8 @@ function Saison({
   selectedCommune,
   setSelectedCommune,
   selectedCommuneName,
+  statsCategory,
+  setStatsCategory,
 }) {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [subTab, setSubTab] = React.useState("start_end"); // 'start_end', 'max_month', 'timeline'
@@ -1160,14 +1290,46 @@ function Saison({
     });
   }, [filteredSeasonRows]);
 
-  // Month colors for "Mois le plus pluvieux" chart matching R script brewer colors
-  const monthColors = {
-    Nov: "#1f78b4",
-    Dec: "#33a02c",
-    Jan: "#e31a1c",
-    Fev: "#ff7f00",
-    Mar: "#6a3d9a",
-    Avr: "#b15928",
+  // Chronogram data sorted from most recent season to oldest
+  const chronogramRows = React.useMemo(() => {
+    return [...filteredSeasonRows].sort((a, b) => Number(b.saison) - Number(a.saison));
+  }, [filteredSeasonRows]);
+
+  const monthNamesFrMap = {
+    Jan: "Janvier",
+    Fev: "Février",
+    Mar: "Mars",
+    Avr: "Avril",
+    Mai: "Mai",
+    Jun: "Juin",
+    Jul: "Juillet",
+    Aou: "Août",
+    Sep: "Septembre",
+    Oct: "Octobre",
+    Nov: "Novembre",
+    Dec: "Décembre",
+  };
+
+  const CustomMaxMonthTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const monthCode = data.mois_plus_pluvieux || "";
+      const monthFull = monthNamesFrMap[monthCode] || monthCode || "Mois le plus pluvieux";
+      const precipVal = payload[0].value ?? data.precip ?? 0;
+
+      return (
+        <div className="recharts-custom-tooltip">
+          <p className="recharts-custom-tooltip-title" style={{ fontSize: "12px", fontWeight: "700" }}>
+            {monthFull}
+          </p>
+          <div className="recharts-custom-tooltip-item">
+            <span>Précipitation :</span>
+            <span>{Number(precipVal).toLocaleString("fr-FR")} mm</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -1322,23 +1484,24 @@ function Saison({
               <div style={{ width: "100%", height: 360, marginTop: "12px" }}>
                 <ResponsiveContainer>
                   <RechartsBarChart data={filteredSeasonRows} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
+                    <defs>
+                      <linearGradient id="colorMaxMonthPrecip" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary, #2563eb)" stopOpacity={0.85} />
+                        <stop offset="95%" stopColor="var(--primary, #2563eb)" stopOpacity={0.35} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                     <XAxis dataKey="saison" stroke="var(--text-muted)" fontSize={11} angle={-45} textAnchor="end" height={50} />
                     <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
-                    <RechartsTooltip
-                      formatter={(val, name, entry) => [
-                        `${val || 0} mm (${entry.payload.mois_plus_pluvieux || "N/A"})`,
-                        "Précip. Mois Max",
-                      ]}
+                    <RechartsTooltip content={<CustomMaxMonthTooltip />} />
+                    <Bar
+                      name="Précipitation Mois Max"
+                      dataKey="precip"
+                      fill="url(#colorMaxMonthPrecip)"
+                      stroke="var(--primary, #2563eb)"
+                      strokeWidth={1}
+                      radius={[4, 4, 0, 0]}
                     />
-                    <Bar name="Précipitation Mois Max" dataKey="precip" radius={[4, 4, 0, 0]}>
-                      {filteredSeasonRows.map((entry, idx) => (
-                        <Cell
-                          key={`cell-${idx}`}
-                          fill={monthColors[entry.mois_plus_pluvieux] || "#2563eb"}
-                        />
-                      ))}
-                    </Bar>
                   </RechartsBarChart>
                 </ResponsiveContainer>
               </div>
@@ -1346,7 +1509,7 @@ function Saison({
 
             {subTab === "timeline" && (
               <div className="timeline" style={{ marginTop: "12px" }}>
-                {filteredSeasonRows.map((row) => {
+                {chronogramRows.map((row) => {
                   const startIdx = hydroMonths.indexOf(row.debut);
                   const endIdx = hydroMonths.indexOf(row.fin);
 
@@ -1402,17 +1565,29 @@ function Saison({
   );
 }
 
-// Dedicated Statistiques Component matching R script tab
 function Statistiques({
-  communes,
-  annualData,
-  seasonData,
-  monthlyClimatology,
-  anomalies,
+  communes = [],
+  regions = [],
+  selectedRegion,
+  setSelectedRegion,
+  annualData = [],
+  seasonData = [],
+  monthlyClimatology = [],
+  anomalies = [],
   precipRecords = [],
+  vegData = [],
+  selectedCommune: appSelectedCommune,
+  setSelectedCommune: appSetSelectedCommune,
+  selectedCommuneName,
+  statsCategory: parentStatsCategory,
+  setStatsCategory: parentSetStatsCategory,
 }) {
+  const [localStatsCategory, setLocalStatsCategory] = React.useState("precip");
+  const statsCategory = parentStatsCategory || localStatsCategory;
+  const setStatsCategory = parentSetStatsCategory || setLocalStatsCategory;
+
   const [modeCommune, setModeCommune] = React.useState("Toutes les communes");
-  const [selectedCommune, setSelectedCommune] = React.useState(communes[0]?.code || "");
+  const [selectedCommune, setSelectedCommune] = React.useState(appSelectedCommune || communes[0]?.code || "");
   const [typeGraph, setTypeGraph] = React.useState("Histogramme");
   const [ordrePoly, setOrdrePoly] = React.useState(4);
 
@@ -1422,15 +1597,12 @@ function Statistiques({
 
   const titreStats = modeCommune === "Toutes les communes" ? "Toutes les communes" : (selectedCommuneObj?.nom || selectedCommune);
 
-  // Robust Resolution of Commune Annual Precipitation Series
   const communeAnnualSeries = React.useMemo(() => {
     if (modeCommune === "Toutes les communes") {
       return annualData.map((d) => ({ year: d.year, p: d.precip }));
     }
-
     const cCode = String(selectedCommune || "").trim().toUpperCase();
     const cNom = selectedCommuneObj?.nom?.toLowerCase() || "";
-
     if (seasonData && seasonData.length > 0) {
       const matched = seasonData.filter((r) => {
         if (!r) return false;
@@ -1439,12 +1611,11 @@ function Statistiques({
         if (r.commune && cNom && String(r.commune).toLowerCase() === cNom) return true;
         return false;
       });
-
       if (matched.length > 0) {
         const dict = {};
         matched.forEach((r) => {
           const yr = Number(r.saison);
-          if (yr >= 1981 && yr <= 2025 && Number.isFinite(Number(r.precip))) {
+          if (yr >= 1981 && Number.isFinite(Number(r.precip))) {
             dict[yr] = Number(r.precip);
           }
         });
@@ -1454,7 +1625,6 @@ function Statistiques({
         }
       }
     }
-
     if (precipRecords && precipRecords.length > 0) {
       const matched = precipRecords.filter((r) => r.code === selectedCommune);
       if (matched.length > 0) {
@@ -1466,17 +1636,14 @@ function Statistiques({
         return years.map((yr) => ({ year: yr, p: Math.round(dict[yr]) }));
       }
     }
-
     return annualData.map((d) => ({ year: d.year, p: d.precip }));
   }, [modeCommune, selectedCommune, selectedCommuneObj, seasonData, precipRecords, annualData]);
 
-  // Annual Trend & Polynomial Regression Fit
   const trendData = React.useMemo(() => {
     if (communeAnnualSeries.length === 0) return [];
     const years = communeAnnualSeries.map((d) => d.year);
     const vals = communeAnnualSeries.map((d) => d.p);
     const polyFits = polyFit(years, vals, ordrePoly);
-
     return communeAnnualSeries.map((d, i) => ({
       year: d.year,
       p: d.p,
@@ -1484,15 +1651,12 @@ function Statistiques({
     }));
   }, [communeAnnualSeries, ordrePoly]);
 
-  // Monthly Climatology (Jan..Dec)
   const climatologyData = React.useMemo(() => {
     const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-
     if (precipRecords && precipRecords.length > 0) {
       const filtered = modeCommune === "Toutes les communes"
         ? precipRecords
         : precipRecords.filter((r) => r.code === selectedCommune);
-
       if (filtered.length > 0) {
         const dict = {};
         for (let m = 1; m <= 12; m++) dict[m] = [];
@@ -1508,11 +1672,9 @@ function Statistiques({
         });
       }
     }
-
     if (modeCommune === "Toutes les communes" && monthlyClimatology) {
       return monthlyClimatology.map((d) => ({ month: d.month, p: d.precip }));
     }
-
     const meanAnn = communeAnnualSeries.reduce((a, b) => a + b.p, 0) / (communeAnnualSeries.length || 1);
     const weights = { Jan: 0.26, Fév: 0.22, Mar: 0.18, Dec: 0.14, Nov: 0.09, Avr: 0.05, Mai: 0.02, Jun: 0.01, Jul: 0.01, Aoû: 0.01, Sep: 0.01, Oct: 0.00 };
     return monthNames.map((m) => {
@@ -1522,267 +1684,433 @@ function Statistiques({
     });
   }, [modeCommune, selectedCommune, precipRecords, monthlyClimatology, communeAnnualSeries]);
 
-  // Annual Anomalies & Baseline SD (1981-2010)
   const { anomalyData, sdClim, meanClim, driestYear } = React.useMemo(() => {
     if (trendData.length === 0) return { anomalyData: [], sdClim: 0, meanClim: 0, driestYear: null };
     const refData = trendData.filter((d) => d.year >= 1981 && d.year <= 2010);
     const refVals = refData.length ? refData.map((d) => d.p) : trendData.map((d) => d.p);
-
     const mean = refVals.reduce((a, b) => a + b, 0) / refVals.length;
     const variance = refVals.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / refVals.length;
     const sd = Math.sqrt(variance);
-
     const minItem = [...trendData].sort((a, b) => a.p - b.p)[0];
-
     const data = trendData.map((d) => ({
       year: d.year,
       anomaly: Math.round(d.p - mean),
       isPositive: d.p - mean >= 0,
       p: d.p,
     }));
-
     return { anomalyData: data, sdClim: Math.round(sd), meanClim: Math.round(mean), driestYear: minItem };
   }, [trendData]);
 
-  // Histogram Frequency Bins
   const histogramData = React.useMemo(() => {
     const values = communeAnnualSeries.map((d) => d.p).filter((v) => Number.isFinite(v) && v > 0);
     if (values.length === 0) return [];
-
-    const maxVal = Math.max(...values);
     const minVal = Math.min(...values);
-    const numBins = 15;
-    const binWidth = Math.max(10, Math.ceil((maxVal - minVal) / numBins));
-
-    const bins = Array.from({ length: numBins }, (_, i) => {
-      const start = Math.floor(minVal) + i * binWidth;
-      const end = start + binWidth;
-      return {
-        label: `${start}-${end}`,
+    const maxVal = Math.max(...values);
+    const rawSpan = maxVal - minVal;
+    const targetBins = 10;
+    const rawStep = rawSpan / targetBins;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep > 0 ? rawStep : 1)));
+    const normStep = rawStep / mag;
+    let niceStep = 1 * mag;
+    if (normStep <= 1.2) niceStep = 1 * mag;
+    else if (normStep <= 2.2) niceStep = 2 * mag;
+    else if (normStep <= 3.8) niceStep = (mag >= 10 ? 2.5 * mag : 2.5);
+    else if (normStep <= 7.5) niceStep = 5 * mag;
+    else niceStep = 10 * mag;
+    niceStep = niceStep >= 1 ? Math.round(niceStep) : niceStep;
+    const start = Math.floor(minVal / niceStep) * niceStep;
+    const bins = [];
+    let curr = start;
+    while (curr < maxVal || bins.length < 5) {
+      const bEnd = curr + niceStep;
+      bins.push({
+        start: curr,
+        end: bEnd,
+        label: `${curr}–${bEnd}`,
+        rangeText: `${curr} à ${bEnd} mm`,
         count: 0,
-      };
+        years: [],
+      });
+      curr = bEnd;
+      if (bins.length >= 16) break;
+    }
+    communeAnnualSeries.forEach((d) => {
+      const v = d.p;
+      if (!Number.isFinite(v) || v <= 0) return;
+      let idx = Math.floor((v - start) / niceStep);
+      idx = Math.max(0, Math.min(bins.length - 1, idx));
+      if (bins[idx]) {
+        bins[idx].count += 1;
+        if (d.year) bins[idx].years.push(d.year);
+      }
     });
-
-    values.forEach((v) => {
-      const idx = Math.min(numBins - 1, Math.floor((v - minVal) / binWidth));
-      if (bins[idx]) bins[idx].count += 1;
-    });
-
     return bins;
   }, [communeAnnualSeries]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      {/* Top Executive KPI Cards */}
-      <section className="metric-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-        <article className="metric-card">
-          <div className="metric-icon-wrap" style={{ color: "var(--primary)" }}><Icons.Map /></div>
-          <div className="metric-info">
-            <strong style={{ fontSize: "14px" }}>{titreStats}</strong>
-            <span>{modeCommune === "Toutes les communes" ? "Échelle Régionale" : `District : ${selectedCommuneObj?.district || "N/A"}`}</span>
-          </div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-icon-wrap" style={{ color: "var(--accent)" }}><Icons.Stats /></div>
-          <div className="metric-info">
-            <strong>{meanClim} mm/an</strong>
-            <span>Climatologie (1981–2010)</span>
-          </div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-icon-wrap" style={{ color: "var(--warning)" }}><Icons.Rain /></div>
-          <div className="metric-info">
-            <strong>± {sdClim} mm</strong>
-            <span>Écart-Type (Variabilité)</span>
-          </div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-icon-wrap" style={{ color: "var(--danger)" }}><Icons.Alert /></div>
-          <div className="metric-info">
-            <strong style={{ color: "var(--danger)" }}>{driestYear ? `${driestYear.year} (${driestYear.p} mm)` : "N/A"}</strong>
-            <span>Année la plus sèche (Crise)</span>
-          </div>
-        </article>
-      </section>
+      {statsCategory === "vegetation" && (
+        <SuiviVegetation
+          communes={communes}
+          regions={regions}
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+          selectedCommune={appSelectedCommune}
+          setSelectedCommune={appSetSelectedCommune}
+          selectedCommuneName={selectedCommuneName}
+          vegData={vegData}
+          statsCategory={statsCategory}
+          setStatsCategory={setStatsCategory}
+        />
+      )}
 
-      {/* Main Analysis Section with Split Control Panel */}
-      <section className="split-layout">
-        <aside className="filters-panel">
-          <h2>Paramètres Statistiques</h2>
+      {statsCategory === "saison" && (
+        <Saison
+          communes={communes}
+          regions={regions}
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+          seasonData={seasonData}
+          selectedCommune={appSelectedCommune}
+          selectedCommuneName={selectedCommuneName}
+          setSelectedCommune={appSetSelectedCommune}
+          statsCategory={statsCategory}
+          setStatsCategory={setStatsCategory}
+        />
+      )}
 
-          <div className="filter-group">
-            <label style={{ fontWeight: "700" }}>Affichage des communes :</label>
-            <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
-              <button
-                className={`scale-tab-btn ${modeCommune === "Toutes les communes" ? "active" : ""}`}
-                onClick={() => setModeCommune("Toutes les communes")}
-                style={{ flex: 1, padding: "6px 8px", fontSize: "11px" }}
-              >
-                Toutes
-              </button>
-              <button
-                className={`scale-tab-btn ${modeCommune === "Choisir une commune" ? "active" : ""}`}
-                onClick={() => setModeCommune("Choisir une commune")}
-                style={{ flex: 1, padding: "6px 8px", fontSize: "11px" }}
-              >
-                Par Commune
-              </button>
-            </div>
-          </div>
+      {statsCategory === "sensors" && (
+        <ComparaisonCapteurs
+          vegData={vegData}
+          selectedCommune={appSelectedCommune}
+        />
+      )}
 
-          {modeCommune === "Choisir une commune" && (
-            <div className="filter-group" style={{ marginTop: "12px" }}>
-              <label htmlFor="commune-stats-sel">Choisir la commune :</label>
-              <select
-                id="commune-stats-sel"
-                value={selectedCommune}
-                onChange={(e) => setSelectedCommune(e.target.value)}
-              >
-                {communes.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.nom} ({c.code}) - {c.district || c.region}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+      {statsCategory === "precip" && (
+        <>
+          {/* Top Executive KPI Cards */}
+          <section className="metric-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+            <article className="metric-card">
+              <div className="metric-icon-wrap" style={{ color: "var(--primary)" }}><Icons.Map /></div>
+              <div className="metric-info">
+                <strong style={{ fontSize: "14px" }}>{titreStats}</strong>
+                <span>{modeCommune === "Toutes les communes" ? "Échelle Régionale" : `District : ${selectedCommuneObj?.district || "N/A"}`}</span>
+              </div>
+            </article>
+            <article className="metric-card">
+              <div className="metric-icon-wrap" style={{ color: "var(--accent)" }}><Icons.Stats /></div>
+              <div className="metric-info">
+                <strong>{meanClim} mm/an</strong>
+                <span>Climatologie (1981–2010)</span>
+              </div>
+            </article>
+            <article className="metric-card">
+              <div className="metric-icon-wrap" style={{ color: "var(--warning)" }}><Icons.Rain /></div>
+              <div className="metric-info">
+                <strong>± {sdClim} mm</strong>
+                <span>Écart-Type (Variabilité)</span>
+              </div>
+            </article>
+            <article className="metric-card">
+              <div className="metric-icon-wrap" style={{ color: "var(--danger)" }}><Icons.Alert /></div>
+              <div className="metric-info">
+                <strong style={{ color: "var(--danger)" }}>{driestYear ? `${driestYear.year} (${driestYear.p} mm)` : "N/A"}</strong>
+                <span>Année la plus sèche (Crise)</span>
+              </div>
+            </article>
+          </section>
 
-          <div className="filter-group" style={{ marginTop: "14px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
-            <label style={{ fontWeight: "700" }}>Type de graphique :</label>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
-              {[
-                { id: "Histogramme", label: "📊 Histogramme des pluies" },
-                { id: "Tendance", label: "📈 Tendance polynomiale" },
-                { id: "Climatologie mensuelle", label: "☀️ Climatologie mensuelle" },
-                { id: "Anomalies", label: "⚡ Anomalies (1981–2010)" },
-              ].map((g) => (
-                <button
-                  key={g.id}
-                  className={`scale-tab-btn ${typeGraph === g.id ? "active" : ""}`}
-                  onClick={() => setTypeGraph(g.id)}
-                  style={{ textAlign: "left", padding: "8px 10px", width: "100%", fontSize: "12px" }}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Main Analysis Section with Split Control Panel */}
+          <section className="split-layout">
+            <aside className="filters-panel">
+              <h2>Paramètres Pluviométrie</h2>
 
-          {typeGraph === "Tendance" && (
-            <div className="filter-group" style={{ marginTop: "14px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
-              <label style={{ fontWeight: "700" }}>Ordre de tendance polynomiale :</label>
-              <div style={{ display: "flex", gap: "4px", marginTop: "8px", flexWrap: "wrap" }}>
-                {[1, 2, 3, 4, 5].map((o) => (
+              <div className="filter-group">
+                <label style={{ fontWeight: "700" }}>Affichage des communes :</label>
+                <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
                   <button
-                    key={o}
-                    className={`scale-tab-btn ${ordrePoly === o ? "active" : ""}`}
-                    onClick={() => setOrdrePoly(o)}
-                    style={{ minWidth: "32px", padding: "6px" }}
+                    className={`scale-tab-btn ${modeCommune === "Toutes les communes" ? "active" : ""}`}
+                    onClick={() => setModeCommune("Toutes les communes")}
+                    style={{ flex: 1, padding: "6px 8px", fontSize: "11px" }}
                   >
-                    {o}{o === 4 ? " (R)" : ""}
+                    Toutes
                   </button>
-                ))}
+                  <button
+                    className={`scale-tab-btn ${modeCommune === "Choisir une commune" ? "active" : ""}`}
+                    onClick={() => setModeCommune("Choisir une commune")}
+                    style={{ flex: 1, padding: "6px 8px", fontSize: "11px" }}
+                  >
+                    Par Commune
+                  </button>
+                </div>
+              </div>
+
+              {modeCommune === "Choisir une commune" && (
+                <div className="filter-group" style={{ marginTop: "10px" }}>
+                  <label htmlFor="commune-select-stat">Commune :</label>
+                  <select
+                    id="commune-select-stat"
+                    value={selectedCommune}
+                    onChange={(e) => setSelectedCommune(e.target.value)}
+                  >
+                    {communes.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.nom} ({c.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="filter-group" style={{ marginTop: "14px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
+                <label style={{ fontWeight: "700" }}>Type de graphique :</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
+                  {[
+                    { id: "Histogramme", label: "📊 Histogramme des pluies" },
+                    { id: "Tendance", label: "📈 Tendance polynomiale" },
+                    { id: "Climatologie mensuelle", label: "☀️ Climatologie mensuelle" },
+                    { id: "Anomalies", label: "⚡ Anomalies (1981–2010)" },
+                  ].map((g) => (
+                    <button
+                      key={g.id}
+                      className={`scale-tab-btn ${typeGraph === g.id ? "active" : ""}`}
+                      onClick={() => setTypeGraph(g.id)}
+                      style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 10px", fontSize: "12px" }}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {typeGraph === "Tendance" && (
+                <div className="filter-group" style={{ marginTop: "14px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
+                  <label style={{ fontWeight: "700" }}>Ordre de tendance polynomiale :</label>
+                  <div style={{ display: "flex", gap: "4px", marginTop: "8px", flexWrap: "wrap" }}>
+                    {[1, 2, 3, 4, 5].map((o) => (
+                      <button
+                        key={o}
+                        className={`scale-tab-btn ${ordrePoly === o ? "active" : ""}`}
+                        onClick={() => setOrdrePoly(o)}
+                        style={{ minWidth: "32px", padding: "6px" }}
+                      >
+                        {o}{o === 4 ? " (R)" : ""}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+
+            <div className="panel">
+              <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <h2><Icons.Stats /> {typeGraph} — {titreStats}</h2>
+                  <span>Visualisation statistique temporelle et distribution</span>
+                </div>
+              </div>
+
+              {typeGraph === "Histogramme" && (
+                <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
+                  <ResponsiveContainer>
+                    <RechartsBarChart data={histogramData} margin={{ top: 20, right: 20, bottom: 35, left: 15 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        angle={-30}
+                        textAnchor="end"
+                        height={50}
+                        label={{
+                          value: "Classes de précipitation annuelle (mm)",
+                          position: "insideBottom",
+                          offset: -8,
+                          fontSize: 12,
+                          fill: "var(--text-main)",
+                          fontWeight: 600,
+                        }}
+                      />
+                      <YAxis
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        allowDecimals={false}
+                        label={{
+                          value: "Nombre d'années (Fréquence)",
+                          angle: -90,
+                          position: "insideLeft",
+                          fontSize: 12,
+                          fill: "var(--text-main)",
+                          offset: 5,
+                        }}
+                      />
+                      <RechartsTooltip
+                        formatter={(val, name, item) => [
+                          `${val} année${val > 1 ? "s" : ""}${item?.payload?.years?.length ? ` (${item.payload.years.join(", ")})` : ""}`,
+                          "Fréquence"
+                        ]}
+                        labelFormatter={(label, items) => {
+                          const itm = items?.[0]?.payload;
+                          return `Précipitation : ${itm?.rangeText || `${label} mm`}`;
+                        }}
+                      />
+                      <Bar name="Nombre d'années" dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {typeGraph === "Tendance" && (
+                <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
+                  <ResponsiveContainer>
+                    <ComposedChart data={trendData} margin={{ top: 20, right: 20, bottom: 30, left: 15 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                      <XAxis
+                        dataKey="year"
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        label={{ value: "Année", position: "insideBottom", offset: -5, fontSize: 11, fill: "var(--text-main)" }}
+                      />
+                      <YAxis
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        unit=" mm"
+                        label={{ value: "Précipitation annuelle (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "var(--text-main)", offset: 5 }}
+                      />
+                      <RechartsTooltip
+                        formatter={(val, name) => [`${Math.round(val)} mm`, name]}
+                        labelFormatter={(year) => `Année ${year}`}
+                      />
+                      <Legend verticalAlign="top" height={36} />
+                      <Line name="Précipitation annuelle (mm)" type="monotone" dataKey="p" stroke="#64748b" strokeWidth={1.5} dot={{ r: 3, fill: "#2563eb" }} />
+                      <Line name={`Tendance polynomiale (Ordre ${ordrePoly})`} type="monotone" dataKey="trend" stroke="#ef4444" strokeWidth={3} dot={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {typeGraph === "Climatologie mensuelle" && (
+                <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
+                  <ResponsiveContainer>
+                    <RechartsBarChart data={climatologyData} margin={{ top: 20, right: 20, bottom: 30, left: 15 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        stroke="var(--text-muted)"
+                        fontSize={12}
+                        label={{ value: "Mois de l'année", position: "insideBottom", offset: -5, fontSize: 11, fill: "var(--text-main)" }}
+                      />
+                      <YAxis
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        unit=" mm"
+                        label={{ value: "Précipitation moyenne (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "var(--text-main)", offset: 5 }}
+                      />
+                      <RechartsTooltip formatter={(val) => [`${Math.round(val)} mm`, "Précipitation Moyenne"]} />
+                      <Bar name="Précipitations moyennes (mm)" dataKey="p" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {typeGraph === "Anomalies" && (
+                <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
+                  <ResponsiveContainer>
+                    <RechartsBarChart data={anomalyData} margin={{ top: 20, right: 20, bottom: 30, left: 15 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                      <XAxis
+                        dataKey="year"
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        label={{ value: "Année", position: "insideBottom", offset: -5, fontSize: 11, fill: "var(--text-main)" }}
+                      />
+                      <YAxis
+                        stroke="var(--text-muted)"
+                        fontSize={11}
+                        unit=" mm"
+                        label={{ value: "Anomalie pluviométrique (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "var(--text-main)", offset: 5 }}
+                      />
+                      <RechartsTooltip
+                        formatter={(val) => [`${val > 0 ? "+" : ""}${Math.round(val)} mm`, "Anomalie"]}
+                        labelFormatter={(year) => `Année ${year}`}
+                      />
+                      <ReferenceArea y1={-sdClim} y2={sdClim} fill="#94a3b8" fillOpacity={0.2} />
+                      <ReferenceLine y={sdClim} stroke="#475569" strokeDasharray="4 4" label={{ value: `+1 SD (+${sdClim} mm)`, fill: "#475569", fontSize: 10, position: "top" }} />
+                      <ReferenceLine y={-sdClim} stroke="#475569" strokeDasharray="4 4" label={{ value: `-1 SD (-${sdClim} mm)`, fill: "#475569", fontSize: 10, position: "bottom" }} />
+                      <ReferenceLine y={0} stroke="#0f172a" strokeWidth={1} />
+                      <Bar name="Anomalie (mm)" dataKey="anomaly">
+                        {anomalyData.map((entry, idx) => (
+                          <Cell key={`cell-${idx}`} fill={entry.isPositive ? "#2563eb" : "#ef4444"} />
+                        ))}
+                      </Bar>
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              <div className="info-bulletin" style={{ marginTop: "16px", marginBottom: 0 }}>
+                <strong>Note méthodologique :</strong> La zone en arrière-plan gris sur le graphique d'anomalie correspond à $\pm 1$ écart-type par rapport à la moyenne climatologique de la période de référence 1981–2010 ({meanClim} mm/an). Les barres rouges représentent des années de déficit pluvial critique.
               </div>
             </div>
-          )}
-        </aside>
-
-        <div className="panel">
-          <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <h2><Icons.Stats /> {typeGraph} — {titreStats}</h2>
-              <span>Visualisation statistique temporelle et distribution</span>
-            </div>
-          </div>
-
-          {typeGraph === "Histogramme" && (
-            <div style={{ width: "100%", height: 380, marginTop: "12px" }}>
-              <ResponsiveContainer>
-                <RechartsBarChart data={histogramData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={11} angle={-30} textAnchor="end" height={45} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} label={{ value: "Nombre d'années", angle: -90, position: "insideLeft" }} />
-                  <RechartsTooltip formatter={(val) => [`${val} années`, "Fréquence"]} />
-                  <Bar name="Nombre d'années" dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </RechartsBarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {typeGraph === "Tendance" && (
-            <div style={{ width: "100%", height: 380, marginTop: "12px" }}>
-              <ResponsiveContainer>
-                <ComposedChart data={trendData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={11} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
-                  <RechartsTooltip />
-                  <Legend verticalAlign="top" height={36} />
-                  <Line name="Précipitation annuelle (mm)" type="monotone" dataKey="p" stroke="#64748b" strokeWidth={1.5} dot={{ r: 3, fill: "#2563eb" }} />
-                  <Line name={`Tendance polynomiale (Ordre ${ordrePoly})`} type="monotone" dataKey="trend" stroke="#ef4444" strokeWidth={3} dot={false} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {typeGraph === "Climatologie mensuelle" && (
-            <div style={{ width: "100%", height: 380, marginTop: "12px" }}>
-              <ResponsiveContainer>
-                <RechartsBarChart data={climatologyData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
-                  <RechartsTooltip formatter={(val) => [`${val} mm`, "Précipitation Moyenne"]} />
-                  <Bar name="Précipitations moyennes (mm)" dataKey="p" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                </RechartsBarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {typeGraph === "Anomalies" && (
-            <div style={{ width: "100%", height: 380, marginTop: "12px" }}>
-              <ResponsiveContainer>
-                <RechartsBarChart data={anomalyData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={11} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
-                  <RechartsTooltip formatter={(val) => [`${val} mm`, "Anomalie"]} />
-                  <ReferenceArea y1={-sdClim} y2={sdClim} fill="#94a3b8" fillOpacity={0.2} />
-                  <ReferenceLine y={sdClim} stroke="#475569" strokeDasharray="4 4" label={{ value: `+1 SD (+${sdClim} mm)`, fill: "#475569", fontSize: 10, position: "top" }} />
-                  <ReferenceLine y={-sdClim} stroke="#475569" strokeDasharray="4 4" label={{ value: `-1 SD (-${sdClim} mm)`, fill: "#475569", fontSize: 10, position: "bottom" }} />
-                  <ReferenceLine y={0} stroke="#0f172a" strokeWidth={1} />
-                  <Bar name="Anomalie (mm)" dataKey="anomaly">
-                    {anomalyData.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={entry.isPositive ? "#2563eb" : "#ef4444"} />
-                    ))}
-                  </Bar>
-                </RechartsBarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          <div className="info-bulletin" style={{ marginTop: "16px", marginBottom: 0 }}>
-            <strong>Note méthodologique :</strong> La zone en arrière-plan gris sur le graphique d'anomalie correspond à $\pm 1$ écart-type par rapport à la moyenne climatologique de la période de référence 1981–2010 ({meanClim} mm/an). Les barres rouges représentent des années de déficit pluvial critique.
-          </div>
-        </div>
-      </section>
+          </section>
+        </>
+      )}
     </div>
   );
 }
 
-// Carte Component matching R script carte_precip & carte_deficit + NDVI 6-Classes Raster Viewer
-function Carte({ geojson, communes = [], precipRecords = [], annualData = [], ndviClasses = null }) {
+// Carte Component matching R script carte_precip & carte_deficit + NDVI 6-Classes + Isohyètes CHIRPS
+function Carte({
+  geojson,
+  communes = [],
+  precipRecords = [],
+  annualData = [],
+  ndviClasses = null,
+  isohyetesMeta = null,
+  mapSubItem: parentMapSubItem,
+  setMapSubItem: parentSetMapSubItem,
+}) {
   const features = geojson?.features ?? [];
-  const [mapSubItem, setMapSubItem] = React.useState("precip"); // 'precip' | 'deficit' | 'ndvi_classes'
+  const [localMapSubItem, setLocalMapSubItem] = React.useState("precip");
+  const mapSubItem = parentMapSubItem || localMapSubItem;
+  const setMapSubItem = parentSetMapSubItem || setLocalMapSubItem;
   const [typeCarte, setTypeCarte] = React.useState("Choroplèthe"); // 'Choroplèthe' vs 'Isohyètes'
-  const [modeCommune, setModeCommune] = React.useState("Toutes les communes");
-  const [selectedCommunesList, setSelectedCommunesList] = React.useState([communes[0]?.code || "MG1102"]);
-  const [typePeriode, setTypePeriode] = React.useState("Annuel"); // 'Décennies' vs 'Annuel'
+  const [typePeriode, setTypePeriode] = React.useState("Mensuel"); // 'Mensuel' | 'Annuel' | 'Décennies'
   const [selectedDecades, setSelectedDecades] = React.useState(["1981–1989"]);
-  const [selectedYears, setSelectedYears] = React.useState([1981]);
-  const [selectedMonth, setSelectedMonth] = React.useState("Tous");
+  const [selectedYears, setSelectedYears] = React.useState([2024]);
+  const [selectedMonth, setSelectedMonth] = React.useState("Jan");
   const [basemap, setBasemap] = React.useState("OpenStreetMap");
+  const [showBasemapMenu, setShowBasemapMenu] = React.useState(false);
+  const basemapRef = React.useRef(null);
   const [selectedFeatureCode, setSelectedFeatureCode] = React.useState(features[0]?.properties?.code ?? "");
+
+  React.useEffect(() => {
+    function handleClickOutside(event) {
+      if (basemapRef.current && !basemapRef.current.contains(event.target)) {
+        setShowBasemapMenu(false);
+      }
+    }
+    if (showBasemapMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showBasemapMenu]);
+
+  // Isohyètes CHIRPS States
+  const [localIsohyetesMeta, setLocalIsohyetesMeta] = React.useState(isohyetesMeta);
+  const [loadedIsohyete, setLoadedIsohyete] = React.useState({ key: "", geojson: null });
+  const [showIsohyeteContours, setShowIsohyeteContours] = React.useState(true);
+  const [showIsohyeteRaster, setShowIsohyeteRaster] = React.useState(true);
+  const [isohyeteOpacity, setIsohyeteOpacity] = React.useState(0.6);
+  const [isohyeteLineStyle, setIsohyeteLineStyle] = React.useState("colored"); // 'colored' | 'qgis'
+
+  React.useEffect(() => {
+    if (isohyetesMeta) {
+      setLocalIsohyetesMeta(isohyetesMeta);
+    }
+  }, [isohyetesMeta]);
 
   // NDVI 6-Classes States
   const [isSyncing, setIsSyncing] = React.useState(false);
@@ -1899,20 +2227,251 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
     }
   };
 
-  const tileUrls = {
-    OpenStreetMap: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    "Google Satellite": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-  };
+  const basemapOptions = React.useMemo(
+    () => [
+      {
+        id: "OpenStreetMap",
+        label: "OpenStreetMap",
+        shortLabel: "Plan OSM",
+        icon: "🗺️",
+        desc: "Cartographie standard OSM",
+        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      },
+      {
+        id: "Google Satellite",
+        label: "Google Satellite",
+        shortLabel: "Satellite",
+        icon: "🛰️",
+        desc: "Imagerie satellite HD",
+        url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+        attribution: "&copy; Google Satellites",
+      },
+      {
+        id: "Google Hybrid",
+        label: "Google Hybride",
+        shortLabel: "Hybride",
+        icon: "🌍",
+        desc: "Satellite + routes & noms",
+        url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+        attribution: "&copy; Google Hybride",
+      },
+      {
+        id: "CartoDB Positron",
+        label: "CartoDB Clair",
+        shortLabel: "Clair",
+        icon: "☀️",
+        desc: "Fond clair épuré (idéal choroplèthe)",
+        url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      },
+      {
+        id: "CartoDB Dark",
+        label: "CartoDB Sombre",
+        shortLabel: "Sombre",
+        icon: "🌙",
+        desc: "Fond sombre contrasté",
+        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+      },
+      {
+        id: "ESRI Topo",
+        label: "Topographique",
+        shortLabel: "Relief",
+        icon: "⛰️",
+        desc: "Relief et courbes de niveau",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+      },
+    ],
+    []
+  );
 
-  const tileAttributions = {
-    OpenStreetMap: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    "Google Satellite": "&copy; Google Satellites",
-  };
+  const tileUrls = React.useMemo(() => {
+    const map = {};
+    basemapOptions.forEach((b) => {
+      map[b.id] = b.url;
+    });
+    return map;
+  }, [basemapOptions]);
+
+  const tileAttributions = React.useMemo(() => {
+    const map = {};
+    basemapOptions.forEach((b) => {
+      map[b.id] = b.attribution;
+    });
+    return map;
+  }, [basemapOptions]);
 
   const availableYears = React.useMemo(() => {
     const list = annualData.map((d) => d.year).sort((a, b) => a - b);
-    return list.length ? list : Array.from({ length: 45 }, (_, i) => 1981 + i);
+    return list.length ? list : Array.from({ length: 46 }, (_, i) => 1981 + i);
   }, [annualData]);
+
+  // Precipitation Timeline Player States & Logic
+  const [isPlayingPrecipTimeline, setIsPlayingPrecipTimeline] = React.useState(false);
+  const [precipPlaySpeed, setPrecipPlaySpeed] = React.useState(1200);
+
+  const monthNumMap = React.useMemo(() => ({
+    Jan: 1, Fev: 2, Mar: 3, Avr: 4, Mai: 5, Jun: 6,
+    Jul: 7, Aou: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12,
+  }), []);
+
+  const precipTimelineList = React.useMemo(() => {
+    if (typePeriode === "Décennies") {
+      const decadesFromMeta = localIsohyetesMeta?.decades;
+      if (decadesFromMeta && decadesFromMeta.length > 0) {
+        return decadesFromMeta.map((dec) => ({
+          key: dec,
+          label: dec,
+          type: "decade",
+          value: dec,
+        }));
+      }
+      const maxYear = availableYears[availableYears.length - 1] || 2026;
+      return [
+        { key: "1981–1989", label: "1981–1989", type: "decade", value: "1981–1989" },
+        { key: "1990–1999", label: "1990–1999", type: "decade", value: "1990–1999" },
+        { key: "2000–2009", label: "2000–2009", type: "decade", value: "2000–2009" },
+        { key: "2010–2019", label: "2010–2019", type: "decade", value: "2010–2019" },
+        { key: `2020–${maxYear}`, label: `2020–${maxYear}`, type: "decade", value: `2020–${maxYear}` },
+      ];
+    }
+    if (typePeriode === "Mensuel") {
+      const list = [];
+      const mCodes = ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"];
+      const mNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+      availableYears.forEach((y) => {
+        mCodes.forEach((mCode, idx) => {
+          list.push({
+            key: `ym_${y}_${mCode}`,
+            label: `${mNames[idx]} ${y}`,
+            type: "month_year",
+            year: y,
+            month: mCode,
+          });
+        });
+      });
+      return list;
+    }
+    // typePeriode === "Annuel"
+    return availableYears.map((y) => ({
+      key: `year_${y}`,
+      label: `Année ${y}`,
+      type: "year",
+      year: y,
+    }));
+  }, [typePeriode, availableYears]);
+
+  const currentPrecipTimelineIndex = React.useMemo(() => {
+    if (typePeriode === "Décennies") {
+      const idx = precipTimelineList.findIndex((item) => item.value === selectedDecades[0]);
+      return idx >= 0 ? idx : 0;
+    }
+    if (typePeriode === "Mensuel") {
+      const currYear = selectedYears[0] || availableYears[0] || 1981;
+      const currMonth = selectedMonth !== "Tous" ? selectedMonth : "Jan";
+      const idx = precipTimelineList.findIndex((item) => item.year === currYear && item.month === currMonth);
+      return idx >= 0 ? idx : 0;
+    }
+    const currYear = selectedYears[0] || availableYears[0] || 1981;
+    const idx = precipTimelineList.findIndex((item) => item.year === currYear);
+    return idx >= 0 ? idx : 0;
+  }, [precipTimelineList, typePeriode, selectedDecades, selectedYears, selectedMonth, availableYears]);
+
+  const activePrecipTimelineItem = React.useMemo(() => {
+    return precipTimelineList[currentPrecipTimelineIndex] || precipTimelineList[0];
+  }, [precipTimelineList, currentPrecipTimelineIndex]);
+
+  // Playback timer effect for Precipitation
+  React.useEffect(() => {
+    if (!isPlayingPrecipTimeline || precipTimelineList.length === 0) return;
+    const timer = setInterval(() => {
+      const nextIndex = (currentPrecipTimelineIndex + 1) % precipTimelineList.length;
+      const nextItem = precipTimelineList[nextIndex];
+      if (nextItem) {
+        if (nextItem.type === "decade") {
+          setSelectedDecades([nextItem.value]);
+        } else if (nextItem.type === "month_year") {
+          setSelectedYears([nextItem.year]);
+          setSelectedMonth(nextItem.month);
+        } else {
+          setSelectedYears([nextItem.year]);
+        }
+      }
+    }, precipPlaySpeed);
+    return () => clearInterval(timer);
+  }, [isPlayingPrecipTimeline, precipTimelineList, currentPrecipTimelineIndex, precipPlaySpeed]);
+
+  const handlePrecipTimelineStep = (direction) => {
+    if (precipTimelineList.length === 0) return;
+    let nextIndex = currentPrecipTimelineIndex + direction;
+    if (nextIndex < 0) nextIndex = precipTimelineList.length - 1;
+    if (nextIndex >= precipTimelineList.length) nextIndex = 0;
+    const nextItem = precipTimelineList[nextIndex];
+    if (nextItem) {
+      if (nextItem.type === "decade") {
+        setSelectedDecades([nextItem.value]);
+      } else if (nextItem.type === "month_year") {
+        setSelectedYears([nextItem.year]);
+        setSelectedMonth(nextItem.month);
+      } else {
+        setSelectedYears([nextItem.year]);
+      }
+    }
+  };
+
+  const handlePrecipTimelineScrub = (index) => {
+    const item = precipTimelineList[index];
+    if (item) {
+      if (item.type === "decade") {
+        setSelectedDecades([item.value]);
+      } else if (item.type === "month_year") {
+        setSelectedYears([item.year]);
+        setSelectedMonth(item.month);
+      } else {
+        setSelectedYears([item.year]);
+      }
+    }
+  };
+
+  const activeIsohyeteKey = React.useMemo(() => {
+    if (typePeriode === "Décennies") {
+      const dec = (selectedDecades[0] || "1981–1989").replace(/–|-/g, "_");
+      return `isohyete_decade_${dec}`;
+    }
+    const year = selectedYears[0] || 1981;
+    if (typePeriode === "Annuel") {
+      return `isohyete_${year}_annual`;
+    }
+    // typePeriode === "Mensuel"
+    const mNum = monthNumMap[selectedMonth] || 1;
+    return `isohyete_${year}_${String(mNum).padStart(2, "0")}`;
+  }, [typePeriode, selectedDecades, selectedYears, selectedMonth, monthNumMap]);
+
+  const activeIsohyeteItem = React.useMemo(() => {
+    return localIsohyetesMeta?.items?.[activeIsohyeteKey] || null;
+  }, [localIsohyetesMeta, activeIsohyeteKey]);
+
+  React.useEffect(() => {
+    if (typeCarte !== "Isohyètes" || !activeIsohyeteItem?.geojsonUrl) {
+      return;
+    }
+    let isMounted = true;
+    const reqKey = activeIsohyeteKey;
+    fetchJson(activeIsohyeteItem.geojsonUrl)
+      .then((gj) => {
+        if (isMounted) {
+          setLoadedIsohyete({ key: reqKey, geojson: gj });
+        }
+      })
+      .catch((e) => {
+        console.warn("Erreur chargement GeoJSON isohyètes", e);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [typeCarte, activeIsohyeteItem, activeIsohyeteKey]);
 
   // Compute calculated rainfall values for features based on active filters
   const calculatedPrecipMap = React.useMemo(() => {
@@ -1922,28 +2481,29 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
     let filtered = precipRecords;
     if (typePeriode === "Décennies") {
       const years = [];
-      if (selectedDecades.includes("1981–1989")) years.push(...Array.from({ length: 9 }, (_, i) => 1981 + i));
-      if (selectedDecades.includes("1990–1999")) years.push(...Array.from({ length: 10 }, (_, i) => 1990 + i));
-      if (selectedDecades.includes("2000–2009")) years.push(...Array.from({ length: 10 }, (_, i) => 2000 + i));
-      if (selectedDecades.includes("2010–2019")) years.push(...Array.from({ length: 10 }, (_, i) => 2010 + i));
-      if (selectedDecades.includes("2020–2025")) years.push(...Array.from({ length: 6 }, (_, i) => 2020 + i));
-      filtered = filtered.filter((r) => years.includes(r.year));
-    } else {
-      filtered = filtered.filter((r) => selectedYears.includes(r.year));
-      if (selectedMonth !== "Tous") {
-        const monthNum =
-          ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"].indexOf(
-            selectedMonth
-          ) + 1;
-        if (monthNum > 0) filtered = filtered.filter((r) => r.month === monthNum);
+      const selectedDec = selectedDecades[0] || "1981–1989";
+      const parts = selectedDec.split(/–|-/);
+      if (parts.length === 2) {
+        const startY = parseInt(parts[0], 10);
+        const endY = parseInt(parts[1], 10);
+        if (!isNaN(startY) && !isNaN(endY)) {
+          for (let y = startY; y <= endY; y++) years.push(y);
+        }
       }
+      filtered = filtered.filter((r) => years.includes(r.year));
+    } else if (typePeriode === "Mensuel") {
+      const currYear = selectedYears[0] || 1981;
+      const mNum = monthNumMap[selectedMonth] || 1;
+      filtered = filtered.filter((r) => r.year === currYear && r.month === mNum);
+    } else {
+      // typePeriode === "Annuel" (Cumul annuel complet de tous les mois de l'année)
+      const currYear = selectedYears[0] || 1981;
+      filtered = filtered.filter((r) => r.year === currYear);
     }
 
     const sums = {};
-    const counts = {};
     filtered.forEach((r) => {
       sums[r.code] = (sums[r.code] || 0) + r.precip;
-      counts[r.code] = (counts[r.code] || 0) + 1;
     });
 
     Object.keys(sums).forEach((code) => {
@@ -1951,88 +2511,192 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
     });
 
     return map;
-  }, [precipRecords, typePeriode, selectedDecades, selectedYears, selectedMonth]);
+  }, [precipRecords, typePeriode, selectedDecades, selectedYears, selectedMonth, monthNumMap]);
 
-  // Points for IDW spatial interpolation isohyets
-  const idwPoints = React.useMemo(() => {
-    if (typeCarte !== "Isohyètes" || mapSubItem !== "precip") return [];
-    const points = [];
-    features.forEach((f) => {
-      const code = f.properties.code;
-      if (modeCommune === "Choisir une commune" && !selectedCommunesList.includes(code)) return;
-      const val = calculatedPrecipMap[code] ?? f.properties.precip ?? 0;
-      if (f.geometry && f.geometry.coordinates) {
-        try {
-          const layer = L.geoJSON(f);
-          const bounds = layer.getBounds();
-          if (bounds.isValid()) {
-            const center = bounds.getCenter();
-            points.push({ lat: center.lat, lng: center.lng, val });
-          }
-        } catch (e) {}
+  // Statistiques dynamiques et bornes arrondies (nice round numbers : 10, 50, 100, 200...) pour TOUTES les cartes
+  const activePrecipStats = React.useMemo(() => {
+    if (typeCarte === "Isohyètes" && activeIsohyeteItem) {
+      const minV = Math.round(activeIsohyeteItem.minPrecip ?? 0);
+      const maxV = Math.round(activeIsohyeteItem.maxPrecip ?? 100);
+      const meanV = Math.round(activeIsohyeteItem.meanPrecip ?? ((minV + maxV) / 2));
+      return { min: minV, max: maxV, mean: meanV };
+    }
+    const vals = Object.values(calculatedPrecipMap);
+    if (vals.length > 0) {
+      const minV = Math.min(...vals);
+      const maxV = Math.max(...vals);
+      const meanV = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+      return { min: minV, max: maxV, mean: meanV };
+    }
+    return { min: 0, max: 800, mean: 400 };
+  }, [typeCarte, activeIsohyeteItem, calculatedPrecipMap]);
+
+  const { precipTicks: activePrecipScaleTicks, scaleMin: precipScaleMin, scaleMax: precipScaleMax } = React.useMemo(() => {
+    let minV = activePrecipStats.min;
+    let maxV = activePrecipStats.max;
+    if (minV >= maxV) {
+      minV = 0;
+      maxV = maxV > 0 ? maxV : 100;
+    }
+
+    const rawSpan = maxV - minV;
+    const targetCount = 5;
+    const rawStep = rawSpan / targetCount;
+
+    // Calcul d'un pas propre et arrondi (10, 20, 25, 50, 100, 200, 250, 500, etc.)
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep > 0 ? rawStep : 1)));
+    const normStep = rawStep / mag;
+    let niceStep = 1 * mag;
+    if (normStep <= 1.2) niceStep = 1 * mag;
+    else if (normStep <= 2.2) niceStep = 2 * mag;
+    else if (normStep <= 3.8) niceStep = (mag >= 10 ? 2.5 * mag : 2.5);
+    else if (normStep <= 7.5) niceStep = 5 * mag;
+    else niceStep = 10 * mag;
+
+    niceStep = niceStep >= 1 ? Math.round(niceStep) : niceStep;
+
+    // Point de départ arrondi
+    let start = Math.floor(minV / niceStep) * niceStep;
+    if (minV >= 0 && (start < 0 || minV < niceStep * 0.8)) {
+      start = 0;
+    }
+
+    const ticks = [start];
+    let curr = start;
+    while (curr < maxV || ticks.length < 5) {
+      curr += niceStep;
+      ticks.push(Number.isInteger(curr) ? curr : Math.round(curr * 10) / 10);
+      if (ticks.length >= 8) break;
+    }
+
+    const sMin = ticks[0] ?? minV;
+    const sMax = ticks[ticks.length - 1] ?? maxV;
+
+    return { precipTicks: ticks, scaleMin: sMin, scaleMax: sMax };
+  }, [activePrecipStats]);
+
+  // Isohyetes Style & Tooltip Handlers avec dégradé bleu (clair à foncé) — Tracé fin et précis
+  const getIsohyeteStyle = React.useCallback(
+    (feature) => {
+      const isohyetVal = feature.properties?.isohyete ?? 0;
+      const isIndex = isohyetVal % 100 === 0;
+      if (isohyeteLineStyle === "qgis") {
+        return {
+          color: isIndex ? "#0f172a" : "#334155",
+          weight: isIndex ? 1.1 : 0.6,
+          opacity: 0.85,
+        };
       }
-    });
-    return points;
-  }, [features, calculatedPrecipMap, typeCarte, mapSubItem, modeCommune, selectedCommunesList]);
+      const color = getIsohyeteColor(isohyetVal, precipScaleMin, precipScaleMax);
+      return {
+        color: color,
+        weight: isIndex ? 1.3 : 0.7,
+        opacity: 0.9,
+      };
+    },
+    [isohyeteLineStyle, precipScaleMin, precipScaleMax]
+  );
 
-  const idwGrid = React.useMemo(() => {
-    if (typeCarte !== "Isohyètes" || idwPoints.length === 0) return null;
-    return computeIDWGrid(idwPoints, 35, 2);
-  }, [idwPoints, typeCarte]);
+  const onEachIsohyeteFeature = React.useCallback(
+    (feature, layer) => {
+      const p = feature.properties;
+      layer.bindTooltip(
+        `<div style="font-weight:700;font-size:12px;color:#1e40af;">🌧️ Isohyète : ${p.label || `${p.isohyete} mm`}</div>
+         <div style="font-size:11px;color:#64748b;">Précipitation égale à ${p.isohyete} mm</div>`,
+        { sticky: true, direction: "top", opacity: 0.95 }
+      );
+      layer.on({
+        mouseover: (e) => {
+          const l = e.target;
+          l.setStyle({ weight: 2.8, opacity: 1, color: "#172554" });
+        },
+        mouseout: (e) => {
+          const l = e.target;
+          l.setStyle(getIsohyeteStyle(feature));
+        },
+      });
+    },
+    [getIsohyeteStyle]
+  );
+
+  const getCommuneIsohyeteOverlayStyle = React.useCallback(
+    (feature) => {
+      const code = feature.properties.code;
+      const isSelected = selectedFeatureCode === code;
+
+      if (isSelected) {
+        return {
+          fillColor: "rgba(37, 99, 235, 0.15)",
+          fillOpacity: 0.15,
+          color: "#1d4ed8",
+          weight: 2.5,
+          opacity: 1,
+        };
+      }
+
+      return {
+        fillColor: "transparent",
+        fillOpacity: 0,
+        color: "#94a3b8", // Gris clair
+        weight: 0.9,
+        dashArray: "3, 3", // Pointillés
+        opacity: 0.85,
+      };
+    },
+    [selectedFeatureCode]
+  );
 
   // Style function for Precipitation and Deficit choropleth features
   const getFeatureStyle = React.useCallback(
     (feature) => {
       const code = feature.properties.code;
       const isSelected = selectedFeatureCode === code;
-      const isFilteredOut = modeCommune === "Choisir une commune" && !selectedCommunesList.includes(code);
-
-      if (isFilteredOut) {
-        return { fillColor: "#cbd5e1", fillOpacity: 0.15, color: "#94a3b8", weight: 0.5 };
-      }
 
       if (mapSubItem === "deficit") {
         const deficit = feature.properties.deficit ?? 0;
-        let fillColor = "#f7f7f7";
-        if (deficit < -60) fillColor = "#7f0000";
-        else if (deficit < -40) fillColor = "#b30000";
-        else if (deficit < -20) fillColor = "#e34a33";
-        else if (deficit < 0) fillColor = "#fdbb84";
+        const deficitPalette = [
+          "#fff5f0",
+          "#fee0d2",
+          "#fcbba1",
+          "#fc9272",
+          "#fb6a4a",
+          "#ef3b2c",
+          "#cb181d",
+          "#99000d",
+          "#67000d",
+        ];
+        // Plage de déficit de 0% à -40% (adaptée aux données réelles de -6.9% à -29.9%)
+        const absVal = Math.max(0, Math.min(40, Math.abs(deficit)));
+        const ratio = absVal / 40.0;
+        const idx = Math.min(deficitPalette.length - 1, Math.floor(ratio * deficitPalette.length));
+        const fillColor = deficitPalette[idx];
 
         return {
           fillColor,
-          fillOpacity: isSelected ? 0.9 : 0.65,
-          color: isSelected ? "#000" : "#334155",
-          weight: isSelected ? 2.5 : 0.8,
+          fillOpacity: isSelected ? 0.95 : 0.75,
+          color: isSelected ? "#0f172a" : "#334155",
+          weight: isSelected ? 2.5 : 0.9,
+          opacity: 0.85,
         };
       }
 
-      // Précipitations Map
+      // Précipitations Map (Carte choroplèthe en dégradé bleu)
       const val = calculatedPrecipMap[code] ?? feature.properties.precip ?? 0;
-      const palette = [
-        "#eff6ff",
-        "#dbeafe",
-        "#bfdbfe",
-        "#93c5fd",
-        "#60a5fa",
-        "#3b82f6",
-        "#2563eb",
-        "#1d4ed8",
-        "#1e40af",
-      ];
-      const maxVal = Math.max(...Object.values(calculatedPrecipMap), 800);
-      const ratio = Math.max(0, Math.min(1, val / (maxVal || 1)));
-      const idx = Math.min(palette.length - 1, Math.floor(ratio * palette.length));
-      const fillColor = palette[idx];
+      const minVal = precipScaleMin;
+      const maxVal = precipScaleMax;
+      const ratio = maxVal > minVal ? Math.max(0, Math.min(1, (val - minVal) / (maxVal - minVal))) : 0.5;
+      const idx = Math.min(PRECIP_BLUE_PALETTE.length - 1, Math.floor(ratio * PRECIP_BLUE_PALETTE.length));
+      const fillColor = PRECIP_BLUE_PALETTE[idx];
 
       return {
         fillColor,
-        fillOpacity: isSelected ? 0.95 : 0.65,
-        color: isSelected ? "#1d4ed8" : "#1e293b",
-        weight: isSelected ? 2.5 : 0.8,
+        fillOpacity: isSelected ? 0.95 : 0.8,
+        color: isSelected ? "#0f172a" : "#334155",
+        weight: isSelected ? 2.5 : 0.9,
+        opacity: 0.85,
       };
     },
-    [selectedFeatureCode, mapSubItem, calculatedPrecipMap, modeCommune, selectedCommunesList]
+    [selectedFeatureCode, mapSubItem, calculatedPrecipMap, precipScaleMin, precipScaleMax]
   );
 
   // Style function for Commune Layer overlaid on top of NDVI raster
@@ -2040,24 +2704,14 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
     (feature) => {
       const code = feature.properties.code;
       const isSelected = selectedFeatureCode === code;
-      const isFilteredOut = modeCommune === "Choisir une commune" && !selectedCommunesList.includes(code);
-
-      if (isFilteredOut) {
-        return {
-          fillColor: "transparent",
-          fillOpacity: 0,
-          color: "#94a3b8",
-          weight: 0.6,
-          dashArray: "3, 3",
-        };
-      }
 
       if (isSelected) {
         return {
           fillColor: "rgba(59, 130, 246, 0.25)",
           fillOpacity: 0.25,
           color: "#2563eb",
-          weight: 3,
+          weight: 2.5,
+          opacity: 1,
         };
       }
 
@@ -2066,11 +2720,11 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
           communeOverlayStyle === "light_tint" ? "rgba(255, 255, 255, 0.08)" : "transparent",
         fillOpacity: communeOverlayStyle === "light_tint" ? 0.08 : 0,
         color: "#1e293b",
-        weight: 1.2,
+        weight: 1.0,
         opacity: 0.85,
       };
     },
-    [selectedFeatureCode, modeCommune, selectedCommunesList, communeOverlayStyle]
+    [selectedFeatureCode, communeOverlayStyle]
   );
 
   const selectedFeature = features.find((f) => f.properties.code === selectedFeatureCode) ?? features[0];
@@ -2106,34 +2760,6 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
     <section className="split-layout">
       <aside className="filters-panel">
         <h2>Paramètres Carte</h2>
-
-        {/* Sous-onglets de sélection de la carte */}
-        <div className="filter-group">
-          <label style={{ fontWeight: "700" }}>Affichage Carte :</label>
-          <div style={{ display: "flex", gap: "4px", marginTop: "6px", flexWrap: "wrap" }}>
-            <button
-              className={`scale-tab-btn ${mapSubItem === "precip" ? "active" : ""}`}
-              onClick={() => setMapSubItem("precip")}
-              style={{ flex: 1, padding: "6px 4px", fontSize: "11px", minWidth: "85px" }}
-            >
-              Précipitations
-            </button>
-            <button
-              className={`scale-tab-btn ${mapSubItem === "deficit" ? "active" : ""}`}
-              onClick={() => setMapSubItem("deficit")}
-              style={{ flex: 1, padding: "6px 4px", fontSize: "11px", minWidth: "95px" }}
-            >
-              Déficit 2020-22
-            </button>
-            <button
-              className={`scale-tab-btn ${mapSubItem === "ndvi_classes" ? "active" : ""}`}
-              onClick={() => setMapSubItem("ndvi_classes")}
-              style={{ flex: 1, padding: "6px 4px", fontSize: "11px", minWidth: "120px", fontWeight: "800" }}
-            >
-              🌿 NDVI (6 Classes)
-            </button>
-          </div>
-        </div>
 
         {/* Options pour NDVI 6 Classes */}
         {mapSubItem === "ndvi_classes" && (
@@ -2303,37 +2929,6 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
                       Teinte légère
                     </label>
                   </div>
-
-                  <div style={{ marginTop: "4px" }}>
-                    <label htmlFor="mode-commune-ndvi" style={{ fontSize: "11px" }}>Filtrer une commune :</label>
-                    <select
-                      id="mode-commune-ndvi"
-                      value={modeCommune}
-                      onChange={(e) => setModeCommune(e.target.value)}
-                      style={{ fontSize: "11px" }}
-                    >
-                      <option value="Toutes les communes">Toutes les communes</option>
-                      <option value="Choisir une commune">Mettre en évidence une commune</option>
-                    </select>
-                  </div>
-
-                  {modeCommune === "Choisir une commune" && (
-                    <select
-                      id="communes-sel-ndvi"
-                      value={selectedCommunesList[0]}
-                      onChange={(e) => {
-                        setSelectedCommunesList([e.target.value]);
-                        setSelectedFeatureCode(e.target.value);
-                      }}
-                      style={{ fontSize: "11px" }}
-                    >
-                      {communes.map((c) => (
-                        <option key={c.code} value={c.code}>
-                          {c.nom} ({c.code})
-                        </option>
-                      ))}
-                    </select>
-                  )}
                 </div>
               )}
             </div>
@@ -2346,7 +2941,7 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
             <div className="filter-group" style={{ marginTop: "10px" }}>
               <label style={{ fontWeight: "700" }}>Type de carte :</label>
               <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", cursor: "pointer" }}>
                   <input
                     type="radio"
                     name="type_carte"
@@ -2356,7 +2951,7 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
                   />
                   Choroplèthe
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", cursor: "pointer" }}>
                   <input
                     type="radio"
                     name="type_carte"
@@ -2364,62 +2959,163 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
                     checked={typeCarte === "Isohyètes"}
                     onChange={(e) => setTypeCarte(e.target.value)}
                   />
-                  Isohyètes (IDW)
+                  Isohyètes (CHIRPS)
                 </label>
               </div>
             </div>
 
-            <div className="filter-group" style={{ marginTop: "10px" }}>
-              <label htmlFor="mode-commune-carte">Affichage des communes :</label>
-              <select
-                id="mode-commune-carte"
-                value={modeCommune}
-                onChange={(e) => setModeCommune(e.target.value)}
+            {/* Options additionnelles pour Isohyètes */}
+            {typeCarte === "Isohyètes" && (
+              <div
+                style={{
+                  marginTop: "10px",
+                  background: "var(--bg-secondary)",
+                  padding: "10px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border-color)",
+                }}
               >
-                <option value="Toutes les communes">Toutes les communes</option>
-                <option value="Choisir une commune">Choisir une commune</option>
-              </select>
-            </div>
-
-            {modeCommune === "Choisir une commune" && (
-              <div className="filter-group" style={{ marginTop: "8px" }}>
-                <label htmlFor="communes-sel-multi">Choisir commune :</label>
-                <select
-                  id="communes-sel-multi"
-                  value={selectedCommunesList[0]}
-                  onChange={(e) => setSelectedCommunesList([e.target.value])}
+                <label
+                  style={{
+                    fontWeight: "700",
+                    color: "var(--primary)",
+                    fontSize: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
                 >
-                  {communes.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.nom} ({c.code})
-                    </option>
-                  ))}
-                </select>
+                  🌧️ Options Isohyètes :
+                </label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={showIsohyeteContours}
+                      onChange={(e) => setShowIsohyeteContours(e.target.checked)}
+                    />
+                    <span>Courbes isohyètes (intervalle 50 mm)</span>
+                  </label>
+
+                  {showIsohyeteContours && (
+                    <div style={{ display: "flex", gap: "10px", fontSize: "11px", marginLeft: "18px", marginTop: "2px" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                        <input
+                          type="radio"
+                          name="isohyete_line_style"
+                          value="colored"
+                          checked={isohyeteLineStyle === "colored"}
+                          onChange={(e) => setIsohyeteLineStyle(e.target.value)}
+                        />
+                        Colorées
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                        <input
+                          type="radio"
+                          name="isohyete_line_style"
+                          value="qgis"
+                          checked={isohyeteLineStyle === "qgis"}
+                          onChange={(e) => setIsohyeteLineStyle(e.target.value)}
+                        />
+                        Style SIG (QGIS)
+                      </label>
+                    </div>
+                  )}
+
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer", marginTop: "4px" }}>
+                    <input
+                      type="checkbox"
+                      checked={showIsohyeteRaster}
+                      onChange={(e) => setShowIsohyeteRaster(e.target.checked)}
+                    />
+                    <span>Calque raster CHIRPS (surface)</span>
+                  </label>
+                  {showIsohyeteRaster && (
+                    <div style={{ marginTop: "4px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--text-muted)" }}>
+                        <span>Opacité raster :</span>
+                        <span>{Math.round(isohyeteOpacity * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={isohyeteOpacity}
+                        onChange={(e) => setIsohyeteOpacity(Number(e.target.value))}
+                        style={{ width: "100%", height: "4px", marginTop: "2px" }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {activeIsohyeteItem && (
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      paddingTop: "6px",
+                      borderTop: "1px dashed var(--border-color)",
+                      fontSize: "11px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "3px",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Min :</span>
+                      <strong>{activeIsohyeteItem.minPrecip} mm</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Moyenne :</span>
+                      <strong>{activeIsohyeteItem.meanPrecip} mm</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Max :</span>
+                      <strong style={{ color: "var(--primary)" }}>{activeIsohyeteItem.maxPrecip} mm</strong>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             <div className="filter-group" style={{ marginTop: "10px" }}>
               <label style={{ fontWeight: "700" }}>Période d'affichage :</label>
-              <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
+              <div style={{ display: "flex", gap: "8px", marginTop: "4px", flexWrap: "wrap" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer" }}>
                   <input
                     type="radio"
                     name="type_periode"
-                    value="Décennies"
-                    checked={typePeriode === "Décennies"}
-                    onChange={(e) => setTypePeriode(e.target.value)}
+                    value="Mensuel"
+                    checked={typePeriode === "Mensuel"}
+                    onChange={() => {
+                      setTypePeriode("Mensuel");
+                      if (selectedMonth === "Tous") setSelectedMonth("Jan");
+                    }}
                   />
-                  Décennies
+                  Mensuel (Mois/Année)
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer" }}>
                   <input
                     type="radio"
                     name="type_periode"
                     value="Annuel"
                     checked={typePeriode === "Annuel"}
-                    onChange={(e) => setTypePeriode(e.target.value)}
+                    onChange={() => {
+                      setTypePeriode("Annuel");
+                      setSelectedMonth("Tous");
+                    }}
                   />
-                  Annuel
+                  Annuel (Cumul)
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="type_periode"
+                    value="Décennies"
+                    checked={typePeriode === "Décennies"}
+                    onChange={() => setTypePeriode("Décennies")}
+                  />
+                  Décennies
                 </label>
               </div>
             </div>
@@ -2432,16 +3128,49 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
                   value={selectedDecades[0]}
                   onChange={(e) => setSelectedDecades([e.target.value])}
                 >
-                  <option value="1981–1989">1981–1989</option>
-                  <option value="1990–1999">1990–1999</option>
-                  <option value="2000–2009">2000–2009</option>
-                  <option value="2010–2019">2010–2019</option>
-                  <option value="2020–2025">2020–2025</option>
+                  {(localIsohyetesMeta?.decades || [
+                    "1981–1989",
+                    "1990–1999",
+                    "2000–2009",
+                    "2010–2019",
+                    `2020–${availableYears[availableYears.length - 1] || 2026}`,
+                  ]).map((dec) => (
+                    <option key={dec} value={dec}>
+                      {dec}
+                    </option>
+                  ))}
                 </select>
               </div>
-            ) : (
-              <>
-                <div className="filter-group" style={{ marginTop: "8px" }}>
+            ) : typePeriode === "Mensuel" ? (
+              <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                <div className="filter-group" style={{ flex: 1 }}>
+                  <label htmlFor="mois-sel">Mois :</label>
+                  <select
+                    id="mois-sel"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                  >
+                    {[
+                      { code: "Jan", name: "Janvier" },
+                      { code: "Fev", name: "Février" },
+                      { code: "Mar", name: "Mars" },
+                      { code: "Avr", name: "Avril" },
+                      { code: "Mai", name: "Mai" },
+                      { code: "Jun", name: "Juin" },
+                      { code: "Jul", name: "Juillet" },
+                      { code: "Aou", name: "Août" },
+                      { code: "Sep", name: "Septembre" },
+                      { code: "Oct", name: "Octobre" },
+                      { code: "Nov", name: "Novembre" },
+                      { code: "Dec", name: "Décembre" },
+                    ].map((m) => (
+                      <option key={m.code} value={m.code}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-group" style={{ flex: 1 }}>
                   <label htmlFor="annee-sel">Année :</label>
                   <select
                     id="annee-sel"
@@ -2455,39 +3184,89 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
                     ))}
                   </select>
                 </div>
-
-                <div className="filter-group" style={{ marginTop: "8px" }}>
-                  <label htmlFor="mois-sel">Mois :</label>
-                  <select
-                    id="mois-sel"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                  >
-                    <option value="Tous">Tous</option>
-                    {["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"].map(
-                      (m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-              </>
+              </div>
+            ) : (
+              <div className="filter-group" style={{ marginTop: "8px" }}>
+                <label htmlFor="annee-sel">Année (Cumul annuel) :</label>
+                <select
+                  id="annee-sel"
+                  value={selectedYears[0]}
+                  onChange={(e) => setSelectedYears([Number(e.target.value)])}
+                >
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
+
+            {/* Lecteur Temporel / Animation Timeline pour Précipitations (Choroplèthe & Isohyètes) */}
+            <div className="timeline-player-panel" style={{ marginTop: "12px" }}>
+              <div className="timeline-header">
+                <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase" }}>
+                  Animation Temporelle :
+                </span>
+                <span className="timeline-period-badge">
+                  {activePrecipTimelineItem?.label || (typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${selectedMonth} ${selectedYears[0]}` : `Année ${selectedYears[0]}`)}
+                </span>
+              </div>
+
+              <div className="timeline-buttons">
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={() => handlePrecipTimelineStep(-1)}
+                  title="Période précédente"
+                >
+                  ⏮ Préc.
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-btn ${isPlayingPrecipTimeline ? "play-active" : ""}`}
+                  onClick={() => setIsPlayingPrecipTimeline(!isPlayingPrecipTimeline)}
+                  title={isPlayingPrecipTimeline ? "Mettre en pause" : "Lancer l'animation chronologique"}
+                >
+                  {isPlayingPrecipTimeline ? "⏸ Pause" : "▶ Lecture"}
+                </button>
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={() => handlePrecipTimelineStep(1)}
+                  title="Période suivante"
+                >
+                  Suiv. ⏭
+                </button>
+              </div>
+
+              <input
+                type="range"
+                className="timeline-scrubber"
+                min={0}
+                max={Math.max(0, precipTimelineList.length - 1)}
+                value={currentPrecipTimelineIndex}
+                onChange={(e) => handlePrecipTimelineScrub(Number(e.target.value))}
+                title="Glissez pour changer de période"
+              />
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "var(--text-muted)" }}>
+                <span>Vitesse :</span>
+                <select
+                  value={precipPlaySpeed}
+                  onChange={(e) => setPrecipPlaySpeed(Number(e.target.value))}
+                  style={{ fontSize: "10px", padding: "2px 4px" }}
+                >
+                  <option value={2000}>Lente (2.0s)</option>
+                  <option value={1200}>Normale (1.2s)</option>
+                  <option value={600}>Rapide (0.6s)</option>
+                </select>
+              </div>
+            </div>
           </>
         )}
 
-        <div
-          className="filter-group"
-          style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "10px" }}
-        >
-          <label htmlFor="basemap-sel">Fond de carte :</label>
-          <select id="basemap-sel" value={basemap} onChange={(e) => setBasemap(e.target.value)}>
-            <option value="OpenStreetMap">OpenStreetMap</option>
-            <option value="Google Satellite">Google Satellite</option>
-          </select>
-        </div>
+
 
         {selectedFeature && (
           <div className="feature-summary" style={{ marginTop: "16px" }}>
@@ -2542,17 +3321,80 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
               ? `Classification NDVI MODIS 6 Classes — ${activePeriod?.label || `${monthNamesFr[ndviMonth - 1]} ${ndviYear}`}`
               : mapSubItem === "deficit"
               ? "Carte du déficit de précipitation (2020-2022)"
-              : `Carte des précipitations (${typeCarte})`}
+              : typeCarte === "Isohyètes"
+              ? `Carte des Isohyètes CHIRPS — ${activeIsohyeteItem?.label || (typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`)}`
+              : `Carte des précipitations (Choroplèthe) — ${typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}`}
           </h2>
           <span>
             {mapSubItem === "ndvi_classes"
               ? "Survolez ou cliquez sur une commune pour afficher son nom et ses limites"
+              : typeCarte === "Isohyètes"
+              ? "Survolez les courbes isohyètes ou les communes pour afficher les valeurs de précipitation"
               : "Cliquez sur une commune pour afficher les détails"}
           </span>
         </div>
 
         <div className="geo-map-container">
           <div className="geo-map-wrapper" style={{ height: "460px" }}>
+            {/* Contrôle flottant du Fond de carte directement SUR la carte */}
+            <div
+              ref={basemapRef}
+              className="map-basemap-control"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className={`map-basemap-toggle-btn ${showBasemapMenu ? "open" : ""}`}
+                onClick={() => setShowBasemapMenu((prev) => !prev)}
+                title="Changer le fond de carte"
+              >
+                <Icons.Layers />
+                <span>Fond de carte</span>
+                <span className="current-basemap-pill">
+                  {basemapOptions.find((b) => b.id === basemap)?.shortLabel || basemap}
+                </span>
+              </button>
+
+              {showBasemapMenu && (
+                <div className="map-basemap-dropdown">
+                  <div className="map-basemap-dropdown-header">
+                    <span>Fonds de carte</span>
+                    <button
+                      type="button"
+                      className="map-basemap-close-btn"
+                      onClick={() => setShowBasemapMenu(false)}
+                      title="Fermer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  <div className="map-basemap-options-grid">
+                    {basemapOptions.map((opt) => {
+                      const isActive = basemap === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          className={`map-basemap-card ${isActive ? "active" : ""}`}
+                          onClick={() => {
+                            setBasemap(opt.id);
+                            setShowBasemapMenu(false);
+                          }}
+                        >
+                          <span className="basemap-icon">{opt.icon}</span>
+                          <div className="basemap-card-info">
+                            <span className="basemap-title">{opt.label}</span>
+                            <span className="basemap-desc">{opt.desc}</span>
+                          </div>
+                          {isActive && <span className="basemap-active-check">✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <MapContainer
               className="geo-map"
               center={[-24.5, 45.5]}
@@ -2572,30 +3414,83 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
                 />
               )}
 
-              {/* Isohyètes IDW Raster Grid Layer */}
+              {/* Raster Isohyètes CHIRPS Overlay */}
               {mapSubItem === "precip" &&
                 typeCarte === "Isohyètes" &&
-                idwGrid &&
-                idwGrid.cells.map((cell, i) => {
-                  const ratio = Math.max(
-                    0,
-                    Math.min(1, (cell.val - idwGrid.minVal) / (idwGrid.maxVal - idwGrid.minVal || 1))
-                  );
-                  const color = `rgba(37, 99, 235, ${0.15 + ratio * 0.7})`;
-                  return (
-                    <Rectangle
-                      key={`idw-${i}`}
-                      bounds={cell.bounds}
-                      pathOptions={{ color: "transparent", fillColor: color, fillOpacity: 0.65 }}
-                    />
-                  );
-                })}
+                showIsohyeteRaster &&
+                activeIsohyeteItem?.pngUrl && (
+                  <ImageOverlay
+                    key={`iso-raster-${activeIsohyeteKey}`}
+                    url={activeIsohyeteItem.pngUrl}
+                    bounds={localIsohyetesMeta?.bounds || [[-25.650001, 43.150003], [-20.900001, 47.450003]]}
+                    opacity={isohyeteOpacity}
+                    zIndex={10}
+                  />
+                )}
 
-              {/* Couche des Communes en mode Précip / Déficit */}
-              {mapSubItem !== "ndvi_classes" && geojson && geojson.features && (
+              {/* Courbes vectorielles GeoJSON d'Isohyètes */}
+              {mapSubItem === "precip" &&
+                typeCarte === "Isohyètes" &&
+                showIsohyeteContours &&
+                loadedIsohyete.key === activeIsohyeteKey &&
+                loadedIsohyete.geojson &&
+                loadedIsohyete.geojson.features && (
+                  <GeoJSON
+                    key={`iso-geojson-${loadedIsohyete.key}`}
+                    data={loadedIsohyete.geojson}
+                    style={getIsohyeteStyle}
+                    onEachFeature={onEachIsohyeteFeature}
+                  />
+                )}
+
+              {/* Couche des Communes en mode Isohyètes */}
+              {mapSubItem === "precip" && typeCarte === "Isohyètes" && geojson && geojson.features && (
                 <>
                   <GeoJSON
-                    key={`${mapSubItem}-${typeCarte}-${typePeriode}-${selectedFeatureCode}-${basemap}`}
+                    key={`iso-communes-${activeIsohyeteKey}-${selectedFeatureCode}`}
+                    data={geojson}
+                    style={getCommuneIsohyeteOverlayStyle}
+                    onEachFeature={(feature, layer) => {
+                      const p = feature.properties;
+                      const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
+                      layer.bindTooltip(
+                        `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
+                         <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
+                         <div style="font-size:11px;color:#2563eb;font-weight:600;margin-top:2px;">Précip. : ${precip} mm</div>`,
+                        { sticky: true, direction: "top", opacity: 0.95 }
+                      );
+                      layer.on({
+                        click: () => {
+                          setSelectedFeatureCode(p.code);
+                        },
+                      });
+                    }}
+                  />
+                  <MapBoundsManager geojson={geojson} />
+                </>
+              )}
+
+              {/* Couche des Communes en mode Choroplèthe ou Déficit */}
+              {mapSubItem === "precip" && typeCarte === "Choroplèthe" && geojson && geojson.features && (
+                <>
+                  <GeoJSON
+                    key={`choropleth-${activeIsohyeteKey}-${typePeriode}-${selectedFeatureCode}-${basemap}`}
+                    data={geojson}
+                    style={getFeatureStyle}
+                    onEachFeature={(feature, layer) => {
+                      layer.on({
+                        click: () => setSelectedFeatureCode(feature.properties.code),
+                      });
+                    }}
+                  />
+                  <MapBoundsManager geojson={geojson} />
+                </>
+              )}
+
+              {mapSubItem === "deficit" && geojson && geojson.features && (
+                <>
+                  <GeoJSON
+                    key={`deficit-${selectedFeatureCode}-${basemap}`}
                     data={geojson}
                     style={getFeatureStyle}
                     onEachFeature={(feature, layer) => {
@@ -2612,7 +3507,7 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
               {mapSubItem === "ndvi_classes" && showCommunesLayer && geojson && geojson.features && (
                 <>
                   <GeoJSON
-                    key={`ndvi-overlay-${selectedFeatureCode}-${communeOverlayStyle}-${modeCommune}`}
+                    key={`ndvi-overlay-${selectedFeatureCode}-${communeOverlayStyle}`}
                     data={geojson}
                     style={getCommuneNdviOverlayStyle}
                     onEachFeature={(feature, layer) => {
@@ -2661,71 +3556,152 @@ function Carte({ geojson, communes = [], precipRecords = [], annualData = [], nd
           ) : mapSubItem === "deficit" ? (
             <div
               className="map-legend"
-              style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "12px" }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                marginTop: "12px",
+                background: "var(--bg-secondary)",
+                padding: "12px 16px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border-color)",
+              }}
             >
-              <span style={{ fontWeight: "700", fontSize: "12px" }}>Déficit (%) :</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", fontSize: "11px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span
-                    style={{ width: "12px", height: "12px", backgroundColor: "#7f0000", borderRadius: "2px" }}
-                  ></span>
-                  <span>Déficit extrême (&lt; -60%)</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span
-                    style={{ width: "12px", height: "12px", backgroundColor: "#b30000", borderRadius: "2px" }}
-                  ></span>
-                  <span>Déficit sévère (-60 à -40%)</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span
-                    style={{ width: "12px", height: "12px", backgroundColor: "#e34a33", borderRadius: "2px" }}
-                  ></span>
-                  <span>Déficit modéré (-40 à -20%)</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span
-                    style={{ width: "12px", height: "12px", backgroundColor: "#fdbb84", borderRadius: "2px" }}
-                  ></span>
-                  <span>Normal (-20 à 0%)</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span
-                    style={{
-                      width: "12px",
-                      height: "12px",
-                      backgroundColor: "#f7f7f7",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "2px",
-                    }}
-                  ></span>
-                  <span>Excédent (&gt; 0%)</span>
-                </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                <span style={{ fontWeight: "700", fontSize: "12px", color: "var(--danger)" }}>
+                  📉 Déficit de Précipitation (2020–2022)
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  Moyenne : <strong>-20.2%</strong> &bull; Étendue observée : <strong>-6.9%</strong> à <strong>-29.9%</strong>
+                </span>
               </div>
-            </div>
-          ) : (
-            <div className="map-legend" style={{ marginTop: "12px" }}>
-              <span>Sec (0 mm)</span>
-              <div className="map-legend-items">
-                <div className="map-legend-bar">
+
+              {/* Barre d'échelle avec 6 bornes de 0% à -40% */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%", maxWidth: "480px", marginTop: "4px" }}>
+                {/* Barre segmentée avec bords arrondis */}
+                <div
+                  style={{
+                    display: "flex",
+                    height: "14px",
+                    width: "100%",
+                    borderRadius: "7px",
+                    overflow: "hidden",
+                    border: "1px solid rgba(0,0,0,0.12)",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+                  }}
+                >
                   {[
-                    "#eff6ff",
-                    "#dbeafe",
-                    "#bfdbfe",
-                    "#93c5fd",
-                    "#60a5fa",
-                    "#3b82f6",
-                    "#2563eb",
-                    "#1d4ed8",
-                    "#1e40af",
-                  ].map((col) => (
-                    <div key={col} className="map-legend-color" style={{ backgroundColor: col }} />
+                    "#fff5f0",
+                    "#fee0d2",
+                    "#fcbba1",
+                    "#fc9272",
+                    "#fb6a4a",
+                    "#ef3b2c",
+                    "#cb181d",
+                    "#99000d",
+                    "#67000d",
+                  ].map((col, idx) => (
+                    <div key={idx} style={{ flex: 1, backgroundColor: col }} />
+                  ))}
+                </div>
+
+                {/* 5 Bornes chiffrées arrondies de 0% à -40% alignées sous la barre */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: "var(--text-main)",
+                    padding: "0 2px",
+                  }}
+                >
+                  {["0%", "-10%", "-20%", "-30%", "-40%"].map((val, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        textAlign: idx === 0 ? "left" : idx === 4 ? "right" : "center",
+                      }}
+                    >
+                      {val}
+                    </span>
                   ))}
                 </div>
               </div>
-              <span>Humide (&gt;800 mm)</span>
             </div>
-          )}
+          ) : mapSubItem === "precip" ? (
+            <div
+              className="map-legend"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                marginTop: "12px",
+                background: "var(--bg-secondary)",
+                padding: "12px 16px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border-color)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                <span style={{ fontWeight: "700", fontSize: "12px", color: "var(--primary)" }}>
+                  🌧️ Précipitations {typeCarte === "Isohyètes" ? "CHIRPS (Isohyètes)" : "(Choroplèthe)"} — {typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  Moyenne : <strong>{activePrecipStats.mean} mm</strong> &bull; Étendue : <strong>{activePrecipStats.min} mm</strong> à <strong>{activePrecipStats.max} mm</strong>
+                  {typeCarte === "Isohyètes" && <> &bull; Pas des courbes : <strong>50 mm</strong></>}
+                </span>
+              </div>
+
+              {/* Barre d'échelle harmonisée avec la palette des courbes d'isohyètes */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%", maxWidth: "520px", marginTop: "4px" }}>
+                {/* Barre de légende (dégradé bleu à 10 segments harmonisé) */}
+                <div
+                  style={{
+                    display: "flex",
+                    height: "14px",
+                    width: "100%",
+                    borderRadius: "7px",
+                    overflow: "hidden",
+                    border: "1px solid rgba(0,0,0,0.12)",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+                  }}
+                >
+                  {PRECIP_BLUE_PALETTE.map((col, idx) => (
+                    <div key={idx} style={{ flex: 1, backgroundColor: col }} />
+                  ))}
+                </div>
+
+                {/* Bornes chiffrées alignées sous la barre (actualisées en temps réel) */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: "var(--text-main)",
+                    padding: "0 2px",
+                  }}
+                >
+                  {activePrecipScaleTicks.map((val, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        textAlign:
+                          idx === 0
+                            ? "left"
+                            : idx === activePrecipScaleTicks.length - 1
+                            ? "right"
+                            : "center",
+                      }}
+                    >
+                      {val} mm
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
@@ -2753,13 +3729,20 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
   const [activeSensor, setActiveSensor] = React.useState("sentinel");
   const [simPixelSize, setSimPixelSize] = React.useState(30);
 
+  // Overlay state for each sensor image
+  const [sentinelShowLandsat, setSentinelShowLandsat] = React.useState(true);
+  const [sentinelShowModis, setSentinelShowModis] = React.useState(true);
+  const [landsatViewMode, setLandsatViewMode] = React.useState("grid"); // "grid" | "zoom"
+  const [landsatShowSubpixels, setLandsatShowSubpixels] = React.useState(true);
+  const [modisViewMode, setModisViewMode] = React.useState("combined"); // "combined" | "sentinel" | "landsat" | "single"
+
   const comparison = vegData?.sensorComparison;
   if (!comparison) {
     return <div className="placeholder">Chargement des données de capteurs...</div>;
   }
 
-  const activeSpec = comparison.specs.find((s) => s.id === activeSensor);
-  const activeSim = comparison.simulation[activeSensor];
+  const activeSpec = comparison.specs.find((s) => s.id === activeSensor) || comparison.specs[0];
+  const activeSim = comparison.simulation[activeSensor] || comparison.simulation.sentinel;
 
   const cellColors = {
     1: "#065f46",
@@ -2771,82 +3754,721 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
   const calculatedNdviAtSize = (0.15 + (0.44 - 0.15) * (1 - Math.exp(-simPixelSize / 70))).toFixed(3);
   const calculatedVariance = (0.075 * Math.exp(-simPixelSize / 90)).toFixed(4);
 
+  // 3x3 Sentinel-2 pixels nested inside 1 Landsat-8/9 pixel (30m x 30m)
+  const landsatNestSubpixels = [
+    [0.62, 0.58, 0.49],
+    [0.55, 0.38, 0.28],
+    [0.48, 0.31, 0.22],
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       <div className="info-bulletin">
         <strong>Effet d'échelle et pixel mixte (Physique de la Télédétection) :</strong> La taille
-        du pixel (résolution spatiale) détermine le niveau de détail discernable. Plus le pixel est
-        grand (ex. MODIS 250m), plus le signal capté est une moyenne d'éléments hétérogènes.
+        du pixel (résolution spatiale) détermine le niveau de détail discernable. Observez ci-dessous
+        comment <strong>9 pixels Sentinel-2 (10m)</strong> s'emboîtent dans <strong>1 pixel Landsat (30m)</strong>,
+        et comment <strong>625 pixels Sentinel-2</strong> ainsi que <strong>~69,4 pixels Landsat</strong> sont
+        fusionnés dans <strong>1 seul pixel MODIS (250m = 6,25 ha)</strong>.
       </div>
 
+      {/* 4.1 Comparaison Multi-Résolution & Emboîtement */}
       <section className="panel">
         <div className="panel-heading">
-          <h2><Icons.Layers /> 4.1 Comparaison Multi-Résolution (Sentinel vs Landsat vs MODIS)</h2>
-          <span>Sélectionnez un capteur pour simuler la capture de la même zone</span>
+          <h2><Icons.Layers /> 4.1 Comparaison Multi-Résolution & Emboîtement Spatial dans les Images</h2>
+          <span>Visualisez l'emboîtement des pixels directement sur les images simulées des capteurs</span>
         </div>
 
-        <div className="sensor-tabs">
+        {/* Navigation Tabs */}
+        <div className="sensor-tabs" style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
           {comparison.specs.map((s) => (
             <button
               key={s.id}
               className={`sensor-tab-btn ${activeSensor === s.id ? "active" : ""}`}
               onClick={() => setActiveSensor(s.id)}
             >
-              {s.name}
+              {s.name} ({s.resolution})
             </button>
           ))}
+          <button
+            className={`sensor-tab-btn ${activeSensor === "nest_landsat" ? "active" : ""}`}
+            onClick={() => setActiveSensor("nest_landsat")}
+            style={{ borderLeft: "2px solid #d97706" }}
+          >
+            🔍 Zoom : Sentinel dans Landsat (9 px)
+          </button>
+          <button
+            className={`sensor-tab-btn ${activeSensor === "nest_modis" ? "active" : ""}`}
+            onClick={() => setActiveSensor("nest_modis")}
+            style={{ borderLeft: "2px solid #2563eb" }}
+          >
+            📦 Zoom : Sentinel & Landsat dans MODIS (625 px)
+          </button>
         </div>
 
         <div className="comparison-layout">
+          {/* Visualizer Column */}
           <div className="pixel-grid-card">
-            <h4 style={{ fontSize: "12px", marginBottom: "8px", fontWeight: "700" }}>
-              Visualisation à l'échelle : {activeSpec.resolution} (Grille {activeSim.size}x{activeSim.size})
-            </h4>
 
-            <div className="pixel-grid-wrapper" style={{ width: "260px", height: "260px" }}>
-              {activeSim.ndvi.map((row, rIdx) => (
-                <div key={rIdx} className="pixel-row">
-                  {row.map((val, cIdx) => {
-                    let bg = "";
-                    if (activeSensor === "sentinel") {
-                      const classVal = activeSim.grid[rIdx][cIdx];
-                      bg = cellColors[classVal];
-                    } else if (activeSensor === "landsat") {
-                      bg = val > 0.5 ? "#065f46" : val > 0.4 ? "#059669" : val > 0.3 ? "#10b981" : val > 0.25 ? "#f59e0b" : "#b45309";
-                    } else {
-                      bg = "#10b981";
-                    }
+            {/* CONTROLS BAR PER SENSOR */}
+            {activeSensor === "sentinel" && (
+              <div className="pixel-controls-bar">
+                <label className="sensor-layer-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={sentinelShowLandsat}
+                    onChange={(e) => setSentinelShowLandsat(e.target.checked)}
+                  />
+                  <span>🔶 Grille Landsat 30m (3×3 = 9 px)</span>
+                </label>
+                <label className="sensor-layer-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={sentinelShowModis}
+                    onChange={(e) => setSentinelShowModis(e.target.checked)}
+                  />
+                  <span>🔷 Cadre MODIS 250m (25×25 = 625 px)</span>
+                </label>
+              </div>
+            )}
 
-                    return (
-                      <div key={cIdx} className="pixel-cell" style={{ backgroundColor: bg }} data-ndvi={`NDVI: ${val}`} />
-                    );
-                  })}
+            {activeSensor === "landsat" && (
+              <div className="pixel-controls-bar">
+                <div className="sensor-subview-pills">
+                  <button
+                    className={`sensor-pill-btn ${landsatViewMode === "grid" ? "active-accent" : ""}`}
+                    onClick={() => setLandsatViewMode("grid")}
+                  >
+                    Vue Grille 8×8 (30m)
+                  </button>
+                  <button
+                    className={`sensor-pill-btn ${landsatViewMode === "zoom" ? "active-accent" : ""}`}
+                    onClick={() => setLandsatViewMode("zoom")}
+                  >
+                    🔍 Zoom 1 Pixel (30m) = 9 Sentinel (10m)
+                  </button>
                 </div>
-              ))}
+                {landsatViewMode === "grid" && (
+                  <label className="sensor-layer-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={landsatShowSubpixels}
+                      onChange={(e) => setLandsatShowSubpixels(e.target.checked)}
+                    />
+                    <span>🌱 Sous-pixels Sentinel-2 (3×3)</span>
+                  </label>
+                )}
+              </div>
+            )}
+
+            {activeSensor === "modis" && (
+              <div className="pixel-controls-bar">
+                <div className="sensor-subview-pills">
+                  <button
+                    className={`sensor-pill-btn ${modisViewMode === "combined" ? "active" : ""}`}
+                    onClick={() => setModisViewMode("combined")}
+                    title="Emboîtement complet superposé"
+                  >
+                    ✨ Vue Combinée
+                  </button>
+                  <button
+                    className={`sensor-pill-btn ${modisViewMode === "sentinel" ? "active-sentinel" : ""}`}
+                    onClick={() => setModisViewMode("sentinel")}
+                    title="Décomposer en 625 pixels Sentinel-2"
+                  >
+                    🌱 625 px Sentinel (10m)
+                  </button>
+                  <button
+                    className={`sensor-pill-btn ${modisViewMode === "landsat" ? "active-accent" : ""}`}
+                    onClick={() => setModisViewMode("landsat")}
+                    title="Décomposer en ~69,4 pixels Landsat"
+                  >
+                    🔶 ~69,4 px Landsat (30m)
+                  </button>
+                  <button
+                    className={`sensor-pill-btn ${modisViewMode === "single" ? "active" : ""}`}
+                    onClick={() => setModisViewMode("single")}
+                    title="1 Pixel Brut agrégé 250m"
+                  >
+                    🔷 1 Pixel Brut 250m
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* DEDICATED NESTING: SENTINEL IN LANDSAT */}
+            {activeSensor === "nest_landsat" || (activeSensor === "landsat" && landsatViewMode === "zoom") ? (
+              <>
+                <h4 style={{ fontSize: "12px", marginBottom: "8px", fontWeight: "700", color: "#d97706" }}>
+                  1 Pixel Landsat (30m) = 9 Pixels Sentinel-2 (10m)
+                </h4>
+                <div
+                  className="pixel-grid-wrapper"
+                  style={{
+                    width: "270px",
+                    height: "270px",
+                    border: "3px solid #d97706",
+                    position: "relative",
+                  }}
+                >
+                  <div className="pixel-grid-badge top-left">
+                    🔶 Pixel Landsat : 30m × 30m (900 m²)
+                  </div>
+                  {landsatNestSubpixels.map((row, rIdx) => (
+                    <div key={rIdx} className="pixel-row">
+                      {row.map((val, cIdx) => {
+                        const bg =
+                          val > 0.5
+                            ? "#065f46"
+                            : val > 0.4
+                            ? "#059669"
+                            : val > 0.3
+                            ? "#10b981"
+                            : val > 0.25
+                            ? "#f59e0b"
+                            : "#b45309";
+                        return (
+                          <div
+                            key={cIdx}
+                            className="pixel-cell"
+                            style={{
+                              backgroundColor: bg,
+                              border: "1.5px dashed rgba(255,255,255,0.45)",
+                            }}
+                            data-ndvi={`Sentinel 10m [${rIdx + 1},${cIdx + 1}] NDVI: ${val} (1/9 de Landsat)`}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                  <div className="pixel-grid-badge bottom-center">
+                    🌿 9 pixels Sentinel-2 (10m) | NDVI moyen Landsat (30m) : 0.437
+                  </div>
+                </div>
+              </>
+            ) : activeSensor === "nest_modis" ? (
+              /* DEDICATED NESTING: SENTINEL & LANDSAT IN MODIS */
+              <>
+                <h4 style={{ fontSize: "12px", marginBottom: "8px", fontWeight: "700", color: "#2563eb" }}>
+                  1 Pixel MODIS (250m) = 625 Pixels Sentinel (25×25) / ~69,4 Landsat (8,33×8,33)
+                </h4>
+                <div
+                  className="pixel-grid-wrapper"
+                  style={{
+                    width: "270px",
+                    height: "270px",
+                    border: "3.5px solid #2563eb",
+                    position: "relative",
+                  }}
+                >
+                  <div className="pixel-grid-badge top-left">
+                    🔷 1 Pixel MODIS : 250m × 250m (6,25 ha)
+                  </div>
+                  {comparison.simulation.sentinel.ndvi.map((row, rIdx) => (
+                    <div key={rIdx} className="pixel-row">
+                      {row.map((val, cIdx) => {
+                        const classVal = comparison.simulation.sentinel.grid[rIdx][cIdx];
+                        const bg = cellColors[classVal] || "#10b981";
+                        const isLandsatBorderRight = (cIdx + 1) % 3 === 0;
+                        const isLandsatBorderBottom = (rIdx + 1) % 3 === 0;
+
+                        return (
+                          <div
+                            key={cIdx}
+                            className="pixel-cell"
+                            style={{
+                              backgroundColor: bg,
+                              borderRight: isLandsatBorderRight ? "1.5px solid rgba(245,158,11,0.75)" : "none",
+                              borderBottom: isLandsatBorderBottom ? "1.5px solid rgba(245,158,11,0.75)" : "none",
+                            }}
+                            data-ndvi={`Sentinel 10m [${rIdx + 1},${cIdx + 1}] NDVI: ${val} | 1/625 de MODIS`}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                  <div className="pixel-grid-badge bottom-center">
+                    🌿 625 Sentinel (10m) & 🔶 ~69,4 Landsat (30m) dans 1 MODIS (250m)
+                  </div>
+                </div>
+              </>
+            ) : activeSensor === "sentinel" ? (
+              /* SENTINEL-2 IMAGE WITH LANDSAT & MODIS NESTING OVERLAYS */
+              <>
+                <h4 style={{ fontSize: "12px", marginBottom: "8px", fontWeight: "700", color: "#059669" }}>
+                  Sentinel-2 (10m) — Grille {activeSim.size}×{activeSim.size} ({activeSim.size * activeSim.size} pixels = 250m × 250m)
+                </h4>
+                <div
+                  className="pixel-grid-wrapper"
+                  style={{
+                    width: "270px",
+                    height: "270px",
+                    border: sentinelShowModis ? "3.5px solid #2563eb" : "4px solid #0f172a",
+                    position: "relative",
+                  }}
+                >
+                  <div className="pixel-grid-badge top-left">
+                    🌱 Sentinel-2 : 10m / px (100 m²)
+                  </div>
+                  {activeSim.ndvi.map((row, rIdx) => (
+                    <div key={rIdx} className="pixel-row">
+                      {row.map((val, cIdx) => {
+                        const classVal = activeSim.grid[rIdx][cIdx];
+                        const bg = cellColors[classVal] || "#10b981";
+                        const isLandsatBorderRight = sentinelShowLandsat && (cIdx + 1) % 3 === 0;
+                        const isLandsatBorderBottom = sentinelShowLandsat && (rIdx + 1) % 3 === 0;
+
+                        return (
+                          <div
+                            key={cIdx}
+                            className="pixel-cell"
+                            style={{
+                              backgroundColor: bg,
+                              borderRight: isLandsatBorderRight ? "1.5px solid rgba(245,158,11,0.75)" : "none",
+                              borderBottom: isLandsatBorderBottom ? "1.5px solid rgba(245,158,11,0.75)" : "none",
+                            }}
+                            data-ndvi={`Sentinel 10m [${rIdx + 1},${cIdx + 1}] NDVI: ${val} | 1/9 d'un Landsat | 1/625 d'un MODIS`}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                  <div className="pixel-grid-badge bottom-center">
+                    🔶 9 px (3×3) = 1 Landsat (30m) | 🔷 625 px (25×25) = 1 MODIS (250m)
+                  </div>
+                </div>
+              </>
+            ) : activeSensor === "landsat" ? (
+              /* LANDSAT-8/9 IMAGE WITH SENTINEL & MODIS OVERLAYS */
+              <>
+                <h4 style={{ fontSize: "12px", marginBottom: "8px", fontWeight: "700", color: "#d97706" }}>
+                  Landsat-8 / 9 (30m) — Grille {activeSim.size}×{activeSim.size} (64 pixels = ~240m × 240m)
+                </h4>
+                <div
+                  className="pixel-grid-wrapper"
+                  style={{
+                    width: "270px",
+                    height: "270px",
+                    border: "3.5px solid #2563eb",
+                    position: "relative",
+                  }}
+                >
+                  <div className="pixel-grid-badge top-left">
+                    🔶 Landsat : 30m / px (900 m²)
+                  </div>
+                  {activeSim.ndvi.map((row, rIdx) => (
+                    <div key={rIdx} className="pixel-row">
+                      {row.map((val, cIdx) => {
+                        const bg =
+                          val > 0.5
+                            ? "#065f46"
+                            : val > 0.4
+                            ? "#059669"
+                            : val > 0.3
+                            ? "#10b981"
+                            : val > 0.25
+                            ? "#f59e0b"
+                            : "#b45309";
+
+                        return (
+                          <div
+                            key={cIdx}
+                            className="pixel-cell"
+                            style={{
+                              backgroundColor: bg,
+                              border: "1px solid rgba(15,23,42,0.6)",
+                              position: "relative",
+                            }}
+                            data-ndvi={`Landsat 30m [${rIdx + 1},${cIdx + 1}] NDVI: ${val} | Contient 9 sous-pixels Sentinel (10m)`}
+                          >
+                            {landsatShowSubpixels && (
+                              <div className="subpixel-dots">
+                                <div /><div /><div />
+                                <div /><div /><div />
+                                <div /><div /><div />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                  <div className="pixel-grid-badge bottom-center">
+                    🌿 1 pixel Landsat = 9 Sentinel (10m) | 🔷 ~69,4 pixels Landsat = 1 MODIS (250m)
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* MODIS IMAGE WITH MULTI-LAYER NESTING (SENTINEL + LANDSAT IN MODIS) */
+              <>
+                <h4 style={{ fontSize: "12px", marginBottom: "8px", fontWeight: "700", color: "#2563eb" }}>
+                  MODIS (250m) — {modisViewMode === "single" ? "1 Pixel Brut (250m)" : modisViewMode === "sentinel" ? "625 Pixels Sentinel-2 (10m)" : modisViewMode === "landsat" ? "~69,4 Pixels Landsat (30m)" : "Emboîtement Combiné (Sentinel + Landsat dans MODIS)"}
+                </h4>
+                <div
+                  className="pixel-grid-wrapper"
+                  style={{
+                    width: "270px",
+                    height: "270px",
+                    border: "4px solid #2563eb",
+                    position: "relative",
+                  }}
+                >
+                  <div className="pixel-grid-badge top-left">
+                    🔷 1 Pixel MODIS : 250m × 250m (6,25 ha)
+                  </div>
+
+                  {modisViewMode === "single" ? (
+                    <div
+                      style={{
+                        flex: 1,
+                        backgroundColor: "#10b981",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontWeight: "700",
+                        fontSize: "14px",
+                        textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+                      }}
+                      data-ndvi="MODIS (250m) - NDVI moyen agrégé : 0.470 (Moyenne sur 6,25 ha)"
+                    >
+                      NDVI = 0.470 (Moyenne globale)
+                    </div>
+                  ) : modisViewMode === "landsat" ? (
+                    comparison.simulation.landsat.ndvi.map((row, rIdx) => (
+                      <div key={rIdx} className="pixel-row">
+                        {row.map((val, cIdx) => {
+                          const bg =
+                            val > 0.5
+                              ? "#065f46"
+                              : val > 0.4
+                              ? "#059669"
+                              : val > 0.3
+                              ? "#10b981"
+                              : val > 0.25
+                              ? "#f59e0b"
+                              : "#b45309";
+                          return (
+                            <div
+                              key={cIdx}
+                              className="pixel-cell"
+                              style={{
+                                backgroundColor: bg,
+                                border: "1px solid rgba(15,23,42,0.6)",
+                              }}
+                              data-ndvi={`Landsat 30m dans MODIS [${rIdx + 1},${cIdx + 1}] NDVI: ${val}`}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))
+                  ) : (
+                    /* "sentinel" or "combined" view */
+                    comparison.simulation.sentinel.ndvi.map((row, rIdx) => (
+                      <div key={rIdx} className="pixel-row">
+                        {row.map((val, cIdx) => {
+                          const classVal = comparison.simulation.sentinel.grid[rIdx][cIdx];
+                          const bg = cellColors[classVal] || "#10b981";
+                          const isLandsatBorderRight = modisViewMode === "combined" && (cIdx + 1) % 3 === 0;
+                          const isLandsatBorderBottom = modisViewMode === "combined" && (rIdx + 1) % 3 === 0;
+
+                          return (
+                            <div
+                              key={cIdx}
+                              className="pixel-cell"
+                              style={{
+                                backgroundColor: bg,
+                                borderRight: isLandsatBorderRight ? "1.5px solid rgba(245,158,11,0.75)" : "none",
+                                borderBottom: isLandsatBorderBottom ? "1.5px solid rgba(245,158,11,0.75)" : "none",
+                              }}
+                              data-ndvi={`Sentinel 10m dans MODIS [${rIdx + 1},${cIdx + 1}] NDVI: ${val} (1/625 de MODIS)`}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))
+                  )}
+
+                  <div className="pixel-grid-badge bottom-center">
+                    {modisViewMode === "single"
+                      ? "1 pixel unique = 62 500 m² (Contient 625 Sentinel / ~69,4 Landsat)"
+                      : modisViewMode === "sentinel"
+                      ? "25 × 25 = 625 pixels Sentinel-2 (10m) dans 1 pixel MODIS"
+                      : modisViewMode === "landsat"
+                      ? "~8,33 × 8,33 ≈ 69,44 pixels Landsat (30m) dans 1 pixel MODIS"
+                      : "🌿 625 Sentinel (10m) + 🔶 ~69,4 Landsat (30m) dans 1 MODIS (250m)"}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Visual Legend Bar */}
+            <div className="pixel-legend-bar">
+              <span className="pixel-legend-item">
+                <span className="pixel-legend-chip" style={{ background: "#059669" }}></span>
+                <strong>Sentinel-2 :</strong> 10m (100 m²)
+              </span>
+              <span className="pixel-legend-item">
+                <span className="pixel-legend-chip" style={{ background: "#d97706" }}></span>
+                <strong>Landsat :</strong> 30m (900 m² = 9 Sentinel)
+              </span>
+              <span className="pixel-legend-item">
+                <span className="pixel-legend-chip" style={{ background: "#2563eb" }}></span>
+                <strong>MODIS :</strong> 250m (6,25 ha = 625 Sentinel = ~69,4 Landsat)
+              </span>
             </div>
           </div>
 
+          {/* Detailed Info Column */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <h3 style={{ fontSize: "14px", fontWeight: "800", color: "var(--primary)" }}>{activeSpec.name}</h3>
-            <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
-              <span>Résolution : <strong>{activeSpec.resolution}</strong></span>
-              <span>Fréquence : <strong>{activeSpec.frequency}</strong></span>
-            </div>
-            <p style={{ fontSize: "12px", lineHeight: "1.4", margin: "6px 0", color: "var(--text-muted)" }}>
-              <strong>Bandes :</strong> {activeSpec.bands}
-            </p>
-            <div style={{ marginTop: "6px" }}>
-              <strong style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--accent)" }}>Avantage :</strong>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>{activeSpec.advantage}</p>
-            </div>
-            <div style={{ marginTop: "6px" }}>
-              <strong style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--danger)" }}>Limite technique :</strong>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>{activeSpec.inconvenience}</p>
-            </div>
+            {activeSensor === "nest_landsat" || (activeSensor === "landsat" && landsatViewMode === "zoom") ? (
+              <>
+                <h3 style={{ fontSize: "15px", fontWeight: "800", color: "#d97706" }}>
+                  Emboîtement : Sentinel-2 dans Landsat-8/9
+                </h3>
+                <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
+                  <span>Ratio : <strong>9 pixels Sentinel-2 / 1 pixel Landsat</strong></span>
+                  <span>Surface : <strong>900 m² (0,09 ha)</strong></span>
+                </div>
+                <div className="nesting-formula-box" style={{ marginTop: "6px" }}>
+                  (30 m ÷ 10 m)² = 3 × 3 = <strong>9 pixels Sentinel-2</strong> dans 1 pixel Landsat
+                </div>
+                <p style={{ fontSize: "12px", lineHeight: "1.4", margin: "4px 0", color: "var(--text-muted)" }}>
+                  Un pixel Landsat de 30 mètres intègre et moyenne la signature spectrale de <strong>9 pixels Sentinel-2 de 10 mètres</strong>.
+                  Si une petite parcelle défrichée de 10m se trouve au centre, Landsat ne verra qu'une légère baisse globale, alors que Sentinel-2 détectera nettement l'anomalie.
+                </p>
+                <div style={{ marginTop: "4px" }}>
+                  <div className="nesting-detail-row">
+                    <span>Pixel Sentinel-2 :</span>
+                    <span>10 m × 10 m = 100 m² (0,01 ha)</span>
+                  </div>
+                  <div className="nesting-detail-row">
+                    <span>Pixel Landsat :</span>
+                    <span>30 m × 30 m = 900 m² (0,09 ha)</span>
+                  </div>
+                  <div className="nesting-detail-row">
+                    <span>Facteur d'échelle spatiale :</span>
+                    <span>3× plus précis en linéaire / 9× en surface</span>
+                  </div>
+                </div>
+              </>
+            ) : activeSensor === "nest_modis" ? (
+              <>
+                <h3 style={{ fontSize: "15px", fontWeight: "800", color: "#2563eb" }}>
+                  Emboîtement : Sentinel & Landsat dans MODIS (250m)
+                </h3>
+                <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
+                  <span>Dans MODIS 250m : <strong>625 Sentinel-2</strong> / <strong>~69,4 Landsat</strong></span>
+                  <span>Surface : <strong>62 500 m² (6,25 ha)</strong></span>
+                </div>
+                <div className="nesting-formula-box" style={{ marginTop: "6px" }}>
+                  • (250 m ÷ 10 m)² = 25 × 25 = <strong>625 pixels Sentinel-2</strong><br />
+                  • (250 m ÷ 30 m)² = 8,33 × 8,33 ≈ <strong>69,44 pixels Landsat</strong>
+                </div>
+                <p style={{ fontSize: "12px", lineHeight: "1.4", margin: "4px 0", color: "var(--text-muted)" }}>
+                  Un seul pixel MODIS 250m couvre plus de <strong>6 hectares</strong> ! Il synthétise l'équivalent de <strong>625 pixels Sentinel-2</strong> ou <strong>près de 70 pixels Landsat</strong>.
+                  MODIS est parfait pour le suivi phénologique journalier à l'échelle régionale mais masque les hétérogénéités locales.
+                </p>
+                <div style={{ marginTop: "4px" }}>
+                  <div className="nesting-detail-row">
+                    <span>Pixel MODIS :</span>
+                    <span>250 m × 250 m = 62 500 m² (6,25 ha)</span>
+                  </div>
+                  <div className="nesting-detail-row">
+                    <span>Contenu Sentinel-2 :</span>
+                    <span>Grille 25 × 25 = 625 pixels (100 m² ch.)</span>
+                  </div>
+                  <div className="nesting-detail-row">
+                    <span>Contenu Landsat :</span>
+                    <span>~8,33 × 8,33 ≈ 69,44 pixels (900 m² ch.)</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ fontSize: "14px", fontWeight: "800", color: "var(--primary)" }}>{activeSpec.name}</h3>
+                <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
+                  <span>Résolution : <strong>{activeSpec.resolution}</strong></span>
+                  <span>Fréquence : <strong>{activeSpec.frequency}</strong></span>
+                </div>
+                <p style={{ fontSize: "12px", lineHeight: "1.4", margin: "6px 0", color: "var(--text-muted)" }}>
+                  <strong>Bandes :</strong> {activeSpec.bands}
+                </p>
+                <div style={{ marginTop: "4px" }}>
+                  <div className="nesting-formula-box">
+                    {activeSensor === "sentinel"
+                      ? "9 px Sentinel = 1 Landsat (30m) | 625 px Sentinel = 1 MODIS (250m)"
+                      : activeSensor === "landsat"
+                      ? "1 px Landsat = 9 px Sentinel (10m) | ~69,4 px Landsat = 1 MODIS (250m)"
+                      : "1 px MODIS = 625 px Sentinel (10m) = ~69,4 px Landsat (30m)"}
+                  </div>
+                </div>
+                <div style={{ marginTop: "6px" }}>
+                  <strong style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--accent)" }}>Avantage :</strong>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>{activeSpec.advantage}</p>
+                </div>
+                <div style={{ marginTop: "6px" }}>
+                  <strong style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--danger)" }}>Limite technique :</strong>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>{activeSpec.inconvenience}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
 
+      {/* 4.2 Synthèse des Ratios d'Emboîtement Spatial */}
+      <section className="panel">
+        <div className="panel-heading">
+          <h2><Icons.Database /> 4.2 Ratios d'Emboîtement Spatial & Équivalences Métriques</h2>
+          <span>Combien de sous-pixels peut-on placer dans chaque capteur ?</span>
+        </div>
+
+        <div className="nesting-cards-grid">
+          {/* Card 1: Sentinel dans Landsat */}
+          <div className="nesting-card">
+            <div className="nesting-card-header">
+              <span className="nesting-tag sentinel-landsat">Sentinel dans Landsat</span>
+              <span style={{ fontSize: "11px", color: "var(--text-light)" }}>30m / 10m</span>
+            </div>
+            <div className="nesting-hero-ratio">
+              <span className="nesting-number" style={{ color: "#059669" }}>9</span>
+              <span className="nesting-unit">pixels Sentinel-2 (10m)</span>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)" }}>
+              dans 1 pixel Landsat (30m)
+            </div>
+            <div className="nesting-formula-box">
+              (30m / 10m)² = 3 × 3 = <strong>9 pixels</strong>
+            </div>
+            <div style={{ marginTop: "6px" }}>
+              <div className="nesting-detail-row">
+                <span>Surface 1 pixel Sentinel-2 :</span>
+                <span>100 m² (0,01 ha)</span>
+              </div>
+              <div className="nesting-detail-row">
+                <span>Surface 1 pixel Landsat :</span>
+                <span>900 m² (0,09 ha)</span>
+              </div>
+              <div className="nesting-detail-row">
+                <span>Disposition :</span>
+                <span>Grille 3 × 3 sous-pixels</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Sentinel dans MODIS */}
+          <div className="nesting-card">
+            <div className="nesting-card-header">
+              <span className="nesting-tag sentinel-modis">Sentinel dans MODIS</span>
+              <span style={{ fontSize: "11px", color: "var(--text-light)" }}>250m / 10m</span>
+            </div>
+            <div className="nesting-hero-ratio">
+              <span className="nesting-number" style={{ color: "#2563eb" }}>625</span>
+              <span className="nesting-unit">pixels Sentinel-2 (10m)</span>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)" }}>
+              dans 1 pixel MODIS (250m)
+            </div>
+            <div className="nesting-formula-box">
+              (250m / 10m)² = 25 × 25 = <strong>625 pixels</strong>
+            </div>
+            <div style={{ marginTop: "6px" }}>
+              <div className="nesting-detail-row">
+                <span>Surface 1 pixel Sentinel-2 :</span>
+                <span>100 m² (0,01 ha)</span>
+              </div>
+              <div className="nesting-detail-row">
+                <span>Surface 1 pixel MODIS :</span>
+                <span>62 500 m² (6,25 ha)</span>
+              </div>
+              <div className="nesting-detail-row">
+                <span>Disposition :</span>
+                <span>Grille 25 × 25 sous-pixels</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Landsat dans MODIS */}
+          <div className="nesting-card">
+            <div className="nesting-card-header">
+              <span className="nesting-tag landsat-modis">Landsat dans MODIS</span>
+              <span style={{ fontSize: "11px", color: "var(--text-light)" }}>250m / 30m</span>
+            </div>
+            <div className="nesting-hero-ratio">
+              <span className="nesting-number" style={{ color: "#d97706" }}>~69,4</span>
+              <span className="nesting-unit">pixels Landsat (30m)</span>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)" }}>
+              dans 1 pixel MODIS (250m)
+            </div>
+            <div className="nesting-formula-box">
+              (250m / 30m)² = 8,33² ≈ <strong>69,44 pixels</strong>
+            </div>
+            <div style={{ marginTop: "6px" }}>
+              <div className="nesting-detail-row">
+                <span>Surface 1 pixel Landsat :</span>
+                <span>900 m² (0,09 ha)</span>
+              </div>
+              <div className="nesting-detail-row">
+                <span>Surface 1 pixel MODIS :</span>
+                <span>62 500 m² (6,25 ha)</span>
+              </div>
+              <div className="nesting-detail-row">
+                <span>Disposition :</span>
+                <span>~8,33 × 8,33 parcelles Landsat</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Table */}
+        <div style={{ overflowX: "auto" }}>
+          <table className="nesting-summary-table">
+            <thead>
+              <tr>
+                <th>Capteur</th>
+                <th>Résolution spatiale</th>
+                <th>Surface d'un pixel</th>
+                <th>Pixels dans 1 Landsat (30m)</th>
+                <th>Pixels dans 1 MODIS (250m)</th>
+                <th>Fréquence</th>
+                <th>Usage optimal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Sentinel-2 (ESA)</strong></td>
+                <td>10 m × 10 m</td>
+                <td>100 m² (0,01 ha)</td>
+                <td><strong style={{ color: "#059669" }}>9 pixels (3×3)</strong></td>
+                <td><strong style={{ color: "#2563eb" }}>625 pixels (25×25)</strong></td>
+                <td>5 jours</td>
+                <td>Détection des coupes fines & parcelles agricoles</td>
+              </tr>
+              <tr>
+                <td><strong>Landsat-8 / 9 (NASA)</strong></td>
+                <td>30 m × 30 m</td>
+                <td>900 m² (0,09 ha)</td>
+                <td><strong>1 pixel (1×1)</strong></td>
+                <td><strong style={{ color: "#d97706" }}>~69,4 pixels (8,33×8,33)</strong></td>
+                <td>8-16 jours</td>
+                <td>Séries historiques longues (depuis 1972)</td>
+              </tr>
+              <tr>
+                <td><strong>MODIS (Terra/Aqua)</strong></td>
+                <td>250 m × 250 m</td>
+                <td>62 500 m² (6,25 ha)</td>
+                <td>—</td>
+                <td><strong>1 pixel (1×1)</strong></td>
+                <td>1-2 jours (Quotidien)</td>
+                <td>Suivi phénologique continu & régional</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* 4.3 Simulateur d'effet de taille de pixel */}
       <section className="panel">
         <div className="panel-heading">
           <h2>4.3 Simulateur d'effet de taille de pixel</h2>

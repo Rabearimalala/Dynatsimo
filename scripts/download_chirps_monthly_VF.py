@@ -3,9 +3,13 @@
 # ================================================================
 
 import os
+import sys
 import gzip
 import shutil
 import time
+
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 import requests
 import rasterio
@@ -19,26 +23,22 @@ from rasterio.mask import mask
 # ================================================================
 
 
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
 # ----------------------------------------------------------------
 # SHAPEFILE DE LA ZONE D'ÉTUDE
 # ----------------------------------------------------------------
 
-SHAPEFILE = (
-    r"C:\Users\Hanitriniala_RH\Documents"
-    r"\Dynatsimo\dynatsimo-react"
-    r"\Regions 3\3_region.shp"
-)
+SHAPEFILE = str(ROOT_DIR / "Regions 3" / "3_region.shp")
 
 
 # ----------------------------------------------------------------
 # DOSSIER DE SORTIE
 # ----------------------------------------------------------------
 
-OUTPUT_DIR = (
-    r"C:\Users\Hanitriniala_RH\Documents"
-    r"\Dynatsimo\dynatsimo-react"
-    r"\CHIRPS_data"
-)
+OUTPUT_DIR = str(ROOT_DIR / "CHIRPS_data")
 
 
 # ----------------------------------------------------------------

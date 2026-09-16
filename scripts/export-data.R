@@ -167,7 +167,6 @@ DF <- df_raw %>%
   ) %>%
   filter(
     Year >= 1981,
-    Year <= 2025,
     Month >= 1,
     Month <= 12
   )
@@ -249,7 +248,7 @@ deficit_crise <- DF %>%
   mutate(deficit = pmax(pmin(deficit, 100), -100))
 
 map_precip <- DF %>%
-  filter(Year %in% 2020:2025) %>%
+  filter(Year >= max(2020, max(DF$Year, na.rm = TRUE) - 5)) %>%
   group_by(code_Commune, Year) %>%
   summarise(p = sum(Precip, na.rm = TRUE), .groups = "drop") %>%
   group_by(code_Commune) %>%

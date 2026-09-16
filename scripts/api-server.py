@@ -37,6 +37,20 @@ def load_ndvi_module():
     return module
 
 
+PIPELINE_MODULE_PATH = ROOT_DIR / "scripts" / "sync_pipeline.py"
+
+
+def load_pipeline_module():
+    if not PIPELINE_MODULE_PATH.exists():
+        return None
+    spec = importlib.util.spec_from_file_location("dynatsimo_pipeline", PIPELINE_MODULE_PATH)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 data_module = load_data_module()
 engine = data_module.make_engine()
 
@@ -70,6 +84,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "ok"})
                 return
 
+            if path in ("/api/sync/all", "/api/sync/precipitation"):
+                pipe_mod = load_pipeline_module()
+                if pipe_mod and hasattr(pipe_mod, "run_full_pipeline"):
+                    skip_ndvi = (path == "/api/sync/precipitation")
+                    success = pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=skip_ndvi)
+                    self.send_json({"status": "success" if success else "error", "message": "Synchronisation terminée"})
+                    return
+                self.send_json({"error": "Module de pipeline introuvable"}, HTTPStatus.INTERNAL_SERVER_ERROR)
+                return
+
             if path in ("/api/ndvi-classes", "/api/ndvi-classes/sync"):
                 meta_path = ROOT_DIR / "public" / "data" / "ndvi_classes_metadata.json"
                 if path == "/api/ndvi-classes/sync" or not meta_path.exists():
@@ -86,12 +110,29 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Fichier ndvi_classes_metadata.json introuvable"}, HTTPStatus.NOT_FOUND)
                 return
 
+            if path == "/api/isohyetes-metadata":
+                iso_path = ROOT_DIR / "public" / "data" / "isohyetes_metadata.json"
+                if iso_path.exists():
+                    with iso_path.open("r", encoding="utf-8") as f:
+                        self.send_json(json.load(f))
+                    return
+                self.send_json({"error": "Fichier isohyetes_metadata.json introuvable"}, HTTPStatus.NOT_FOUND)
+                return
+
             payload = data_module.build_react_payload(engine)
             meta_path = ROOT_DIR / "public" / "data" / "ndvi_classes_metadata.json"
             if meta_path.exists():
                 try:
                     with meta_path.open("r", encoding="utf-8") as f:
                         payload["ndviClasses"] = json.load(f)
+                except Exception:
+                    pass
+
+            iso_path = ROOT_DIR / "public" / "data" / "isohyetes_metadata.json"
+            if iso_path.exists():
+                try:
+                    with iso_path.open("r", encoding="utf-8") as f:
+                        payload["isohyetesMeta"] = json.load(f)
                 except Exception:
                     pass
 

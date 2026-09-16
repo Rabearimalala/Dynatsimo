@@ -1373,11 +1373,11 @@
     "code_commune": "MG51501003",
     "commune": "Mahavatse I",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 63
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 206
   },
   {
     "code_commune": "MG51501004",
@@ -2753,11 +2753,11 @@
     "code_commune": "MG51501006",
     "commune": "Besakoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 35
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Mar",
+    "precip": 138
   },
   {
     "code_commune": "MG51503011",
@@ -3213,11 +3213,11 @@
     "code_commune": "MG51503011",
     "commune": "Beroroha",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 226
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 777
   },
   {
     "code_commune": "MG51503012",
@@ -3673,11 +3673,11 @@
     "code_commune": "MG51503012",
     "commune": "Bemavo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 201
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 682
   },
   {
     "code_commune": "MG51503030",
@@ -4133,11 +4133,11 @@
     "code_commune": "MG51503030",
     "commune": "Fanjakana",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 176
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 604
   },
   {
     "code_commune": "MG51503050",
@@ -4593,11 +4593,11 @@
     "code_commune": "MG51503050",
     "commune": "Behisatsy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 164
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 593
   },
   {
     "code_commune": "MG51503070",
@@ -5053,11 +5053,11 @@
     "code_commune": "MG51503070",
     "commune": "Marerano",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 208
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 727
   },
   {
     "code_commune": "MG51503091",
@@ -5513,11 +5513,11 @@
     "code_commune": "MG51503091",
     "commune": "Mandronarivo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 294
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 932
   },
   {
     "code_commune": "MG51503092",
@@ -5973,11 +5973,11 @@
     "code_commune": "MG51503092",
     "commune": "Tanamary",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 266
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 868
   },
   {
     "code_commune": "MG51503093",
@@ -6433,11 +6433,11 @@
     "code_commune": "MG51503093",
     "commune": "Sakena",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 303
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 980
   },
   {
     "code_commune": "MG51504010",
@@ -6893,11 +6893,11 @@
     "code_commune": "MG51504010",
     "commune": "Cu Morombe",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 74
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 277
   },
   {
     "code_commune": "MG51504030",
@@ -7353,11 +7353,11 @@
     "code_commune": "MG51504030",
     "commune": "Befandefa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 64
+    "debut": "Dec",
+    "fin": "Mar",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 233
   },
   {
     "code_commune": "MG51504050",
@@ -7813,11 +7813,11 @@
     "code_commune": "MG51504050",
     "commune": "Ambahikily",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 96
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 323
   },
   {
     "code_commune": "MG51504070",
@@ -8273,11 +8273,11 @@
     "code_commune": "MG51504070",
     "commune": "Antongo Vaovao",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 68
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 188
   },
   {
     "code_commune": "MG51504090",
@@ -8733,11 +8733,11 @@
     "code_commune": "MG51504090",
     "commune": "Nosy Ambositra",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 122
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 475
   },
   {
     "code_commune": "MG51504110",
@@ -9193,11 +9193,11 @@
     "code_commune": "MG51504110",
     "commune": "Befandriana Sud",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 123
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 489
   },
   {
     "code_commune": "MG51504130",
@@ -9653,11 +9653,11 @@
     "code_commune": "MG51504130",
     "commune": "Antanimieva",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 135
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 523
   },
   {
     "code_commune": "MG51504150",
@@ -10113,11 +10113,11 @@
     "code_commune": "MG51504150",
     "commune": "Basibasy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 88
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 408
   },
   {
     "code_commune": "MG51505011",
@@ -10573,11 +10573,11 @@
     "code_commune": "MG51505011",
     "commune": "Ankazoabo Sud",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 116
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 473
   },
   {
     "code_commune": "MG51505012",
@@ -11033,11 +11033,11 @@
     "code_commune": "MG51505012",
     "commune": "Fotivolo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 132
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 486
   },
   {
     "code_commune": "MG51505030",
@@ -11493,11 +11493,11 @@
     "code_commune": "MG51505030",
     "commune": "Tandrano",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 146
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 541
   },
   {
     "code_commune": "MG51505050",
@@ -11953,11 +11953,11 @@
     "code_commune": "MG51505050",
     "commune": "Andranomafana",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 123
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 509
   },
   {
     "code_commune": "MG51505071",
@@ -12413,11 +12413,11 @@
     "code_commune": "MG51505071",
     "commune": "Berenty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 151
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 556
   },
   {
     "code_commune": "MG51505072",
@@ -12873,11 +12873,11 @@
     "code_commune": "MG51505072",
     "commune": "Ilemby",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 149
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 550
   },
   {
     "code_commune": "MG51506011",
@@ -13333,11 +13333,11 @@
     "code_commune": "MG51506011",
     "commune": "Betioky Atsimo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 141
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 454
   },
   {
     "code_commune": "MG51506012",
@@ -13793,11 +13793,11 @@
     "code_commune": "MG51506012",
     "commune": "Sakamasay",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 136
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 470
   },
   {
     "code_commune": "MG51506013",
@@ -14253,11 +14253,11 @@
     "code_commune": "MG51506013",
     "commune": "Ambatry Mitsinjo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 137
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 426
   },
   {
     "code_commune": "MG51506014",
@@ -14713,11 +14713,11 @@
     "code_commune": "MG51506014",
     "commune": "Ankazomanga Ouest",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 115
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 370
   },
   {
     "code_commune": "MG51506015",
@@ -15173,11 +15173,11 @@
     "code_commune": "MG51506015",
     "commune": "Maroarivo Ankazomanga",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 108
+    "debut": "Dec",
+    "fin": "Mar",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 339
   },
   {
     "code_commune": "MG51506030",
@@ -15633,11 +15633,11 @@
     "code_commune": "MG51506030",
     "commune": "Beantake",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 134
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 407
   },
   {
     "code_commune": "MG51506050",
@@ -16093,11 +16093,11 @@
     "code_commune": "MG51506050",
     "commune": "Masiaboay",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 129
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 421
   },
   {
     "code_commune": "MG51506070",
@@ -16553,11 +16553,11 @@
     "code_commune": "MG51506070",
     "commune": "Antohabato",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 155
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 479
   },
   {
     "code_commune": "MG51506090",
@@ -17013,11 +17013,11 @@
     "code_commune": "MG51506090",
     "commune": "Tameantsoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 141
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 448
   },
   {
     "code_commune": "MG51506111",
@@ -17473,11 +17473,11 @@
     "code_commune": "MG51506111",
     "commune": "Tongobory",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 138
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 439
   },
   {
     "code_commune": "MG51506112",
@@ -17933,11 +17933,11 @@
     "code_commune": "MG51506112",
     "commune": "Besely",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 150
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 485
   },
   {
     "code_commune": "MG51506113",
@@ -18393,11 +18393,11 @@
     "code_commune": "MG51506113",
     "commune": "Vatolatsaka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 135
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 449
   },
   {
     "code_commune": "MG51506130",
@@ -18853,11 +18853,11 @@
     "code_commune": "MG51506130",
     "commune": "Ankazombalala",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 151
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 490
   },
   {
     "code_commune": "MG51506150",
@@ -19313,11 +19313,11 @@
     "code_commune": "MG51506150",
     "commune": "Bezaha",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 153
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 484
   },
   {
     "code_commune": "MG51506170",
@@ -19773,11 +19773,11 @@
     "code_commune": "MG51506170",
     "commune": "Manalobe",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 170
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 529
   },
   {
     "code_commune": "MG51506191",
@@ -20233,11 +20233,11 @@
     "code_commune": "MG51506191",
     "commune": "Andranomangatsiaka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 155
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 509
   },
   {
     "code_commune": "MG51506192",
@@ -20693,11 +20693,11 @@
     "code_commune": "MG51506192",
     "commune": "Ankilivalo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 161
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 522
   },
   {
     "code_commune": "MG51506210",
@@ -21153,11 +21153,11 @@
     "code_commune": "MG51506210",
     "commune": "Soamanonga",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 146
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 501
   },
   {
     "code_commune": "MG51506230",
@@ -21613,11 +21613,11 @@
     "code_commune": "MG51506230",
     "commune": "Fenoandala",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 160
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 514
   },
   {
     "code_commune": "MG51506251",
@@ -22073,11 +22073,11 @@
     "code_commune": "MG51506251",
     "commune": "Soaserana",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 159
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 523
   },
   {
     "code_commune": "MG51506252",
@@ -22533,11 +22533,11 @@
     "code_commune": "MG51506252",
     "commune": "Marosavoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 148
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 506
   },
   {
     "code_commune": "MG51506270",
@@ -22993,11 +22993,11 @@
     "code_commune": "MG51506270",
     "commune": "Salobe",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 172
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 537
   },
   {
     "code_commune": "MG51506290",
@@ -23453,11 +23453,11 @@
     "code_commune": "MG51506290",
     "commune": "Tanambao Haut",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 153
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 508
   },
   {
     "code_commune": "MG51506311",
@@ -23913,11 +23913,11 @@
     "code_commune": "MG51506311",
     "commune": "Belamoty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 149
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 488
   },
   {
     "code_commune": "MG51506312",
@@ -24373,11 +24373,11 @@
     "code_commune": "MG51506312",
     "commune": "Antsavoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 161
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 500
   },
   {
     "code_commune": "MG51506313",
@@ -24833,11 +24833,11 @@
     "code_commune": "MG51506313",
     "commune": "Montifeno",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 170
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 509
   },
   {
     "code_commune": "MG51506330",
@@ -25293,11 +25293,11 @@
     "code_commune": "MG51506330",
     "commune": "Lazarivo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 164
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 520
   },
   {
     "code_commune": "MG51507010",
@@ -25753,11 +25753,11 @@
     "code_commune": "MG51507010",
     "commune": "Ampanihy Ouest",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 129
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 410
   },
   {
     "code_commune": "MG51507030",
@@ -26213,11 +26213,11 @@
     "code_commune": "MG51507030",
     "commune": "Ankiliabo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 129
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 448
   },
   {
     "code_commune": "MG51507050",
@@ -26673,11 +26673,11 @@
     "code_commune": "MG51507050",
     "commune": "Amborompotsy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 142
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 467
   },
   {
     "code_commune": "MG51507070",
@@ -27133,11 +27133,11 @@
     "code_commune": "MG51507070",
     "commune": "Ankilizato",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 140
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 478
   },
   {
     "code_commune": "MG51507090",
@@ -27593,11 +27593,11 @@
     "code_commune": "MG51507090",
     "commune": "Maniry",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 154
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 507
   },
   {
     "code_commune": "MG51507110",
@@ -28053,11 +28053,11 @@
     "code_commune": "MG51507110",
     "commune": "Antaly",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 149
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 499
   },
   {
     "code_commune": "MG51507130",
@@ -28513,11 +28513,11 @@
     "code_commune": "MG51507130",
     "commune": "Ankilimivory",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 163
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 523
   },
   {
     "code_commune": "MG51507150",
@@ -28973,11 +28973,11 @@
     "code_commune": "MG51507150",
     "commune": "Ejeda",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 113
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 408
   },
   {
     "code_commune": "MG51507170",
@@ -29433,11 +29433,11 @@
     "code_commune": "MG51507170",
     "commune": "Belafike Haut",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 125
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 445
   },
   {
     "code_commune": "MG51507190",
@@ -29893,11 +29893,11 @@
     "code_commune": "MG51507190",
     "commune": "Beahitse",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 113
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 382
   },
   {
     "code_commune": "MG51507210",
@@ -30353,11 +30353,11 @@
     "code_commune": "MG51507210",
     "commune": "Gogogogo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 136
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 476
   },
   {
     "code_commune": "MG51507230",
@@ -30813,11 +30813,11 @@
     "code_commune": "MG51507230",
     "commune": "Androka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 102
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 314
   },
   {
     "code_commune": "MG51507250",
@@ -31273,11 +31273,11 @@
     "code_commune": "MG51507250",
     "commune": "Vohitany",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 127
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 441
   },
   {
     "code_commune": "MG51507270",
@@ -31733,11 +31733,11 @@
     "code_commune": "MG51507270",
     "commune": "Beroy Atsimo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 134
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 468
   },
   {
     "code_commune": "MG51507290",
@@ -32193,11 +32193,11 @@
     "code_commune": "MG51507290",
     "commune": "Fotadrevo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 166
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 538
   },
   {
     "code_commune": "MG51507310",
@@ -32653,11 +32653,11 @@
     "code_commune": "MG51507310",
     "commune": "Itampolo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 91
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 294
   },
   {
     "code_commune": "MG51512011",
@@ -33113,11 +33113,11 @@
     "code_commune": "MG51512011",
     "commune": "Sakaraha",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 142
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 530
   },
   {
     "code_commune": "MG51512012",
@@ -33573,11 +33573,11 @@
     "code_commune": "MG51512012",
     "commune": "Miary Taheza",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 158
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 549
   },
   {
     "code_commune": "MG51512030",
@@ -34033,11 +34033,11 @@
     "code_commune": "MG51512030",
     "commune": "Miary Lamatihy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 133
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 509
   },
   {
     "code_commune": "MG51512050",
@@ -34493,11 +34493,11 @@
     "code_commune": "MG51512050",
     "commune": "Mahaboboka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 134
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 553
   },
   {
     "code_commune": "MG51512070",
@@ -34953,11 +34953,11 @@
     "code_commune": "MG51512070",
     "commune": "Amboronabo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 130
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 534
   },
   {
     "code_commune": "MG51512090",
@@ -35413,11 +35413,11 @@
     "code_commune": "MG51512090",
     "commune": "Bereketa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 131
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 509
   },
   {
     "code_commune": "MG51512111",
@@ -35873,11 +35873,11 @@
     "code_commune": "MG51512111",
     "commune": "Andamasiny Vineta",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 123
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 506
   },
   {
     "code_commune": "MG51512112",
@@ -36333,11 +36333,11 @@
     "code_commune": "MG51512112",
     "commune": "Mihavatsy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 133
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 558
   },
   {
     "code_commune": "MG51512130",
@@ -36793,11 +36793,11 @@
     "code_commune": "MG51512130",
     "commune": "Andranolava",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 141
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 515
   },
   {
     "code_commune": "MG51512150",
@@ -37253,11 +37253,11 @@
     "code_commune": "MG51512150",
     "commune": "Ambinany",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 156
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 561
   },
   {
     "code_commune": "MG51512171",
@@ -37713,11 +37713,11 @@
     "code_commune": "MG51512171",
     "commune": "Mikoboka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 139
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 579
   },
   {
     "code_commune": "MG51512172",
@@ -38173,11 +38173,11 @@
     "code_commune": "MG51512172",
     "commune": "Mitsinjo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 129
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 558
   },
   {
     "code_commune": "MG51520010",
@@ -38633,11 +38633,11 @@
     "code_commune": "MG51520010",
     "commune": "Mitsinjo Betanimena",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 55
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 207
   },
   {
     "code_commune": "MG51520030",
@@ -39093,11 +39093,11 @@
     "code_commune": "MG51520030",
     "commune": "Belalanda",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 55
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 226
   },
   {
     "code_commune": "MG51520050",
@@ -39553,11 +39553,11 @@
     "code_commune": "MG51520050",
     "commune": "Betsinjaka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 75
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 253
   },
   {
     "code_commune": "MG51520071",
@@ -40473,11 +40473,11 @@
     "code_commune": "MG51520072",
     "commune": "Behompy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 96
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 423
   },
   {
     "code_commune": "MG51520090",
@@ -40933,11 +40933,11 @@
     "code_commune": "MG51520090",
     "commune": "Maromiandra",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 79
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 381
   },
   {
     "code_commune": "MG51520111",
@@ -41393,11 +41393,11 @@
     "code_commune": "MG51520111",
     "commune": "Ambohimahavelona",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 102
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 343
   },
   {
     "code_commune": "MG51520112",
@@ -41853,11 +41853,11 @@
     "code_commune": "MG51520112",
     "commune": "Andranohinaly",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 97
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 345
   },
   {
     "code_commune": "MG51520131",
@@ -42313,11 +42313,11 @@
     "code_commune": "MG51520131",
     "commune": "Saint Augustin",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 77
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 257
   },
   {
     "code_commune": "MG51520132",
@@ -42773,11 +42773,11 @@
     "code_commune": "MG51520132",
     "commune": "Anakao",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 78
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 204
   },
   {
     "code_commune": "MG51520133",
@@ -43233,11 +43233,11 @@
     "code_commune": "MG51520133",
     "commune": "Soalara Sud",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 81
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 240
   },
   {
     "code_commune": "MG51520150",
@@ -43693,11 +43693,11 @@
     "code_commune": "MG51520150",
     "commune": "Ambolofoty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 85
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 280
   },
   {
     "code_commune": "MG51520170",
@@ -44153,11 +44153,11 @@
     "code_commune": "MG51520170",
     "commune": "Ankilimalinike",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 67
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 286
   },
   {
     "code_commune": "MG51520191",
@@ -44613,11 +44613,11 @@
     "code_commune": "MG51520191",
     "commune": "Antanimena Onilahy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 109
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 346
   },
   {
     "code_commune": "MG51520192",
@@ -45073,11 +45073,11 @@
     "code_commune": "MG51520192",
     "commune": "Manorofify",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 94
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 297
   },
   {
     "code_commune": "MG51520210",
@@ -45533,11 +45533,11 @@
     "code_commune": "MG51520210",
     "commune": "Marofoty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 58
+    "debut": "Oct",
+    "fin": "Jan",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 245
   },
   {
     "code_commune": "MG51520230",
@@ -45993,11 +45993,11 @@
     "code_commune": "MG51520230",
     "commune": "Tsianisiha",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 84
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 367
   },
   {
     "code_commune": "MG51520250",
@@ -46453,11 +46453,11 @@
     "code_commune": "MG51520250",
     "commune": "Manombo Sud",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 62
+    "debut": "Oct",
+    "fin": "Jan",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 222
   },
   {
     "code_commune": "MG51520270",
@@ -46913,11 +46913,11 @@
     "code_commune": "MG51520270",
     "commune": "Andranovory",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 116
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 459
   },
   {
     "code_commune": "MG51520290",
@@ -47373,11 +47373,11 @@
     "code_commune": "MG51520290",
     "commune": "Milenaka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 69
+    "debut": "Oct",
+    "fin": "Jan",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 316
   },
   {
     "code_commune": "MG51520310",
@@ -47833,11 +47833,11 @@
     "code_commune": "MG51520310",
     "commune": "Ankililoaka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 101
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 433
   },
   {
     "code_commune": "MG51520330",
@@ -48293,11 +48293,11 @@
     "code_commune": "MG51520330",
     "commune": "Analamisampy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 104
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 414
   },
   {
     "code_commune": "MG51520358",
@@ -48753,11 +48753,11 @@
     "code_commune": "MG51520358",
     "commune": "Beheloka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 88
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 268
   },
   {
     "code_commune": "MG51521010",
@@ -49213,11 +49213,11 @@
     "code_commune": "MG51521010",
     "commune": "Benenitra",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 183
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 553
   },
   {
     "code_commune": "MG51521031",
@@ -49673,11 +49673,11 @@
     "code_commune": "MG51521031",
     "commune": "Ianapera",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 169
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 496
   },
   {
     "code_commune": "MG51521032",
@@ -50133,11 +50133,11 @@
     "code_commune": "MG51521032",
     "commune": "Ambalavato",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 202
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 514
   },
   {
     "code_commune": "MG51521050",
@@ -50593,11 +50593,11 @@
     "code_commune": "MG51521050",
     "commune": "Ehara",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 174
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 547
   },
   {
     "code_commune": "MG52513010",
@@ -51053,11 +51053,11 @@
     "code_commune": "MG52513010",
     "commune": "Beloha",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 120
+    "debut": "Dec",
+    "fin": "Mar",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 394
   },
   {
     "code_commune": "MG52513030",
@@ -51513,11 +51513,11 @@
     "code_commune": "MG52513030",
     "commune": "Tranovaho",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 114
+    "debut": "Oct",
+    "fin": "Fev",
+    "duree": 5.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 348
   },
   {
     "code_commune": "MG52513050",
@@ -51973,11 +51973,11 @@
     "code_commune": "MG52513050",
     "commune": "Kopoky",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 116
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 400
   },
   {
     "code_commune": "MG52513070",
@@ -52433,11 +52433,11 @@
     "code_commune": "MG52513070",
     "commune": "Marolinta",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 108
+    "debut": "Oct",
+    "fin": "Mar",
+    "duree": 6.0,
+    "mois_plus_pluvieux": "Dec",
+    "precip": 337
   },
   {
     "code_commune": "MG52513091",
@@ -52893,11 +52893,11 @@
     "code_commune": "MG52513091",
     "commune": "Tranoroa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 137
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 445
   },
   {
     "code_commune": "MG52513092",
@@ -53353,11 +53353,11 @@
     "code_commune": "MG52513092",
     "commune": "Behabobo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 121
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 418
   },
   {
     "code_commune": "MG52514011",
@@ -53813,11 +53813,11 @@
     "code_commune": "MG52514011",
     "commune": "Tsihombe",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 111
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 393
   },
   {
     "code_commune": "MG52514012",
@@ -54273,11 +54273,11 @@
     "code_commune": "MG52514012",
     "commune": "Nikoly",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 104
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 365
   },
   {
     "code_commune": "MG52514031",
@@ -54733,11 +54733,11 @@
     "code_commune": "MG52514031",
     "commune": "Betanty (Faux Cap)",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 105
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 340
   },
   {
     "code_commune": "MG52514032",
@@ -55193,11 +55193,11 @@
     "code_commune": "MG52514032",
     "commune": "Anjampaly",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 106
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 347
   },
   {
     "code_commune": "MG52514050",
@@ -55653,11 +55653,11 @@
     "code_commune": "MG52514050",
     "commune": "Marovato",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 109
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 358
   },
   {
     "code_commune": "MG52514071",
@@ -56113,11 +56113,11 @@
     "code_commune": "MG52514071",
     "commune": "Antaritarika",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 95
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 354
   },
   {
     "code_commune": "MG52514072",
@@ -56573,11 +56573,11 @@
     "code_commune": "MG52514072",
     "commune": "Imongy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 99
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 367
   },
   {
     "code_commune": "MG52516011",
@@ -57033,11 +57033,11 @@
     "code_commune": "MG52516011",
     "commune": "Ambovombe",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 113
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 423
   },
   {
     "code_commune": "MG52516012",
@@ -57493,11 +57493,11 @@
     "code_commune": "MG52516012",
     "commune": "Tsimananada",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 111
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 441
   },
   {
     "code_commune": "MG52516013",
@@ -57953,11 +57953,11 @@
     "code_commune": "MG52516013",
     "commune": "Erada",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 99
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 398
   },
   {
     "code_commune": "MG52516014",
@@ -58413,11 +58413,11 @@
     "code_commune": "MG52516014",
     "commune": "Anjeky Ankilikira",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 96
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 359
   },
   {
     "code_commune": "MG52516031",
@@ -58873,11 +58873,11 @@
     "code_commune": "MG52516031",
     "commune": "Ambanisarika",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 139
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 458
   },
   {
     "code_commune": "MG52516032",
@@ -59333,11 +59333,11 @@
     "code_commune": "MG52516032",
     "commune": "Analamary",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 112
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 431
   },
   {
     "code_commune": "MG52516033",
@@ -59793,11 +59793,11 @@
     "code_commune": "MG52516033",
     "commune": "Ambohimalaza",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 124
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 431
   },
   {
     "code_commune": "MG52516050",
@@ -60253,11 +60253,11 @@
     "code_commune": "MG52516050",
     "commune": "Ambonaivo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 109
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 425
   },
   {
     "code_commune": "MG52516071",
@@ -60713,11 +60713,11 @@
     "code_commune": "MG52516071",
     "commune": "Maroalomainty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 95
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 395
   },
   {
     "code_commune": "MG52516072",
@@ -61173,11 +61173,11 @@
     "code_commune": "MG52516072",
     "commune": "Maroalopoty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 87
+    "debut": "Dec",
+    "fin": "Mar",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 355
   },
   {
     "code_commune": "MG52516091",
@@ -61633,11 +61633,11 @@
     "code_commune": "MG52516091",
     "commune": "Ambondro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 109
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 399
   },
   {
     "code_commune": "MG52516092",
@@ -62093,11 +62093,11 @@
     "code_commune": "MG52516092",
     "commune": "Ambazoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 99
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 363
   },
   {
     "code_commune": "MG52516111",
@@ -62553,11 +62553,11 @@
     "code_commune": "MG52516111",
     "commune": "Sihanamaro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 109
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 394
   },
   {
     "code_commune": "MG52516112",
@@ -63013,11 +63013,11 @@
     "code_commune": "MG52516112",
     "commune": "Marovato Befeno",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 100
+    "debut": "Dec",
+    "fin": "Fev",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 378
   },
   {
     "code_commune": "MG52516130",
@@ -63473,11 +63473,11 @@
     "code_commune": "MG52516130",
     "commune": "Antanimora Atsimo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 145
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 446
   },
   {
     "code_commune": "MG52516151",
@@ -63933,11 +63933,11 @@
     "code_commune": "MG52516151",
     "commune": "Andalatanosy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 137
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 445
   },
   {
     "code_commune": "MG52516152",
@@ -64393,11 +64393,11 @@
     "code_commune": "MG52516152",
     "commune": "Ampamata",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 166
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 493
   },
   {
     "code_commune": "MG52516170",
@@ -64853,11 +64853,11 @@
     "code_commune": "MG52516170",
     "commune": "Jafaro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 113
+    "debut": "Dec",
+    "fin": "Mar",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 394
   },
   {
     "code_commune": "MG52516190",
@@ -65313,11 +65313,11 @@
     "code_commune": "MG52516190",
     "commune": "Imanombo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 197
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 570
   },
   {
     "code_commune": "MG52518010",
@@ -65773,11 +65773,11 @@
     "code_commune": "MG52518010",
     "commune": "Morafeno Bekily",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 190
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 555
   },
   {
     "code_commune": "MG52518031",
@@ -66233,11 +66233,11 @@
     "code_commune": "MG52518031",
     "commune": "Ankaranabo Nord",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 188
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 553
   },
   {
     "code_commune": "MG52518032",
@@ -66693,11 +66693,11 @@
     "code_commune": "MG52518032",
     "commune": "Besakoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 197
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 557
   },
   {
     "code_commune": "MG52518050",
@@ -67153,11 +67153,11 @@
     "code_commune": "MG52518050",
     "commune": "Anja Nord",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 187
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 541
   },
   {
     "code_commune": "MG52518070",
@@ -67613,11 +67613,11 @@
     "code_commune": "MG52518070",
     "commune": "Antsakoamaro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 166
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 536
   },
   {
     "code_commune": "MG52518091",
@@ -68073,11 +68073,11 @@
     "code_commune": "MG52518091",
     "commune": "Ambatosola",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 216
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 575
   },
   {
     "code_commune": "MG52518092",
@@ -68533,11 +68533,11 @@
     "code_commune": "MG52518092",
     "commune": "Tsirandrany",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 209
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 563
   },
   {
     "code_commune": "MG52518110",
@@ -68993,11 +68993,11 @@
     "code_commune": "MG52518110",
     "commune": "Tsikolaky",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 167
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 534
   },
   {
     "code_commune": "MG52518130",
@@ -69453,11 +69453,11 @@
     "code_commune": "MG52518130",
     "commune": "Manakompy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 191
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 551
   },
   {
     "code_commune": "MG52518151",
@@ -69913,11 +69913,11 @@
     "code_commune": "MG52518151",
     "commune": "Ambahita",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 200
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 569
   },
   {
     "code_commune": "MG52518152",
@@ -70373,11 +70373,11 @@
     "code_commune": "MG52518152",
     "commune": "Maroviro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 191
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 531
   },
   {
     "code_commune": "MG52518170",
@@ -70833,11 +70833,11 @@
     "code_commune": "MG52518170",
     "commune": "Belindo Mahasoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 160
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 510
   },
   {
     "code_commune": "MG52518190",
@@ -71293,11 +71293,11 @@
     "code_commune": "MG52518190",
     "commune": "Beteza",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 161
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 528
   },
   {
     "code_commune": "MG52518210",
@@ -71753,11 +71753,11 @@
     "code_commune": "MG52518210",
     "commune": "Tanandava",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 187
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 537
   },
   {
     "code_commune": "MG52518230",
@@ -72213,11 +72213,11 @@
     "code_commune": "MG52518230",
     "commune": "Bekitro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 149
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 488
   },
   {
     "code_commune": "MG52518251",
@@ -72673,11 +72673,11 @@
     "code_commune": "MG52518251",
     "commune": "Beraketa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 214
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 593
   },
   {
     "code_commune": "MG52518252",
@@ -73133,11 +73133,11 @@
     "code_commune": "MG52518252",
     "commune": "Vohimanga",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 220
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 582
   },
   {
     "code_commune": "MG52518270",
@@ -73593,11 +73593,11 @@
     "code_commune": "MG52518270",
     "commune": "Bevitiky",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 140
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 454
   },
   {
     "code_commune": "MG52518290",
@@ -74053,11 +74053,11 @@
     "code_commune": "MG52518290",
     "commune": "Anivorano Mitsinjo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 178
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 538
   },
   {
     "code_commune": "MG53515010",
@@ -74513,11 +74513,11 @@
     "code_commune": "MG53515010",
     "commune": "Fort-Dauphin",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 234
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 612
   },
   {
     "code_commune": "MG53515031",
@@ -74973,11 +74973,11 @@
     "code_commune": "MG53515031",
     "commune": "Ampasy Nahampoana",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 247
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 708
   },
   {
     "code_commune": "MG53515032",
@@ -75433,11 +75433,11 @@
     "code_commune": "MG53515032",
     "commune": "Mandromondromotra",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 248
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 694
   },
   {
     "code_commune": "MG53515033",
@@ -75893,11 +75893,11 @@
     "code_commune": "MG53515033",
     "commune": "Soanierana",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 254
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 637
   },
   {
     "code_commune": "MG53515051",
@@ -76353,11 +76353,11 @@
     "code_commune": "MG53515051",
     "commune": "Ifarantsa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 251
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 734
   },
   {
     "code_commune": "MG53515052",
@@ -76813,11 +76813,11 @@
     "code_commune": "MG53515052",
     "commune": "Isaka-Ivondro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 250
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 747
   },
   {
     "code_commune": "MG53515053",
@@ -77273,11 +77273,11 @@
     "code_commune": "MG53515053",
     "commune": "Mandiso",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 236
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 683
   },
   {
     "code_commune": "MG53515071",
@@ -77733,11 +77733,11 @@
     "code_commune": "MG53515071",
     "commune": "Manambaro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 223
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 611
   },
   {
     "code_commune": "MG53515072",
@@ -78193,11 +78193,11 @@
     "code_commune": "MG53515072",
     "commune": "Sarisambo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 204
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 575
   },
   {
     "code_commune": "MG53515090",
@@ -78653,11 +78653,11 @@
     "code_commune": "MG53515090",
     "commune": "Ankaramena",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 204
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 592
   },
   {
     "code_commune": "MG53515111",
@@ -79113,11 +79113,11 @@
     "code_commune": "MG53515111",
     "commune": "Ranopiso",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 162
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 504
   },
   {
     "code_commune": "MG53515112",
@@ -79573,11 +79573,11 @@
     "code_commune": "MG53515112",
     "commune": "Ambatoabo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 210
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 605
   },
   {
     "code_commune": "MG53515113",
@@ -80033,11 +80033,11 @@
     "code_commune": "MG53515113",
     "commune": "Ankariera",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 159
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 504
   },
   {
     "code_commune": "MG53515114",
@@ -80493,11 +80493,11 @@
     "code_commune": "MG53515114",
     "commune": "Analapatsy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 122
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 429
   },
   {
     "code_commune": "MG53515115",
@@ -80953,11 +80953,11 @@
     "code_commune": "MG53515115",
     "commune": "Andranobory",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 110
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 382
   },
   {
     "code_commune": "MG53515131",
@@ -81413,11 +81413,11 @@
     "code_commune": "MG53515131",
     "commune": "Mahatalaky",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 283
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 815
   },
   {
     "code_commune": "MG53515132",
@@ -81873,11 +81873,11 @@
     "code_commune": "MG53515132",
     "commune": "Iaboakoho",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 298
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 775
   },
   {
     "code_commune": "MG53515151",
@@ -82333,11 +82333,11 @@
     "code_commune": "MG53515151",
     "commune": "Enaniliha",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 258
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 726
   },
   {
     "code_commune": "MG53515152",
@@ -82793,11 +82793,11 @@
     "code_commune": "MG53515152",
     "commune": "Fenoevo-Efita",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 278
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 849
   },
   {
     "code_commune": "MG53515170",
@@ -83253,11 +83253,11 @@
     "code_commune": "MG53515170",
     "commune": "Enakara-Haut",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 281
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 826
   },
   {
     "code_commune": "MG53515191",
@@ -83713,11 +83713,11 @@
     "code_commune": "MG53515191",
     "commune": "Ranomafana",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 288
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 877
   },
   {
     "code_commune": "MG53515192",
@@ -84173,11 +84173,11 @@
     "code_commune": "MG53515192",
     "commune": "Emagnobo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 284
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 948
   },
   {
     "code_commune": "MG53515210",
@@ -84633,11 +84633,11 @@
     "code_commune": "MG53515210",
     "commune": "Bevoay",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 296
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 947
   },
   {
     "code_commune": "MG53515230",
@@ -85093,11 +85093,11 @@
     "code_commune": "MG53515230",
     "commune": "Ampasimena",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 298
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 998
   },
   {
     "code_commune": "MG53515251",
@@ -85553,11 +85553,11 @@
     "code_commune": "MG53515251",
     "commune": "Manantenina",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 314
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 994
   },
   {
     "code_commune": "MG53515252",
@@ -86013,11 +86013,11 @@
     "code_commune": "MG53515252",
     "commune": "Analamary",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 300
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 1114
   },
   {
     "code_commune": "MG53515253",
@@ -86473,11 +86473,11 @@
     "code_commune": "MG53515253",
     "commune": "Soavary",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 331
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 1273
   },
   {
     "code_commune": "MG53517010",
@@ -86933,11 +86933,11 @@
     "code_commune": "MG53517010",
     "commune": "Betroka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 225
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 646
   },
   {
     "code_commune": "MG53517030",
@@ -87393,11 +87393,11 @@
     "code_commune": "MG53517030",
     "commune": "Tsaraitso",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 244
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 721
   },
   {
     "code_commune": "MG53517050",
@@ -87853,11 +87853,11 @@
     "code_commune": "MG53517050",
     "commune": "Naninora",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 226
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 638
   },
   {
     "code_commune": "MG53517070",
@@ -88313,11 +88313,11 @@
     "code_commune": "MG53517070",
     "commune": "Ambalasoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 230
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 674
   },
   {
     "code_commune": "MG53517090",
@@ -88773,11 +88773,11 @@
     "code_commune": "MG53517090",
     "commune": "Ivahona",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 248
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 736
   },
   {
     "code_commune": "MG53517110",
@@ -89233,11 +89233,11 @@
     "code_commune": "MG53517110",
     "commune": "Analamary",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 205
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 573
   },
   {
     "code_commune": "MG53517130",
@@ -89693,11 +89693,11 @@
     "code_commune": "MG53517130",
     "commune": "Ianabinda",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 222
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 637
   },
   {
     "code_commune": "MG53517150",
@@ -90153,11 +90153,11 @@
     "code_commune": "MG53517150",
     "commune": "Benato Toby",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 218
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 644
   },
   {
     "code_commune": "MG53517170",
@@ -90613,11 +90613,11 @@
     "code_commune": "MG53517170",
     "commune": "Mahabo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 269
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 760
   },
   {
     "code_commune": "MG53517190",
@@ -91073,11 +91073,11 @@
     "code_commune": "MG53517190",
     "commune": "Beampombo I",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 194
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 572
   },
   {
     "code_commune": "MG53517210",
@@ -91533,11 +91533,11 @@
     "code_commune": "MG53517210",
     "commune": "Jangany",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 208
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 640
   },
   {
     "code_commune": "MG53517230",
@@ -91993,11 +91993,11 @@
     "code_commune": "MG53517230",
     "commune": "Mahasoa Est",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 207
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 550
   },
   {
     "code_commune": "MG53517250",
@@ -92453,11 +92453,11 @@
     "code_commune": "MG53517250",
     "commune": "Bekorobo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 252
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 660
   },
   {
     "code_commune": "MG53517270",
@@ -92913,11 +92913,11 @@
     "code_commune": "MG53517270",
     "commune": "Iaborotra",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 202
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 562
   },
   {
     "code_commune": "MG53517291",
@@ -93373,11 +93373,11 @@
     "code_commune": "MG53517291",
     "commune": "Isoanala",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 246
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 615
   },
   {
     "code_commune": "MG53517292",
@@ -93833,11 +93833,11 @@
     "code_commune": "MG53517292",
     "commune": "Beampombo II",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 208
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 523
   },
   {
     "code_commune": "MG53517293",
@@ -94293,11 +94293,11 @@
     "code_commune": "MG53517293",
     "commune": "Nanarena Besakoa",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 217
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 576
   },
   {
     "code_commune": "MG53517310",
@@ -94753,11 +94753,11 @@
     "code_commune": "MG53517310",
     "commune": "Ianakafy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 211
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 556
   },
   {
     "code_commune": "MG53517331",
@@ -95213,11 +95213,11 @@
     "code_commune": "MG53517331",
     "commune": "Andriandampy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 193
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 613
   },
   {
     "code_commune": "MG53517332",
@@ -95673,11 +95673,11 @@
     "code_commune": "MG53517332",
     "commune": "Sakamahily",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 179
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 566
   },
   {
     "code_commune": "MG53517350",
@@ -96133,11 +96133,11 @@
     "code_commune": "MG53517350",
     "commune": "Ambatomivary",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 217
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 550
   },
   {
     "code_commune": "MG53519010",
@@ -96593,11 +96593,11 @@
     "code_commune": "MG53519010",
     "commune": "Amboasary Atsimo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 96
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 347
   },
   {
     "code_commune": "MG53519030",
@@ -97053,11 +97053,11 @@
     "code_commune": "MG53519030",
     "commune": "Behara",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 132
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 413
   },
   {
     "code_commune": "MG53519050",
@@ -97513,11 +97513,11 @@
     "code_commune": "MG53519050",
     "commune": "Tanandava Sud",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 90
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 343
   },
   {
     "code_commune": "MG53519070",
@@ -97973,11 +97973,11 @@
     "code_commune": "MG53519070",
     "commune": "Sampona",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 79
+    "debut": "Dec",
+    "fin": "Mar",
+    "duree": 4.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 325
   },
   {
     "code_commune": "MG53519090",
@@ -98433,11 +98433,11 @@
     "code_commune": "MG53519090",
     "commune": "Ifotaka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 158
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 475
   },
   {
     "code_commune": "MG53519110",
@@ -98893,11 +98893,11 @@
     "code_commune": "MG53519110",
     "commune": "Tranomaro",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 208
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 597
   },
   {
     "code_commune": "MG53519130",
@@ -99353,11 +99353,11 @@
     "code_commune": "MG53519130",
     "commune": "Maromby",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 236
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 689
   },
   {
     "code_commune": "MG53519150",
@@ -99813,11 +99813,11 @@
     "code_commune": "MG53519150",
     "commune": "Elonty",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 278
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 746
   },
   {
     "code_commune": "MG53519170",
@@ -100273,11 +100273,11 @@
     "code_commune": "MG53519170",
     "commune": "Esira",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 269
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 779
   },
   {
     "code_commune": "MG53519190",
@@ -100733,11 +100733,11 @@
     "code_commune": "MG53519190",
     "commune": "Mahaly",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 267
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 747
   },
   {
     "code_commune": "MG53519210",
@@ -101193,11 +101193,11 @@
     "code_commune": "MG53519210",
     "commune": "Manevy",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 270
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 799
   },
   {
     "code_commune": "MG53519230",
@@ -101653,11 +101653,11 @@
     "code_commune": "MG53519230",
     "commune": "Tsivory",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 265
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 706
   },
   {
     "code_commune": "MG53519250",
@@ -102113,11 +102113,11 @@
     "code_commune": "MG53519250",
     "commune": "Marotsiraka",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 241
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 669
   },
   {
     "code_commune": "MG53519270",
@@ -102573,11 +102573,11 @@
     "code_commune": "MG53519270",
     "commune": "Tomboarivo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 251
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 694
   },
   {
     "code_commune": "MG53519291",
@@ -103033,11 +103033,11 @@
     "code_commune": "MG53519291",
     "commune": "Ebelo",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 193
+    "debut": "Dec",
+    "fin": "Jan",
+    "duree": 2.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 543
   },
   {
     "code_commune": "MG53519292",
@@ -103493,10 +103493,10 @@
     "code_commune": "MG53519292",
     "commune": "Ranobe",
     "saison": 2025,
-    "debut": null,
-    "fin": null,
-    "duree": null,
-    "mois_plus_pluvieux": null,
-    "precip": 214
+    "debut": "Nov",
+    "fin": "Jan",
+    "duree": 3.0,
+    "mois_plus_pluvieux": "Jan",
+    "precip": 601
   }
 ]

@@ -258,36 +258,69 @@ def read_communes(engine: Engine):
     return communes
 
 
-def import_chirps_to_postgres(engine: Engine) -> pd.DataFrame:
+def import_chirps_to_postgres(engine: Engine, force_rebuild: bool = False) -> pd.DataFrame:
     from rasterstats import zonal_stats
 
-    chirps_dir = Path(
-        env(
-            "DYNATSIMO_CHIRPS_DIR",
-            r"E:\Dynatsimo_files\Travails Fandresena\Docs\scipts\python\CHIRPS_data",
-        )
-    )
+    default_chirps = ROOT_DIR / "CHIRPS_data"
+    chirps_dir = Path(env("DYNATSIMO_CHIRPS_DIR", str(default_chirps)))
     if not chirps_dir.exists():
         raise FileNotFoundError(
             f"Dossier CHIRPS introuvable: {chirps_dir}. "
-            "Change DYNATSIMO_CHIRPS_DIR ou corrige le chemin dans le script."
+            "Change DYNATSIMO_CHIRPS_DIR ou verifie le dossier CHIRPS_data."
         )
 
     communes = read_communes(engine)
     nodata = float(env("DYNATSIMO_CHIRPS_NODATA", "-9999"))
     all_touched = env("DYNATSIMO_ALL_TOUCHED", "false").lower() == "true"
 
-    rows = []
     tif_files = sorted(chirps_dir.glob("*.tif"))
     if not tif_files:
         raise FileNotFoundError(f"Aucun fichier .tif trouve dans {chirps_dir}")
 
+    existing_dates = set()
+    table_created = False
+
+    with engine.begin() as conn:
+        has_table = conn.execute(
+            text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'precipitation')")
+        ).scalar()
+        if not has_table or force_rebuild:
+            conn.execute(text('DROP TABLE IF EXISTS public.precipitation'))
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE public.precipitation (
+                      "Commune_Id" TEXT NOT NULL,
+                      "Year" INTEGER NOT NULL,
+                      "Month" INTEGER NOT NULL,
+                      "Precip" DOUBLE PRECISION,
+                      PRIMARY KEY ("Commune_Id", "Year", "Month")
+                    )
+                    """
+                )
+            )
+            table_created = True
+        else:
+            dates = conn.execute(text('SELECT DISTINCT "Year", "Month" FROM public.precipitation')).fetchall()
+            existing_dates = {(int(r[0]), int(r[1])) for r in dates}
+
+    # Filter files to only process missing dates
+    files_to_process = []
     for raster_path in tif_files:
         date_parts = parse_chirps_date(raster_path.name)
         if date_parts is None:
             continue
+        if date_parts not in existing_dates or force_rebuild:
+            files_to_process.append((date_parts[0], date_parts[1], raster_path))
 
-        year, month = date_parts
+    if not files_to_process:
+        print(f"✓ Base PostgreSQL deja a jour ({len(existing_dates)} mois presents).")
+        return pd.read_sql('SELECT * FROM public.precipitation ORDER BY "Commune_Id", "Year", "Month"', engine)
+
+    print(f"Calcul des statistiques zonales pour {len(files_to_process)} nouveau(x) raster(s) CHIRPS...")
+    rows = []
+    for year, month, raster_path in files_to_process:
+        print(f"  - Traitement {year}-{month:02d} ({raster_path.name})...")
         stats = zonal_stats(
             communes,
             str(raster_path),
@@ -307,39 +340,19 @@ def import_chirps_to_postgres(engine: Engine) -> pd.DataFrame:
                 }
             )
 
-    precipitation = pd.DataFrame(rows)
-    if precipitation.empty:
-        raise RuntimeError("Aucune donnee CHIRPS exploitable n'a ete calculee.")
-
-    precipitation = precipitation.sort_values(["Commune_Id", "Year", "Month"])
-
-    with engine.begin() as conn:
-        conn.execute(text('DROP TABLE IF EXISTS public.precipitation'))
-        conn.execute(
-            text(
-                """
-                CREATE TABLE public.precipitation (
-                  "Commune_Id" TEXT NOT NULL,
-                  "Year" INTEGER NOT NULL,
-                  "Month" INTEGER NOT NULL,
-                  "Precip" DOUBLE PRECISION,
-                  PRIMARY KEY ("Commune_Id", "Year", "Month")
-                )
-                """
-            )
+    new_precipitation = pd.DataFrame(rows)
+    if not new_precipitation.empty:
+        new_precipitation.to_sql(
+            "precipitation",
+            engine,
+            schema="public",
+            if_exists="append",
+            index=False,
+            chunksize=5000,
         )
+        print(f"✓ Insertion PostgreSQL OK: {len(new_precipitation)} lignes ajoutees.")
 
-    precipitation.to_sql(
-        "precipitation",
-        engine,
-        schema="public",
-        if_exists="append",
-        index=False,
-        chunksize=5000,
-    )
-
-    print(f"Import PostgreSQL OK: {len(precipitation)} lignes dans public.precipitation")
-    return precipitation
+    return pd.read_sql('SELECT * FROM public.precipitation ORDER BY "Commune_Id", "Year", "Month"', engine)
 
 
 def calc_saison(df_commune_saison: pd.DataFrame, seuil_chute_mm: float = 50) -> dict:
@@ -480,7 +493,6 @@ def load_precipitation_for_export(engine: Engine) -> pd.DataFrame:
 
     return df[
         (df["Year"] >= 1981)
-        & (df["Year"] <= 2025)
         & (df["Month"] >= 1)
         & (df["Month"] <= 12)
     ].copy()
@@ -809,8 +821,10 @@ def build_react_payload(engine: Engine) -> dict:
     crise["deficit"] = crise["deficit"].clip(-100, 100)
     deficit_crise = crise[["code_Commune", "deficit"]]
 
+    max_year = int(df["Year"].max()) if not df.empty else 2025
+    min_recent_year = max(2020, max_year - 5)
     map_precip = (
-        yearly_commune_precip[yearly_commune_precip["Year"].between(2020, 2025)]
+        yearly_commune_precip[yearly_commune_precip["Year"].between(min_recent_year, max_year)]
         .groupby("code_Commune", as_index=False)["p"]
         .mean()
         .assign(precip=lambda data: data["p"].round(2))[["code_Commune", "precip"]]
