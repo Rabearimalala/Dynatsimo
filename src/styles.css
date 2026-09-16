@@ -118,16 +118,17 @@ input {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .brand-mark.brand-mark-lg {
-  width: 48px !important;
-  height: 48px !important;
-  min-width: 48px !important;
-  max-width: 48px !important;
-  font-size: 24px !important;
-  border-radius: 12px !important;
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  font-size: 28px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
 }
 
 .state-brand-text {
@@ -141,7 +142,7 @@ input {
 .state-brand-title {
   font-size: 24px !important;
   font-weight: 800 !important;
-  color: var(--text-main, #0f172a) !important;
+  color: var(--text-main, #0b1528) !important;
   letter-spacing: 0.8px !important;
   line-height: 1.1 !important;
   margin: 0 !important;
@@ -149,10 +150,10 @@ input {
 
 .state-brand-subtitle {
   font-size: 10px !important;
-  font-weight: 600 !important;
-  color: var(--text-muted, #64748b) !important;
+  font-weight: 700 !important;
+  color: var(--text-muted, #5a6e85) !important;
   text-transform: uppercase !important;
-  letter-spacing: 2px !important;
+  letter-spacing: 2.2px !important;
   line-height: 1.2 !important;
   margin-top: 3px !important;
 }
@@ -235,9 +236,9 @@ input {
   flex-direction: row !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 8px !important;
-  margin-bottom: 20px !important;
-  padding: 0 !important;
+  gap: 12px !important;
+  margin-bottom: 22px !important;
+  padding: 4px 6px !important;
   width: 100% !important;
   text-align: left !important;
 }
@@ -247,8 +248,8 @@ input {
   flex-direction: row !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 8px !important;
-  flex-shrink: 0 !important;
+  gap: 12px !important;
+  flex: 1 !important;
   text-align: left !important;
 }
 
@@ -256,16 +257,17 @@ input {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
   flex-shrink: 0 !important;
-  border-radius: 7px !important;
-  background: linear-gradient(165deg, #38bdf8 0%, #2563eb 45%, #059669 100%) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #259bf6 0%, #1e6bf2 48%, #059669 100%) !important;
   color: #ffffff !important;
-  font-size: 16px !important;
+  font-size: 22px !important;
   font-weight: 800 !important;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(30, 107, 242, 0.22) !important;
   user-select: none !important;
   margin: 0 !important;
 }
@@ -284,11 +286,11 @@ input {
 
 .brand strong,
 .brand .brand-title {
-  font-size: 14px !important;
+  font-size: 18px !important;
   font-weight: 800 !important;
-  color: #020617 !important;
-  letter-spacing: 0.5px !important;
-  line-height: 1.15 !important;
+  color: var(--text-main, #0b1528) !important;
+  letter-spacing: 0.6px !important;
+  line-height: 1.1 !important;
   margin: 0 !important;
   padding: 0 !important;
   font-family: inherit !important;
@@ -298,13 +300,13 @@ input {
 
 .brand span:last-child,
 .brand .brand-subtitle {
-  font-size: 8px !important;
-  font-weight: 600 !important;
-  color: #64748b !important;
+  font-size: 8.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-muted, #5a6e85) !important;
   text-transform: uppercase !important;
-  letter-spacing: 1.2px !important;
+  letter-spacing: 2px !important;
   line-height: 1.2 !important;
-  margin: 1px 0 0 0 !important;
+  margin: 3px 0 0 0 !important;
   padding: 0 !important;
   font-family: inherit !important;
   display: block !important;
