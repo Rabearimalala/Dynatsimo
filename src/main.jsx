@@ -485,104 +485,12 @@ function App() {
 
       <aside className={`sidebar ${mobileNavOpen ? "mobile-open" : ""}`}>
         <div>
-          <div
-            className="brand"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              flexWrap: "nowrap",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              width: "100%",
-              marginBottom: "20px",
-              padding: 0,
-              gap: "8px",
-            }}
-          >
-            <div
-              className="brand-wrapper"
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                flexWrap: "nowrap",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                gap: "8px",
-                flex: "0 0 auto",
-              }}
-            >
-              <span
-                className="brand-mark"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "32px",
-                  height: "32px",
-                  minWidth: "32px",
-                  maxWidth: "32px",
-                  flex: "0 0 32px",
-                  borderRadius: "7px",
-                  background: "linear-gradient(165deg, #38bdf8 0%, #2563eb 45%, #059669 100%)",
-                  color: "#ffffff",
-                  fontSize: "16px",
-                  fontWeight: "800",
-                  boxShadow: "0 2px 6px rgba(37, 99, 235, 0.2)",
-                  userSelect: "none",
-                  margin: 0,
-                }}
-              >
-                D
-              </span>
-              <div
-                className="brand-text"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "flex-start",
-                  whiteSpace: "nowrap",
-                  textAlign: "left",
-                  margin: 0,
-                  padding: 0,
-                  lineHeight: 1,
-                  flex: "0 0 auto",
-                }}
-              >
-                <strong
-                  className="brand-title"
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: "800",
-                    color: "#020617",
-                    letterSpacing: "0.5px",
-                    lineHeight: "1.15",
-                    margin: 0,
-                    padding: 0,
-                    textAlign: "left",
-                    whiteSpace: "nowrap",
-                    display: "block",
-                  }}
-                >
-                  DYNATSIMO
-                </strong>
-                <span
-                  className="brand-subtitle"
-                  style={{
-                    fontSize: "8px",
-                    fontWeight: "600",
-                    color: "#64748b",
-                    textTransform: "uppercase",
-                    letterSpacing: "1.1px",
-                    lineHeight: "1.2",
-                    marginTop: "2px",
-                    textAlign: "left",
-                    whiteSpace: "nowrap",
-                    display: "block",
-                  }}
-                >
-                  GESTION AGRO-VÉGÉTALE
-                </span>
+          <div className="brand">
+            <div className="brand-wrapper">
+              <span className="brand-mark">D</span>
+              <div className="brand-text">
+                <strong className="brand-title">DYNATSIMO</strong>
+                <span className="brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
               </div>
             </div>
             <button
@@ -1232,14 +1140,14 @@ function SuiviVegetation({
 
 // Saison Component matching R script sub-tabs and controls
 function Saison({
-  communes,
-  regions,
-  selectedRegion,
+  communes = [],
+  regions = [],
+  selectedRegion = "",
   setSelectedRegion,
-  seasonData,
-  selectedCommune,
+  seasonData = [],
+  selectedCommune = "",
   setSelectedCommune,
-  selectedCommuneName,
+  selectedCommuneName = "",
   statsCategory,
   setStatsCategory,
 }) {
@@ -1248,33 +1156,63 @@ function Saison({
 
   // Min and Max season slider state
   const availableSeasons = React.useMemo(() => {
+    if (!seasonData || seasonData.length === 0) return [1980, 2026];
     const list = seasonData.map((s) => Number(s.saison)).filter((s) => Number.isFinite(s));
-    return list.length ? [Math.min(...list), Math.max(...list)] : [1981, 2025];
+    return list.length ? [Math.min(...list), Math.max(...list)] : [1980, 2026];
   }, [seasonData]);
 
-  const [seasonRange, setSeasonRange] = React.useState([1981, 2025]);
+  const [seasonRange, setSeasonRange] = React.useState([1980, 2026]);
 
   React.useEffect(() => {
-    setSeasonRange(availableSeasons);
+    if (availableSeasons && availableSeasons.length === 2) {
+      setSeasonRange(availableSeasons);
+    }
   }, [availableSeasons]);
 
   const searchedCommunes = React.useMemo(() => {
-    return communes.filter(
-      (c) =>
+    return communes.filter((c) => {
+      const matchRegion = !selectedRegion || c.region === selectedRegion;
+      const matchSearch =
+        !searchTerm ||
         c.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.code.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [communes, searchTerm]);
+        c.code.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchRegion && matchSearch;
+    });
+  }, [communes, searchTerm, selectedRegion]);
 
-  // Filter season rows for selected commune & season range
+  // Ensure selectedCommune is aligned with searchedCommunes
+  React.useEffect(() => {
+    if (searchedCommunes.length > 0) {
+      const currentExists = searchedCommunes.some(
+        (c) => String(c.code).trim().toUpperCase() === String(selectedCommune).trim().toUpperCase()
+      );
+      if (!currentExists && setSelectedCommune) {
+        setSelectedCommune(searchedCommunes[0].code);
+      }
+    }
+  }, [searchedCommunes, selectedCommune, setSelectedCommune]);
+
+  // Filter season rows for selected commune & season range with flexible matching
   const filteredSeasonRows = React.useMemo(() => {
-    return seasonData.filter(
-      (row) =>
-        row.code_commune === selectedCommune &&
-        Number(row.saison) >= seasonRange[0] &&
-        Number(row.saison) <= seasonRange[1]
-    );
-  }, [seasonData, selectedCommune, seasonRange]);
+    const targetCode = String(selectedCommune || (searchedCommunes[0]?.code ?? "")).trim().toUpperCase();
+    const targetObj = communes.find((c) => String(c.code).trim().toUpperCase() === targetCode);
+    const targetName = String(targetObj?.nom || selectedCommuneName || "").trim().toLowerCase();
+
+    return seasonData.filter((row) => {
+      if (!row) return false;
+      const rCode = String(row.code_commune || row.code || "").trim().toUpperCase();
+      const rNom = String(row.commune || row.nom || "").trim().toLowerCase();
+
+      const isMatch =
+        (targetCode && (rCode === targetCode || targetCode.includes(rCode) || rCode.includes(targetCode))) ||
+        (targetName && (rNom === targetName || targetName.includes(rNom) || rNom.includes(targetName)));
+
+      if (!isMatch) return false;
+
+      const yr = Number(row.saison);
+      return !isNaN(yr) && yr >= seasonRange[0] && yr <= seasonRange[1];
+    });
+  }, [seasonData, selectedCommune, selectedCommuneName, communes, searchedCommunes, seasonRange]);
 
   const hydroMonths = ["Oct", "Nov", "Dec", "Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep"];
   const monthOrderMap = { Oct: 10, Nov: 11, Dec: 12, Jan: 1, Fev: 2, Mar: 3, Avr: 4, Mai: 5, Jun: 6, Jul: 7, Aou: 8, Sep: 9 };
@@ -1282,19 +1220,21 @@ function Saison({
 
   // Data for "Début et fin de saison" chart
   const startEndChartData = React.useMemo(() => {
-    return filteredSeasonRows.map((r) => {
-      const debutVal = monthToVal[r.debut] || 10;
-      let finVal = monthToVal[r.fin] || 15;
-      if (finVal < debutVal) finVal += 12;
-      return {
-        saison: r.saison,
-        debut: debutVal,
-        fin: finVal,
-        debutLabel: r.debut || "Oct",
-        finLabel: r.fin || "Mar",
-        duree: r.duree || 6,
-      };
-    });
+    return filteredSeasonRows
+      .filter((r) => r.debut || r.fin)
+      .map((r) => {
+        const debutVal = monthToVal[r.debut] || 10;
+        let finVal = monthToVal[r.fin] || 15;
+        if (finVal < debutVal) finVal += 12;
+        return {
+          saison: r.saison,
+          debut: r.debut ? debutVal : null,
+          fin: r.fin ? finVal : null,
+          debutLabel: r.debut || "—",
+          finLabel: r.fin || "—",
+          duree: r.duree || (r.debut && r.fin ? finVal - debutVal + 1 : 0),
+        };
+      });
   }, [filteredSeasonRows]);
 
   // Chronogram data sorted from most recent season to oldest

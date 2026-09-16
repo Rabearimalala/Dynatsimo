@@ -4,3 +4,5 @@ dist/
 *.tif
 *.tiff
 .pycache/
+.xml
+.gz
