@@ -815,6 +815,10 @@ function Metric({ label, value, type }) {
 function Overview({ annualData, communes, overview, vegData }) {
   const [polyOrder, setPolyOrder] = React.useState(4);
 
+  const startYear = annualData && annualData.length ? annualData[0].year : 1981;
+  const endYear = annualData && annualData.length ? annualData[annualData.length - 1].year : 2026;
+  const periodLabel = `${startYear}–${endYear}`;
+
   const computedTrendData = React.useMemo(() => {
     if (!annualData || annualData.length === 0) return [];
     const years = annualData.map((d) => d.year);
@@ -829,9 +833,12 @@ function Overview({ annualData, communes, overview, vegData }) {
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
+      const isCurrentYear = payload[0].payload.year === endYear;
       return (
         <div className="recharts-custom-tooltip">
-          <p className="recharts-custom-tooltip-title">Année {payload[0].payload.year}</p>
+          <p className="recharts-custom-tooltip-title">
+            Année {payload[0].payload.year} {isCurrentYear ? "(Année en cours)" : ""}
+          </p>
           <div className="recharts-custom-tooltip-item">
             <span>Pluie moyenne :</span>
             <span>{payload[0].value.toLocaleString("fr-FR")} mm</span>
@@ -864,11 +871,11 @@ function Overview({ annualData, communes, overview, vegData }) {
       <section className="metric-grid">
         <Metric
           label="Communes Suivies"
-          value={overview.nb_communes ?? communes.length}
+          value={overview?.nb_communes ?? communes.length}
           type="communes"
         />
         <Metric label="Précipitation Moyenne" value={avgPrecip} type="precip" />
-        <Metric label="Historique Données" value={overview.nb_years} type="years" />
+        <Metric label="Historique Données" value={overview?.nb_years || periodLabel} type="years" />
       </section>
 
       <div className="info-bulletin">
@@ -879,7 +886,7 @@ function Overview({ annualData, communes, overview, vegData }) {
         <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <h2>
-              <Icons.Stats /> Précipitations annuelles moyennes (1981–2025)
+              <Icons.Stats /> Précipitations annuelles moyennes ({periodLabel})
             </h2>
             <span>Tendance des précipitations annuelles moyennes (poly ordre {polyOrder})</span>
           </div>
@@ -2102,8 +2109,6 @@ function Carte({
   const [localIsohyetesMeta, setLocalIsohyetesMeta] = React.useState(isohyetesMeta);
   const [loadedIsohyete, setLoadedIsohyete] = React.useState({ key: "", geojson: null });
   const [showIsohyeteContours, setShowIsohyeteContours] = React.useState(true);
-  const [showIsohyeteRaster, setShowIsohyeteRaster] = React.useState(true);
-  const [isohyeteOpacity, setIsohyeteOpacity] = React.useState(0.6);
   const [isohyeteLineStyle, setIsohyeteLineStyle] = React.useState("colored"); // 'colored' | 'qgis'
 
   React.useEffect(() => {
@@ -3021,32 +3026,6 @@ function Carte({
                       </label>
                     </div>
                   )}
-
-                  <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer", marginTop: "4px" }}>
-                    <input
-                      type="checkbox"
-                      checked={showIsohyeteRaster}
-                      onChange={(e) => setShowIsohyeteRaster(e.target.checked)}
-                    />
-                    <span>Calque raster CHIRPS (surface)</span>
-                  </label>
-                  {showIsohyeteRaster && (
-                    <div style={{ marginTop: "4px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--text-muted)" }}>
-                        <span>Opacité raster :</span>
-                        <span>{Math.round(isohyeteOpacity * 100)}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={1}
-                        step={0.05}
-                        value={isohyeteOpacity}
-                        onChange={(e) => setIsohyeteOpacity(Number(e.target.value))}
-                        style={{ width: "100%", height: "4px", marginTop: "2px" }}
-                      />
-                    </div>
-                  )}
                 </div>
 
                 {activeIsohyeteItem && (
@@ -3414,19 +3393,7 @@ function Carte({
                 />
               )}
 
-              {/* Raster Isohyètes CHIRPS Overlay */}
-              {mapSubItem === "precip" &&
-                typeCarte === "Isohyètes" &&
-                showIsohyeteRaster &&
-                activeIsohyeteItem?.pngUrl && (
-                  <ImageOverlay
-                    key={`iso-raster-${activeIsohyeteKey}`}
-                    url={activeIsohyeteItem.pngUrl}
-                    bounds={localIsohyetesMeta?.bounds || [[-25.650001, 43.150003], [-20.900001, 47.450003]]}
-                    opacity={isohyeteOpacity}
-                    zIndex={10}
-                  />
-                )}
+
 
               {/* Courbes vectorielles GeoJSON d'Isohyètes */}
               {mapSubItem === "precip" &&

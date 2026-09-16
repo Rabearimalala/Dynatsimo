@@ -1,0 +1,1 @@
+{"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[46.8737, -25.075], [46.8599, -25.025], [46.875, -25.0113], [46.925, -24.994], [46.975, -25.0016], [46.9881, -25.0119]]}, "properties": {"isohyete": 50, "label": "50 mm", "color": "#93c5fd"}}]}
