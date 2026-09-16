@@ -287,7 +287,8 @@ function getIsohyeteColor(val, minVal = 0, maxVal = 1000) {
 }
 
 async function fetchJson(path) {
-  const response = await fetch(path);
+  const url = path.includes("?") ? `${path}&_t=${Date.now()}` : `${path}?_t=${Date.now()}`;
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Impossible de charger ${path}`);
   }
