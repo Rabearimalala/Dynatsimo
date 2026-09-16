@@ -4,7 +4,14 @@ import json
 import math
 import os
 import re
+import sys
 from pathlib import Path
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 import numpy as np
 import pandas as pd
@@ -355,7 +362,13 @@ def import_chirps_to_postgres(engine: Engine, force_rebuild: bool = False) -> pd
     return pd.read_sql('SELECT * FROM public.precipitation ORDER BY "Commune_Id", "Year", "Month"', engine)
 
 
-def calc_saison(df_commune_saison: pd.DataFrame, seuil_chute_mm: float = 50) -> dict:
+def calc_saison(df_commune_saison: pd.DataFrame, region: str = "", seuil_chute_mm: float = 50) -> dict:
+    """
+    Calcul agrométéorologique de la saison des pluies adapté aux 3 régions du Grand Sud de Madagascar :
+    - Androy : Début en Novembre (fin nov), Période Nov -> Mars (SRAT / Monographie)
+    - Anosy : Début en Novembre (parfois Oct), Période Nov -> Mars ou Avril
+    - Atsimo-Andrefana : Début en Novembre (parfois Oct), Période Nov -> Mars (parfois Avril)
+    """
     if df_commune_saison.empty:
         return empty_saison()
 
@@ -366,37 +379,75 @@ def calc_saison(df_commune_saison: pd.DataFrame, seuil_chute_mm: float = 50) -> 
     precip = df_sorted["Precip"].to_numpy(dtype=float)
     months = df_sorted["Month"].to_numpy(dtype=int)
 
-    if len(precip) < 6 or np.isnan(precip).all():
+    if len(precip) < 5 or np.isnan(precip).all():
         return empty_saison()
 
-    precip_clean = np.nan_to_num(precip, nan=0.0)
+    # Dictionnaire mois -> précipitation
+    p_map = {int(m): (float(p) if pd.notnull(p) else 0.0) for m, p in zip(months, precip)}
 
-    debut = None
-    for index, month in enumerate(months):
-        if month in (10, 11, 12) and index < len(precip_clean) - 1:
-            if precip_clean[index] >= 50 and precip_clean[index] < precip_clean[index + 1]:
-                debut = int(month)
-                break
-    if debut is None:
+    # 1. DÉBUT DE SAISON (Grand Sud : Androy, Anosy, Atsimo-Andrefana)
+    p_oct = p_map.get(10, 0.0)
+    p_nov = p_map.get(11, 0.0)
+    p_dec = p_map.get(12, 0.0)
+    p_jan = p_map.get(1, 0.0)
+
+    # Démarrage précoce en Octobre uniquement si pluies significatives (>= 35mm) et installation confirmée
+    if p_oct >= 35.0 and (p_nov >= 30.0 or p_dec >= 60.0):
         debut = 10
+    # Démarrage standard en Novembre si pluies d'installation (>= 25mm ou amorce nette vers Décembre)
+    elif p_nov >= 25.0 or (p_nov >= 15.0 and p_dec >= 50.0):
+        debut = 11
+    # Démarrage en Décembre si Novembre très sec (< 15mm) mais Décembre pluvieux (>= 40mm)
+    elif p_dec >= 40.0:
+        debut = 12
+    # Démarrage très tardif en Janvier en cas de retard sévère (sécheresse de début de saison)
+    elif p_jan >= 50.0:
+        debut = 1
+    else:
+        # Repli climatologique régional : Novembre
+        debut = 11
 
-    fin = None
-    for index, month in enumerate(months):
-        if month in (1, 2, 3, 4, 5, 6) and 0 < index < len(precip_clean) - 1:
-            if precip_clean[index + 1] - precip_clean[index] <= -seuil_chute_mm:
-                fin = int(month)
-                break
-    if fin is None:
+    # 2. FIN DE SAISON (Retrait des pluies : Février, Mars, Avril, Mai)
+    p_fev = p_map.get(2, 0.0)
+    p_mar = p_map.get(3, 0.0)
+    p_avr = p_map.get(4, 0.0)
+    p_mai = p_map.get(5, 0.0)
+
+    # Prolongation en Mai si pluies tardives soutenues (courant en Anosy maritime)
+    if p_mai >= 40.0 and p_avr >= 40.0:
+        fin = 5
+    # Prolongation en Avril si Avril reste humide (>= 30mm et Mars soutenu)
+    elif p_avr >= 30.0 and p_mar >= 40.0:
+        fin = 4
+    # Fin normale en Mars si Mars a encore des pluies significatives (>= 25mm)
+    elif p_mar >= 25.0 or (p_fev >= 60.0 and p_mar >= 15.0):
         fin = 3
+    # Fin précoce en Février si arrêt précoce des pluies en Mars (< 15mm)
+    elif p_fev >= 30.0 and p_mar < 15.0:
+        fin = 2
+    elif p_jan >= 40.0 and p_fev < 20.0 and p_mar < 15.0:
+        fin = 1
+    else:
+        # Repli climatologique régional
+        if "anosy" in str(region).lower() and p_avr >= 25.0:
+            fin = 4
+        else:
+            fin = 3
 
-    duree = (12 - debut + 1) + fin
-    mois_saison = list(range(debut, 13)) + list(range(1, fin + 1))
-    saison_indexes = [index for index, month in enumerate(months) if month in mois_saison]
-    mois_plus_pluvieux = None
+    # 3. DURÉE (en mois)
+    if debut >= 10:
+        duree = (12 - debut + 1) + fin
+        saison_months = list(range(debut, 13)) + list(range(1, fin + 1))
+    else:
+        duree = (fin - debut + 1)
+        saison_months = list(range(debut, fin + 1))
 
-    if saison_indexes:
-        best_index = max(saison_indexes, key=lambda index: precip_clean[index])
-        mois_plus_pluvieux = int(months[best_index])
+    if duree <= 0 or duree > 12:
+        duree = max(1, min(8, duree))
+
+    # 4. MOIS LE PLUS PLUVIEUX
+    active_p = {m: p_map.get(m, 0.0) for m in saison_months}
+    mois_plus_pluvieux = max(active_p, key=active_p.get) if active_p else 1
 
     return {
         "debut_saison": debut,
@@ -489,7 +540,7 @@ def load_precipitation_for_export(engine: Engine) -> pd.DataFrame:
     df["Year"] = df["Year"].astype(int)
     df["Precip"] = pd.to_numeric(df["Precip"], errors="coerce")
     df["code_Commune"] = df["code_Commune"].astype(str).str.strip().str.upper()
-    df["Saison"] = np.where(df["Month"] >= 11, df["Year"], df["Year"] - 1)
+    df["Saison"] = np.where(df["Month"] >= 10, df["Year"], df["Year"] - 1)
 
     return df[
         (df["Year"] >= 1981)
@@ -752,7 +803,8 @@ def build_react_payload(engine: Engine) -> dict:
 
     saison_rows = []
     for (code, commune, saison), group in df.groupby(["code_Commune", "Commune", "Saison"], sort=True):
-        values = calc_saison(group)
+        reg = str(group["Region"].iloc[0]) if "Region" in group.columns and pd.notnull(group["Region"].iloc[0]) else ""
+        values = calc_saison(group, region=reg)
         saison_rows.append(
             {
                 "code_commune": code,

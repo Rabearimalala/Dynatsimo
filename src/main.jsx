@@ -1264,11 +1264,12 @@ function Saison({
       const monthCode = data.mois_plus_pluvieux || "";
       const monthFull = monthNamesFrMap[monthCode] || monthCode || "Mois le plus pluvieux";
       const precipVal = payload[0].value ?? data.precip ?? 0;
+      const s = data.saison;
 
       return (
         <div className="recharts-custom-tooltip">
           <p className="recharts-custom-tooltip-title" style={{ fontSize: "12px", fontWeight: "700" }}>
-            {monthFull}
+            Saison {s}–{Number(s) + 1} • {monthFull}
           </p>
           <div className="recharts-custom-tooltip-item">
             <span>Précipitation :</span>
@@ -1335,9 +1336,9 @@ function Saison({
         {/* Range filter slider for agricultural seasons */}
         <div className="filter-group" style={{ marginTop: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
           <label style={{ fontWeight: "700" }}>Filtrer saisons agricoles :</label>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-            <span>{seasonRange[0]}</span>
-            <span>{seasonRange[1]}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--primary)", fontWeight: "700", marginTop: "4px" }}>
+            <span>{seasonRange[0]}–{Number(seasonRange[0]) + 1}</span>
+            <span>{seasonRange[1]}–{Number(seasonRange[1]) + 1}</span>
           </div>
           <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
             <input
@@ -1347,6 +1348,7 @@ function Saison({
               value={seasonRange[0]}
               onChange={(e) => setSeasonRange([Math.max(availableSeasons[0], Number(e.target.value)), seasonRange[1]])}
               style={{ width: "50%", padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "12px" }}
+              title={`Saison de début : ${seasonRange[0]}-${Number(seasonRange[0]) + 1}`}
             />
             <input
               type="number"
@@ -1355,6 +1357,7 @@ function Saison({
               value={seasonRange[1]}
               onChange={(e) => setSeasonRange([seasonRange[0], Math.min(availableSeasons[1], Number(e.target.value))])}
               style={{ width: "50%", padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "12px" }}
+              title={`Saison de fin : ${seasonRange[1]}-${Number(seasonRange[1]) + 1}`}
             />
           </div>
         </div>
@@ -1364,7 +1367,7 @@ function Saison({
         <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <h2><Icons.Rain /> Saison des pluies - {selectedCommuneName}</h2>
-            <span>Début, durée et mois le plus pluvieux</span>
+            <span>Début, durée et mois le plus pluvieux ({seasonRange[0]}–{Number(seasonRange[0]) + 1} à {seasonRange[1]}–{Number(seasonRange[1]) + 1})</span>
           </div>
 
           {/* Sub-tabs matching R script */}
@@ -1403,7 +1406,15 @@ function Saison({
                 <ResponsiveContainer>
                   <ComposedChart data={startEndChartData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                    <XAxis dataKey="saison" stroke="var(--text-muted)" fontSize={11} angle={-45} textAnchor="end" height={50} />
+                    <XAxis
+                      dataKey="saison"
+                      stroke="var(--text-muted)"
+                      fontSize={11}
+                      angle={-45}
+                      textAnchor="end"
+                      height={50}
+                      tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
+                    />
                     <YAxis
                       domain={[10, 17]}
                       ticks={[10, 11, 12, 13, 14, 15, 16, 17]}
@@ -1415,6 +1426,7 @@ function Saison({
                       fontSize={11}
                     />
                     <RechartsTooltip
+                      labelFormatter={(s) => `Saison ${s}–${Number(s) + 1}`}
                       formatter={(val, name, entry) => [
                         name === "debut" ? entry.payload.debutLabel : entry.payload.finLabel,
                         name === "debut" ? "Mois Début" : "Mois Fin",
@@ -1439,7 +1451,15 @@ function Saison({
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                    <XAxis dataKey="saison" stroke="var(--text-muted)" fontSize={11} angle={-45} textAnchor="end" height={50} />
+                    <XAxis
+                      dataKey="saison"
+                      stroke="var(--text-muted)"
+                      fontSize={11}
+                      angle={-45}
+                      textAnchor="end"
+                      height={50}
+                      tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
+                    />
                     <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
                     <RechartsTooltip content={<CustomMaxMonthTooltip />} />
                     <Bar
@@ -1476,7 +1496,9 @@ function Saison({
 
                   return (
                     <div className="timeline-row" key={`${row.code_commune}-${row.saison}`}>
-                      <span>Saison {row.saison}</span>
+                      <span style={{ minWidth: "125px", fontWeight: "700", fontSize: "12px" }}>
+                        Saison {row.saison}–{Number(row.saison) + 1}
+                      </span>
 
                       <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                         <div className="timeline-track-container">
@@ -1484,7 +1506,7 @@ function Saison({
                           <div
                             className="timeline-track-fill"
                             style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, minWidth: "12px" }}
-                            title={`Du ${row.debut} au ${row.fin} (${row.duree} mois)`}
+                            title={`Saison ${row.saison}-${Number(row.saison) + 1} : Du ${row.debut} au ${row.fin} (${row.duree} mois)`}
                           ></div>
                         </div>
 
@@ -1498,7 +1520,7 @@ function Saison({
                       <div className="timeline-duration">
                         <strong>{row.duree} mois</strong>
                         <div style={{ fontSize: "11px", color: "var(--text-light)", fontWeight: "500", marginTop: "4px" }}>
-                          Max : {row.mois_plus_pluvieux ? `${row.mois_plus_pluvieux}` : "N/A"}
+                          Max : {row.mois_plus_pluvieux || "—"} ({row.precip ? `${row.precip} mm` : "—"})
                         </div>
                       </div>
                     </div>
