@@ -243,16 +243,16 @@ input[type="checkbox"] {
 
 .brand-mark {
   display: block !important;
-  width: 42px !important;
-  height: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
   flex-shrink: 0 !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  background: #ffffff !important;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
   user-select: none !important;
   margin: 0 !important;
 }
@@ -271,24 +271,37 @@ input[type="checkbox"] {
 }
 
 .brand-title {
-  font-size: 16.5px !important;
-  font-weight: 800 !important;
-  color: var(--text-main) !important;
-  letter-spacing: 0.4px !important;
+  font-size: 18px !important;
+  font-weight: 850 !important;
+  background: linear-gradient(125deg, #1d4ed8 0%, #0284c7 45%, #059669 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  color: transparent !important;
+  letter-spacing: 0.5px !important;
   line-height: 1.15 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
 .brand-subtitle {
-  font-size: 8.5px !important;
+  font-size: 9px !important;
   font-weight: 750 !important;
   color: var(--text-muted) !important;
   text-transform: uppercase !important;
-  letter-spacing: 1.4px !important;
+  letter-spacing: 1.2px !important;
   line-height: 1.2 !important;
   margin: 3px 0 0 0 !important;
   padding: 0 !important;
+}
+
+[data-theme="dark"] .brand-title,
+[data-theme="dark"] .state-brand-title {
+  background: linear-gradient(125deg, #60a5fa 0%, #38bdf8 45%, #34d399 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  color: transparent !important;
 }
 
 /* Nav Menu */
@@ -2770,12 +2783,14 @@ tr:hover td {
 }
 
 .brand-mark.brand-mark-lg {
-  width: 58px !important;
-  height: 58px !important;
-  min-width: 58px !important;
-  max-width: 58px !important;
-  border-radius: 50% !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+  width: 84px !important;
+  height: 84px !important;
+  min-width: 84px !important;
+  max-width: 84px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 .state-brand-text {
@@ -2788,8 +2803,12 @@ tr:hover td {
 
 .state-brand-title {
   font-size: 26px !important;
-  font-weight: 800 !important;
-  color: var(--text-main) !important;
+  font-weight: 850 !important;
+  background: linear-gradient(125deg, #1d4ed8 0%, #0284c7 45%, #059669 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  color: transparent !important;
   letter-spacing: 0.8px !important;
   line-height: 1.1 !important;
   margin: 0 !important;

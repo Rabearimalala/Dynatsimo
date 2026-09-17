@@ -707,21 +707,6 @@ function App() {
           </div>
 
           <div className="navbar-right">
-            <div className="status-badge">
-              <span className={`status-dot ${isApiConnected ? "api" : "static"}`}></span>
-              <span style={{ color: "var(--text-main)", marginLeft: "4px" }}>
-                {isApiConnected ? "Base PostgreSQL" : "Fichiers Statiques"}
-              </span>
-              {!isApiConnected && (
-                <button
-                  className="api-retry-btn"
-                  onClick={() => setRetryTrigger((prev) => prev + 1)}
-                >
-                  Reconnexion
-                </button>
-              )}
-            </div>
-
             <button
               onClick={toggleTheme}
               className="theme-toggle-btn"
