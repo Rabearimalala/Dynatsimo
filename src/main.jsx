@@ -958,6 +958,7 @@ function UnifiedSinglePage({
           setSelectedCommune={setSelectedCommune}
           selectedCommuneName={selectedCommuneName}
           vegData={data?.vegetationData || {}}
+          precipRecords={data?.precipRecords || []}
           statsCategory="vegetation"
           setStatsCategory={setStatsCategory}
         />
@@ -1360,6 +1361,7 @@ function SuiviVegetation({
   setSelectedCommune,
   selectedCommuneName,
   vegData,
+  precipRecords = [],
   statsCategory,
   setStatsCategory,
 }) {
@@ -1509,6 +1511,39 @@ function SuiviVegetation({
     };
   }, [annualData]);
 
+  // --- MONTHLY PRECIPITATION FOR ACTIVE COMMUNE ---
+  const monthlyPrecipForCommune = React.useMemo(() => {
+    const currentCode = selectedCommune || activeCommuneObj?.code;
+    if (!currentCode || !precipRecords || precipRecords.length === 0) return { climMean: {}, yearDict: {} };
+    const filtered = precipRecords.filter((r) => r.code === currentCode);
+    const climDict = {};
+    for (let m = 1; m <= 12; m++) climDict[m] = [];
+    filtered.forEach((r) => {
+      if (r.month >= 1 && r.month <= 12 && Number.isFinite(r.precip)) {
+        climDict[r.month].push(r.precip);
+      }
+    });
+    const climMean = {};
+    for (let m = 1; m <= 12; m++) {
+      const vals = climDict[m] || [];
+      climMean[m] = vals.length > 0 ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : 0;
+    }
+
+    const yearDict = {};
+    const targetEndYear = activeSeason ? Number(String(activeSeason).split("-")[1]) || 2025 : 2025;
+    const targetStartYear = targetEndYear - 1;
+    filtered.forEach((r) => {
+      // Jan-Sep from endYear, Oct-Dec from startYear
+      if (r.year === targetEndYear && r.month >= 1 && r.month <= 9) {
+        yearDict[r.month] = Math.round(r.precip * 10) / 10;
+      } else if (r.year === targetStartYear && r.month >= 10 && r.month <= 12) {
+        yearDict[r.month] = Math.round(r.precip * 10) / 10;
+      }
+    });
+
+    return { climMean, yearDict };
+  }, [precipRecords, selectedCommune, activeCommuneObj, activeSeason]);
+
   // --- DATA PER MONTH (INTRA-ANNUAL 12-MONTHS FOR SELECTED SEASON) ---
   const activeSeasonData =
     activeCommuneSeries.find((s) => s.season === activeSeason) ||
@@ -1516,24 +1551,58 @@ function SuiviVegetation({
 
   const monthlyChartData = React.useMemo(() => {
     if (!activeSeasonData) return [];
-    const months = ["Oct", "Nov", "Dec", "Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep"];
+    // Indexing in raw data is agricultural season starting in Oct:
+    // Oct(0), Nov(1), Dec(2), Jan(3), Fev(4), Mar(5), Avr(6), Mai(7), Jun(8), Jul(9), Aou(10), Sep(11)
+    const monthDefs = [
+      { name: "Jan", idx: 3, mNum: 1 },
+      { name: "Fév", idx: 4, mNum: 2 },
+      { name: "Mar", idx: 5, mNum: 3 },
+      { name: "Avr", idx: 6, mNum: 4 },
+      { name: "Mai", idx: 7, mNum: 5 },
+      { name: "Jun", idx: 8, mNum: 6 },
+      { name: "Jul", idx: 9, mNum: 7 },
+      { name: "Aoû", idx: 10, mNum: 8 },
+      { name: "Sep", idx: 11, mNum: 9 },
+      { name: "Oct", idx: 0, mNum: 10 },
+      { name: "Nov", idx: 1, mNum: 11 },
+      { name: "Déc", idx: 2, mNum: 12 },
+    ];
     const baseline = Array.isArray(activeSeasonData.baseline)
       ? activeSeasonData.baseline
       : Array.isArray(activeEcoregionDetails.baselineNdvi)
       ? activeEcoregionDetails.baselineNdvi
       : Array(12).fill(0.3);
     const ndvi = Array.isArray(activeSeasonData.ndvi) ? activeSeasonData.ndvi : [];
-    const cumulative = Array.isArray(activeSeasonData.cumulative) ? activeSeasonData.cumulative : [];
     const anomalies = Array.isArray(activeSeasonData.anomalies) ? activeSeasonData.anomalies : [];
 
-    return months.map((m, idx) => ({
-      month: m,
-      ndvi: toFiniteNumber(ndvi[idx], 0),
-      baseline: toFiniteNumber(baseline[idx], 0),
-      cumulative: toFiniteNumber(cumulative[idx], 0),
-      anomalies: toFiniteNumber(anomalies[idx], 0),
-    }));
-  }, [activeSeasonData, activeEcoregionDetails]);
+    const climMean = monthlyPrecipForCommune?.climMean || {};
+    const yearDict = monthlyPrecipForCommune?.yearDict || {};
+
+    let runningCumul = 0;
+    return monthDefs.map(({ name, idx, mNum }) => {
+      const valNdvi = toFiniteNumber(ndvi[idx], 0);
+      const valBase = toFiniteNumber(baseline[idx], 0);
+      const rawAnom = anomalies[idx] !== undefined && anomalies[idx] !== null ? anomalies[idx] : (valNdvi - valBase);
+      const valAnom = toFiniteNumber(rawAnom, valNdvi - valBase);
+      runningCumul += valNdvi;
+      const diff = valNdvi - valBase;
+      const diffPct = valBase > 0 ? (diff / valBase) * 100 : 0;
+      const pRef = climMean[mNum] ?? 0;
+      const pObs = yearDict[mNum] !== undefined ? yearDict[mNum] : pRef;
+
+      return {
+        month: name,
+        ndvi: Math.round(valNdvi * 1000) / 1000,
+        baseline: Math.round(valBase * 1000) / 1000,
+        cumulative: Math.round(runningCumul * 100) / 100,
+        anomalies: Math.round(valAnom * 1000) / 1000,
+        diff: Math.round(diff * 1000) / 1000,
+        diffPct: Math.round(diffPct * 10) / 10,
+        precip: pObs,
+        precipRef: pRef,
+      };
+    });
+  }, [activeSeasonData, activeEcoregionDetails, monthlyPrecipForCommune]);
 
   const anomalyValues = Array.isArray(activeSeasonData?.anomalies) ? activeSeasonData.anomalies : [];
   const anomalyPercent = (averageFinite(anomalyValues, 4, 0) ?? 0) * 100;
@@ -1546,6 +1615,12 @@ function SuiviVegetation({
     alertLevel = "vigilance";
     alertText = "Vigilance - Sécheresse Végétale modérée";
   }
+
+  const yDomainPrecipMonthly = React.useMemo(() => {
+    if (monthlyChartData.length === 0) return [0, 200];
+    const maxVal = Math.max(...monthlyChartData.map((d) => Math.max(d.precip || 0, d.precipRef || 0)), 50);
+    return [0, Math.ceil((maxVal + 20) / 50) * 50];
+  }, [monthlyChartData]);
 
   const yDomainNdviMonthly = React.useMemo(() => {
     if (monthlyChartData.length === 0) return [0, 0.8];
@@ -1779,20 +1854,47 @@ function SuiviVegetation({
           <div className="panel">
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
-                <h2><Icons.Stats /> Profil Phénologique NDVI Mensuel — {activeCommuneObj?.nom} (Saison {activeSeasonData?.season ?? activeSeason})</h2>
-                <span>Cycle phénologique : Reverdissement dès Octobre/Novembre, pic en Février/Mars et dessèchement à partir de Mai</span>
+                <h2><Icons.Stats /> Profil Phénologique & Végétation Mensuelle — {activeCommuneObj?.nom} (Saison {activeSeasonData?.season ?? activeSeason})</h2>
+                <span>Comparaison mensuelle : Végétation observée (NDVI) et normale de référence (2000–2025)</span>
               </div>
             </div>
-            <div style={{ width: "100%", height: 260 }}>
+            <div style={{ width: "100%", height: 280 }}>
               <ResponsiveContainer>
-                <ComposedChart data={monthlyChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 20, bottom: 25, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
+                  <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
                   <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainNdviMonthly} />
-                  <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(3), name]} />
+                  <RechartsTooltip
+                    formatter={(val, name, item) => {
+                      const nameStr = String(name || "");
+                      if (nameStr.includes("Observée") || nameStr.includes("Observee") || nameStr.includes("Végétation") || nameStr.includes("NDVI")) {
+                        const baseVal = item?.payload?.baseline ?? 0;
+                        const diff = Number(val) - Number(baseVal);
+                        const diffPct = item?.payload?.diffPct ?? 0;
+                        return [
+                          `${Number(val).toFixed(3)} (Écart: ${diff >= 0 ? "+" : ""}${diff.toFixed(3)} / ${diffPct >= 0 ? "+" : ""}${diffPct}%)`,
+                          `Végétation ${activeSeasonData?.season ?? activeSeason}`
+                        ];
+                      }
+                      return [Number(val).toFixed(3), nameStr];
+                    }}
+                  />
                   <Legend verticalAlign="top" height={36} />
-                  <Line name="NDVI Normal (Moyenne historique)" type="monotone" dataKey="baseline" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
-                  <Area name="NDVI Observé (Cycle réel)" type="monotone" dataKey="ndvi" fill="rgba(16, 185, 129, 0.15)" stroke="var(--accent)" strokeWidth={3} />
+                  <Line
+                    name="Normale Végétale (Moyenne 2000–2025)"
+                    type="monotone"
+                    dataKey="baseline"
+                    stroke="#64748b"
+                    strokeWidth={2.5}
+                    dot={{ r: 4, fill: "#64748b" }}
+                    strokeDasharray="4 4"
+                  />
+                  <Bar
+                    name={`Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`}
+                    dataKey="ndvi"
+                    fill="#2563eb"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -1806,8 +1908,8 @@ function SuiviVegetation({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Productivité Annuelle Intégrée (Σ NDVI / Campagne) — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Indice de biomasse totale cumulée produite chaque année (somme des 12 mois)</span>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Production Végétale Annuelle (Σ NDVI / Campagne) — {activeCommuneObj?.nom}</h3>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Indice de végétation totale cumulée produite chaque année (somme des 12 mois)</span>
           </div>
           <div style={{ width: "100%", height: 220 }}>
             <ResponsiveContainer>
@@ -1817,8 +1919,8 @@ function SuiviVegetation({
                 <YAxis stroke="var(--text-muted)" fontSize={11} />
                 <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(2), name]} />
                 <Legend verticalAlign="top" height={32} />
-                <Line name="Référence Biomasse" type="monotone" dataKey="baselineProductivity" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
-                <Bar name="Biomasse Totale (Σ NDVI)" dataKey="integratedProductivity" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+                <Line name="Référence Végétation (Moyenne)" type="monotone" dataKey="baselineProductivity" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
+                <Bar name="Végétation Totale (Σ NDVI)" dataKey="integratedProductivity" fill="var(--primary)" radius={[3, 3, 0, 0]} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -1856,25 +1958,30 @@ function SuiviVegetation({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>NDVI Cumulé au fil des mois — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Somme progressive mensuelle Σ NDVI (accumulation continue de biomasse en saison {activeSeasonData?.season ?? activeSeason})</span>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Corrélation Pluie (CHIRPS) & Végétation (NDVI) — {activeCommuneObj?.nom}</h3>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Synchronisation : Le pic végétal suit directement les pluies de Jan–Mar, creux en saison sèche et reprise en Nov–Déc</span>
           </div>
-          <div style={{ width: "100%", height: 220 }}>
+          <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
-              <AreaChart data={monthlyChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+              <ComposedChart data={monthlyChartData} margin={{ top: 10, right: 15, bottom: 10, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} />
-                <RechartsTooltip formatter={(val) => [Number(val).toFixed(2), "Cumul de biomasse"]} />
-                <Area
-                  name="Cumul NDVI"
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="var(--primary)"
-                  fill="rgba(37, 99, 235, 0.1)"
-                  strokeWidth={2}
+                <YAxis yAxisId="left" stroke="#2563eb" fontSize={11} unit=" mm" domain={yDomainPrecipMonthly} />
+                <YAxis yAxisId="right" orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
+                <RechartsTooltip
+                  formatter={(val, name) => {
+                    const nameStr = String(name || "");
+                    if (nameStr.includes("Pluie") || nameStr.includes("Précip") || nameStr.includes("precip")) {
+                      return [`${val} mm`, "Précipitations (CHIRPS)"];
+                    }
+                    return [Number(val).toFixed(3), nameStr];
+                  }}
                 />
-              </AreaChart>
+                <Legend verticalAlign="top" height={32} />
+                <Bar yAxisId="left" name="Pluie (mm)" dataKey="precip" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                <Line yAxisId="right" name="Végétation (NDVI)" type="monotone" dataKey="ndvi" stroke="#059669" strokeWidth={2.5} dot={{ r: 3.5, fill: "#059669" }} />
+                <Line yAxisId="right" name="Normale NDVI" type="monotone" dataKey="baseline" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -1882,15 +1989,18 @@ function SuiviVegetation({
         <div className="panel">
           <div className="panel-heading">
             <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Écart NDVI mensuel à la normale — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Anomalie relative au mois (Vert = au-dessus de la normale, Rouge = en dessous)</span>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Anomalie relative au mois (Vert = au-dessus de la normale, Rouge = déficit / stress végétal)</span>
           </div>
-          <div style={{ width: "100%", height: 220 }}>
+          <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
               <RechartsBarChart data={monthlyChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
                 <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainAnomMonthly} />
-                <RechartsTooltip formatter={(val) => [`${val >= 0 ? "+" : ""}${Number(val).toFixed(3)}`, "Écart à la normale"]} />
+                <RechartsTooltip formatter={(val, name, item) => [
+                  `${val >= 0 ? "+" : ""}${Number(val).toFixed(3)} (${item?.payload?.diffPct >= 0 ? "+" : ""}${item?.payload?.diffPct}%)`,
+                  "Écart à la normale"
+                ]} />
                 <Bar name="Anomalie NDVI" dataKey="anomalies">
                   {monthlyChartData.map((entry, index) => (
                     <Cell
@@ -1919,7 +2029,7 @@ function SuiviVegetation({
             <span style={{ color: "var(--primary)" }}>📈 Analyse Climatique 25 ans</span>
           </div>
           <div className="formula-code">
-            NDVI_moyen,y = (1/12) Σ NDVI_y,m &nbsp;|&nbsp; Biomasse_y = Σ NDVI_y,m
+            NDVI_moyen,y = (1/12) Σ NDVI_y,m &nbsp;|&nbsp; Végétation_Totale_y = Σ NDVI_y,m
           </div>
           <div className="formula-desc">
             Agrège les 12 mois de chaque campagne pour dégager l'évolution pluriannuelle. Permet d'isoler les <strong>grandes crises de sécheresse</strong> (ex: effondrement du couvert végétal en 2020–2021 et 2021–2022) et les tendances écologiques à long terme (dégradation vs verdissement).
@@ -2854,6 +2964,7 @@ function Statistiques({
           setSelectedCommune={appSetSelectedCommune}
           selectedCommuneName={selectedCommuneName}
           vegData={vegData}
+          precipRecords={precipRecords}
           statsCategory={statsCategory}
           setStatsCategory={setStatsCategory}
         />
@@ -6646,7 +6757,7 @@ function GuideMethodologie() {
                 </div>
                 <div className="guide-param-row">
                   <span className="guide-param-name">VCI &gt; 50% :</span>
-                  <span className="guide-param-desc" style={{ color: "#059669", fontWeight: "700" }}>Vigueur optimale / Bonne biomasse.</span>
+                  <span className="guide-param-desc" style={{ color: "#059669", fontWeight: "700" }}>Vigueur optimale / Végétation dense et abondante.</span>
                 </div>
               </div>
             </div>
