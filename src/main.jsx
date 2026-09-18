@@ -946,7 +946,7 @@ function UnifiedSinglePage({
           <div className="section-index-badge">04</div>
           <div>
             <h2 className="section-title">Suivi & Dynamique du Couvert Végétal (NDVI)</h2>
-            <p className="section-subtitle">Évolution pluriannuelle 2000–2025, cycle phénologique 12 mois, écorégions et alertes</p>
+            <p className="section-subtitle">Évolution pluriannuelle (depuis 2000), cycle phénologique 12 mois, écorégions et alertes</p>
           </div>
         </div>
         <SuiviVegetation
@@ -1367,8 +1367,8 @@ function SuiviVegetation({
 }) {
   const [selectedDistrict, setSelectedDistrict] = React.useState("");
   const [selectedEcoregionTab, setSelectedEcoregionTab] = React.useState("spiny");
-  const [timeScale, setTimeScale] = React.useState("annual"); // "annual" (Par Année: 2000-2025) | "monthly" (Par Mois: Oct-Sep)
-  const [activeSeason, setActiveSeason] = React.useState("2024-2025");
+  const [timeScale, setTimeScale] = React.useState("annual"); // "annual" (Par Année : Série pluriannuelle) | "monthly" (Par Mois : Oct-Sep)
+  const [activeSeason, setActiveSeason] = React.useState("");
   const [activeSensor, setActiveSensor] = React.useState("modis");
   const [polyOrder, setPolyOrder] = React.useState(3);
 
@@ -1434,18 +1434,14 @@ function SuiviVegetation({
   );
 
   React.useEffect(() => {
-    if (seasonsList.length > 0 && !seasonsList.includes(activeSeason)) {
-      if (seasonsList.includes("2024-2025")) {
-        setActiveSeason("2024-2025");
-      } else {
-        setActiveSeason(seasonsList[seasonsList.length - 1]);
-      }
+    if (seasonsList.length > 0 && (!activeSeason || !seasonsList.includes(activeSeason))) {
+      setActiveSeason(seasonsList[seasonsList.length - 1]);
     } else if (seasonsList.length === 0 && activeSeason !== "") {
       setActiveSeason("");
     }
   }, [seasonsList, activeSeason]);
 
-  // --- DATA PER YEAR (INTERANNUAL: 2000-2025) ---
+  // --- DATA PER YEAR (INTERANNUAL) ---
   const annualData = React.useMemo(() => {
     if (!activeCommuneSeries || activeCommuneSeries.length === 0) return [];
     return activeCommuneSeries.map((s, idx) => {
@@ -1530,7 +1526,7 @@ function SuiviVegetation({
     }
 
     const yearDict = {};
-    const targetEndYear = activeSeason ? Number(String(activeSeason).split("-")[1]) || 2025 : 2025;
+    const targetEndYear = activeSeason ? Number(String(activeSeason).split("-")[1]) || new Date().getFullYear() : new Date().getFullYear();
     const targetStartYear = targetEndYear - 1;
     filtered.forEach((r) => {
       // Jan-Sep from endYear, Oct-Dec from startYear
@@ -1582,11 +1578,9 @@ function SuiviVegetation({
     return monthDefs.map(({ name, idx, mNum }) => {
       const valNdvi = toFiniteNumber(ndvi[idx], 0);
       const valBase = toFiniteNumber(baseline[idx], 0);
-      const rawAnom = anomalies[idx] !== undefined && anomalies[idx] !== null ? anomalies[idx] : (valNdvi - valBase);
-      const valAnom = toFiniteNumber(rawAnom, valNdvi - valBase);
-      runningCumul += valNdvi;
       const diff = valNdvi - valBase;
       const diffPct = valBase > 0 ? (diff / valBase) * 100 : 0;
+      runningCumul += valNdvi;
       const pRef = climMean[mNum] ?? 0;
       const pObs = yearDict[mNum] !== undefined ? yearDict[mNum] : pRef;
 
@@ -1595,7 +1589,7 @@ function SuiviVegetation({
         ndvi: Math.round(valNdvi * 1000) / 1000,
         baseline: Math.round(valBase * 1000) / 1000,
         cumulative: Math.round(runningCumul * 100) / 100,
-        anomalies: Math.round(valAnom * 1000) / 1000,
+        anomalies: Math.round(diff * 1000) / 1000,
         diff: Math.round(diff * 1000) / 1000,
         diffPct: Math.round(diffPct * 10) / 10,
         precip: pObs,
@@ -1677,7 +1671,7 @@ function SuiviVegetation({
               <div className="metric-icon-wrap" style={{ color: "var(--primary)" }}><Icons.Stats /></div>
               <div className="metric-info">
                 <strong>{annualStats.mean.toFixed(3)}</strong>
-                <span>Moyenne NDVI ({activeSensor.toUpperCase()} {annualData.length} ans)</span>
+                <span>Moyenne NDVI ({activeSensor.toUpperCase()} • Série continue)</span>
               </div>
             </article>
             <article className="metric-card">
@@ -1779,9 +1773,9 @@ function SuiviVegetation({
           <div className="filter-group" style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "8px" }}>
             <label htmlFor="sensor-sel">Capteur (Végétation)</label>
             <select id="sensor-sel" value={activeSensor} onChange={(e) => setActiveSensor(e.target.value)}>
-              <option value="modis">MODIS (250m • 2000–2025)</option>
-              <option value="landsat">Landsat (30m • 2015–2025)</option>
-              <option value="sentinel">Sentinel-2 (10m • 2015–2025)</option>
+              <option value="modis">MODIS (250m • 2000–Présent)</option>
+              <option value="landsat">Landsat (30m • 2015–Présent)</option>
+              <option value="sentinel">Sentinel-2 (10m • 2015–Présent)</option>
             </select>
           </div>
 
@@ -1792,9 +1786,9 @@ function SuiviVegetation({
                 {seasonsList.length === 0 ? (
                   <option value="">Aucune saison disponible</option>
                 ) : (
-                  seasonsList.map((s) => (
+                  seasonsList.map((s, sIdx) => (
                     <option key={s} value={s}>
-                      {s === "2025-2026" ? `${s} (En cours : Oct–Déc)` : `Saison ${s}`}
+                      {sIdx === seasonsList.length - 1 ? `Saison ${s} (En cours)` : `Saison ${s}`}
                     </option>
                   ))
                 )}
@@ -1810,7 +1804,7 @@ function SuiviVegetation({
           <div className="panel">
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
-                <h2><Icons.Stats /> Évolution Interannuelle du NDVI Moyen (2000–2025) — {activeCommuneObj?.nom}</h2>
+                <h2><Icons.Stats /> Évolution Interannuelle du NDVI Moyen — {activeCommuneObj?.nom}</h2>
                 <span>Série temporelle annuelle ({activeSensor.toUpperCase()}) : Moyenne observée par campagne, référence historique et tendance</span>
               </div>
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
@@ -1855,7 +1849,7 @@ function SuiviVegetation({
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
                 <h2><Icons.Stats /> Profil Phénologique & Végétation Mensuelle — {activeCommuneObj?.nom} (Saison {activeSeasonData?.season ?? activeSeason})</h2>
-                <span>Comparaison mensuelle : Végétation observée (NDVI) et normale de référence (2000–2025)</span>
+                <span>Comparaison mensuelle : Végétation observée (NDVI) et normale de référence historique</span>
               </div>
             </div>
             <div style={{ width: "100%", height: 280 }}>
@@ -1881,7 +1875,7 @@ function SuiviVegetation({
                   />
                   <Legend verticalAlign="top" height={36} />
                   <Line
-                    name="Normale Végétale (Moyenne 2000–2025)"
+                    name="Normale Végétale (Moyenne Historique)"
                     type="monotone"
                     dataKey="baseline"
                     stroke="#64748b"
@@ -1892,7 +1886,7 @@ function SuiviVegetation({
                   <Bar
                     name={`Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`}
                     dataKey="ndvi"
-                    fill="#2563eb"
+                    fill="#10b981"
                     radius={[4, 4, 0, 0]}
                   />
                 </ComposedChart>
@@ -1928,7 +1922,7 @@ function SuiviVegetation({
 
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Anomalies Interannuelles de Végétation (2000–2025) — {activeCommuneObj?.nom}</h3>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Anomalies Interannuelles de Végétation — {activeCommuneObj?.nom}</h3>
             <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Écart annuel à la moyenne historique (Vert = excédent végétal, Rouge = déficit / sécheresse)</span>
           </div>
           <div style={{ width: "100%", height: 220 }}>
@@ -1959,7 +1953,7 @@ function SuiviVegetation({
         <div className="panel">
           <div className="panel-heading">
             <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Corrélation Pluie (CHIRPS) & Végétation (NDVI) — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Synchronisation : Le pic végétal suit directement les pluies de Jan–Mar, creux en saison sèche et reprise en Nov–Déc</span>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Barres bleues = Pluie (mm) | Courbe verte = NDVI observé | Courbe grise = Normale historique</span>
           </div>
           <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
@@ -1969,12 +1963,49 @@ function SuiviVegetation({
                 <YAxis yAxisId="left" stroke="#2563eb" fontSize={11} unit=" mm" domain={yDomainPrecipMonthly} />
                 <YAxis yAxisId="right" orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
                 <RechartsTooltip
-                  formatter={(val, name) => {
-                    const nameStr = String(name || "");
-                    if (nameStr.includes("Pluie") || nameStr.includes("Précip") || nameStr.includes("precip")) {
-                      return [`${val} mm`, "Précipitations (CHIRPS)"];
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0]?.payload;
+                      if (!data) return null;
+                      const isPos = data.anomalies >= 0;
+                      return (
+                        <div style={{
+                          backgroundColor: "var(--bg-panel, #ffffff)",
+                          color: "var(--text-main, #0f172a)",
+                          padding: "8px 12px",
+                          borderRadius: "6px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          fontSize: "11px",
+                          border: "1px solid var(--border-color, #e2e8f0)",
+                          minWidth: "200px"
+                        }}>
+                          <div style={{ fontWeight: "700", marginBottom: "5px", borderBottom: "1px solid var(--border-color, #e2e8f0)", paddingBottom: "3px" }}>
+                            Mois : {label} ({activeSeasonData?.season ?? activeSeason})
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                            <span style={{ color: "#3b82f6" }}>🌧️ Pluie (CHIRPS) :</span>
+                            <strong>{data.precip} mm</strong>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                            <span style={{ color: "#059669" }}>🌿 Végétation (NDVI) :</span>
+                            <strong>{data.ndvi}</strong>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                            <span style={{ color: "#94a3b8" }}>— Normale NDVI :</span>
+                            <strong>{data.baseline}</strong>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "4px 0 0 0", paddingTop: "3px", borderTop: "1px dashed var(--border-color, #e2e8f0)" }}>
+                            <span style={{ color: isPos ? "var(--accent, #10b981)" : "var(--danger, #ef4444)", fontWeight: "600" }}>
+                              Écart (Δ NDVI) :
+                            </span>
+                            <strong style={{ color: isPos ? "var(--accent, #10b981)" : "var(--danger, #ef4444)" }}>
+                              {isPos ? "+" : ""}{data.anomalies} ({isPos ? "+" : ""}{data.diffPct}%)
+                            </strong>
+                          </div>
+                        </div>
+                      );
                     }
-                    return [Number(val).toFixed(3), nameStr];
+                    return null;
                   }}
                 />
                 <Legend verticalAlign="top" height={32} />
@@ -1988,8 +2019,8 @@ function SuiviVegetation({
 
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Écart NDVI mensuel à la normale — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Anomalie relative au mois (Vert = au-dessus de la normale, Rouge = déficit / stress végétal)</span>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Écart NDVI mensuel à la normale (Ligne Verte − Ligne Grise) — {activeCommuneObj?.nom}</h3>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Reflet direct : Vert = Végétation observée supérieure à la normale, Rouge = Déficit / Stress hydrique</span>
           </div>
           <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
@@ -1997,11 +2028,50 @@ function SuiviVegetation({
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
                 <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainAnomMonthly} />
-                <RechartsTooltip formatter={(val, name, item) => [
-                  `${val >= 0 ? "+" : ""}${Number(val).toFixed(3)} (${item?.payload?.diffPct >= 0 ? "+" : ""}${item?.payload?.diffPct}%)`,
-                  "Écart à la normale"
-                ]} />
-                <Bar name="Anomalie NDVI" dataKey="anomalies">
+                <ReferenceLine y={0} stroke="#94a3b8" strokeWidth={1.5} />
+                <RechartsTooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0]?.payload;
+                      if (!data) return null;
+                      const isPos = data.anomalies >= 0;
+                      return (
+                        <div style={{
+                          backgroundColor: "var(--bg-panel, #ffffff)",
+                          color: "var(--text-main, #0f172a)",
+                          padding: "8px 12px",
+                          borderRadius: "6px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          fontSize: "11px",
+                          border: "1px solid var(--border-color, #e2e8f0)",
+                          minWidth: "210px"
+                        }}>
+                          <div style={{ fontWeight: "700", marginBottom: "5px", borderBottom: "1px solid var(--border-color, #e2e8f0)", paddingBottom: "3px" }}>
+                            Mois : {label} ({activeSeasonData?.season ?? activeSeason})
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                            <span style={{ color: "#059669" }}>🌿 NDVI Observé :</span>
+                            <strong>{data.ndvi}</strong>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                            <span style={{ color: "#94a3b8" }}>— Normale Référence :</span>
+                            <strong>{data.baseline}</strong>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", margin: "4px 0 0 0", paddingTop: "3px", borderTop: "1px dashed var(--border-color, #e2e8f0)" }}>
+                            <span style={{ color: isPos ? "var(--accent, #10b981)" : "var(--danger, #ef4444)", fontWeight: "600" }}>
+                              {isPos ? "▲ Excédent Végétal :" : "▼ Déficit Végétal :"}
+                            </span>
+                            <strong style={{ color: isPos ? "var(--accent, #10b981)" : "var(--danger, #ef4444)" }}>
+                              {isPos ? "+" : ""}{data.anomalies} ({isPos ? "+" : ""}{data.diffPct}%)
+                            </strong>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar name="Écart NDVI" dataKey="anomalies">
                   {monthlyChartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -2025,14 +2095,14 @@ function SuiviVegetation({
       <div className="formula-grid">
         <div className="formula-item">
           <div className="formula-item-title">
-            <span>1. Échelle Interannuelle (Par Année : 2000–2025)</span>
-            <span style={{ color: "var(--primary)" }}>📈 Analyse Climatique 25 ans</span>
+            <span>1. Échelle Interannuelle (Par Année : Série Continue)</span>
+            <span style={{ color: "var(--primary)" }}>📈 Analyse Pluriannuelle Continue</span>
           </div>
           <div className="formula-code">
             NDVI_moyen,y = (1/12) Σ NDVI_y,m &nbsp;|&nbsp; Végétation_Totale_y = Σ NDVI_y,m
           </div>
           <div className="formula-desc">
-            Agrège les 12 mois de chaque campagne pour dégager l'évolution pluriannuelle. Permet d'isoler les <strong>grandes crises de sécheresse</strong> (ex: effondrement du couvert végétal en 2020–2021 et 2021–2022) et les tendances écologiques à long terme (dégradation vs verdissement).
+            Agrège les 12 mois de chaque campagne pour dégager l'évolution pluriannuelle continue. Permet d'isoler les <strong>grandes crises de sécheresse</strong> (ex: effondrement du couvert végétal en 2020–2021 et 2021–2022) et les tendances écologiques à long terme (dégradation vs verdissement).
           </div>
         </div>
 
@@ -2681,7 +2751,7 @@ function Statistiques({
   const [selectedCommune, setSelectedCommune] = React.useState(appSelectedCommune || communes[0]?.code || "");
   const [typeGraph, setTypeGraph] = React.useState("Climatologie mensuelle");
   const [ordrePoly, setOrdrePoly] = React.useState(4);
-  const [monthlyMode, setMonthlyMode] = React.useState("specific_year"); // 'specific_year' (Année Spécifique) | 'climatology' (Normale 1981–2025)
+  const [monthlyMode, setMonthlyMode] = React.useState("specific_year"); // 'specific_year' (Année Spécifique) | 'climatology' (Normale Climatologique)
   const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2020);
 
   // Sync selectedCommune with appSelectedCommune
@@ -2731,10 +2801,24 @@ function Statistiques({
   const titreStats = modeCommune === "Toutes les communes" ? "Toutes les communes (Grand Sud)" : (selectedCommuneObj?.nom || selectedCommune);
 
   const availableYears = React.useMemo(() => {
+    const yearsSet = new Set();
+    if (annualData && annualData.length > 0) {
+      annualData.forEach((d) => { if (d.year) yearsSet.add(Number(d.year)); });
+    }
+    if (precipRecords && precipRecords.length > 0) {
+      precipRecords.forEach((d) => { if (d.year) yearsSet.add(Number(d.year)); });
+    }
+    if (seasonData && seasonData.length > 0) {
+      seasonData.forEach((d) => { if (d.saison) yearsSet.add(Number(d.saison)); });
+    }
+    if (yearsSet.size > 0) {
+      return Array.from(yearsSet).sort((a, b) => b - a);
+    }
+    const currentYear = new Date().getFullYear();
     const years = [];
-    for (let y = 2025; y >= 1981; y--) years.push(y);
+    for (let y = currentYear; y >= 1981; y--) years.push(y);
     return years;
-  }, []);
+  }, [annualData, precipRecords, seasonData]);
 
   const communeAnnualSeries = React.useMemo(() => {
     if (modeCommune === "Toutes les communes") {
@@ -3159,12 +3243,12 @@ function Statistiques({
             <div className="panel">
               <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                 <div>
-                  <h2><Icons.Stats /> {typeGraph === "Climatologie mensuelle" ? (monthlyMode === "specific_year" ? `Précipitations Mensuelles (Année ${selectedYearForMonth}) vs Normale` : `Climatologie Mensuelle Normale (1981–2025)`) : typeGraph} — {titreStats}</h2>
+                  <h2><Icons.Stats /> {typeGraph === "Climatologie mensuelle" ? (monthlyMode === "specific_year" ? `Précipitations Mensuelles (Année ${selectedYearForMonth}) vs Normale` : `Climatologie Mensuelle Normale (1981–Présent)`) : typeGraph} — {titreStats}</h2>
                   <span>
                     {typeGraph === "Tendance"
                       ? `Régression polynomiale d'ordre ${ordrePoly} sur la série temporelle`
                       : typeGraph === "Climatologie mensuelle"
-                      ? `Comparaison mois par mois de la pluie observée face à la climatologie de référence (1981–2025)`
+                      ? `Comparaison mois par mois de la pluie observée face à la climatologie de référence (1981–Présent)`
                       : "Visualisation statistique temporelle et distribution"}
                   </span>
                 </div>
@@ -3186,7 +3270,7 @@ function Statistiques({
                         onClick={() => setMonthlyMode("climatology")}
                         style={{ padding: "4px 10px", fontSize: "12px", fontWeight: monthlyMode === "climatology" ? "700" : "500" }}
                       >
-                        📊 Moyenne 1981–2025
+                        📊 Normale 1981–Présent
                       </button>
                     </div>
                   </div>
@@ -3253,7 +3337,7 @@ function Statistiques({
                         />
                         <Legend verticalAlign="top" height={36} />
                         <Line
-                          name="Normale Climatologique (Moyenne 1981–2025)"
+                          name="Normale Climatologique (Moyenne 1981–Présent)"
                           type="monotone"
                           dataKey="pRef"
                           stroke="#64748b"
@@ -3473,7 +3557,7 @@ function Statistiques({
                     P_ref,m = (1 / N) Σ P_y,m
                   </div>
                   <div className="formula-desc">
-                    Pour chaque mois <em>m</em> (Janv à Déc), moyenne sur les 45 ans d'observation CHIRPS (1981–2025, N=45).
+                    Pour chaque mois <em>m</em> (Janv à Déc), moyenne sur la série historique continue d'observation CHIRPS (depuis 1981).
                   </div>
                 </div>
 
@@ -4714,7 +4798,7 @@ function Carte({
               <span>📉</span> Épisode Sécheresse (2020–2022)
             </div>
             <div style={{ color: "var(--text-muted)", lineHeight: "1.4" }}>
-              Comparaison de la pluviométrie triennale 2020–2022 par rapport à la normale de référence CHIRPS (1981–2025).
+              Comparaison de la pluviométrie triennale 2020–2022 par rapport à la normale de référence CHIRPS (1981–Présent).
             </div>
             <div
               style={{
@@ -5148,13 +5232,13 @@ function Carte({
               <div className="formula-item">
                 <div className="formula-item-title">
                   <span>1. Pluviométrie de Référence Climatologique (P_ref)</span>
-                  <span style={{ color: "#2563eb" }}>📊 Réf. 1981–2025</span>
+                  <span style={{ color: "#2563eb" }}>📊 Réf. 1981–Présent</span>
                 </div>
                 <div className="formula-code" style={{ color: "#2563eb" }}>
-                  P_ref,m = (1 / N) * Σ (y=1981 à 2025) P_y,m
+                  P_ref,m = (1 / N) * Σ (y=1981 à aujourd'hui) P_y,m
                 </div>
                 <div className="formula-desc">
-                  Moyenne climatique mensuelle calculée sur la série historique CHIRPS de 45 ans (1981–2025).
+                  Moyenne climatique mensuelle calculée sur la série historique continue CHIRPS (depuis 1981).
                 </div>
               </div>
 
@@ -5228,7 +5312,7 @@ function Carte({
                   overflowX: "auto",
                 }}
               >
-                Déficit_{`%, y, m`} = ((P_ref,m^(1981-2025) - P_y,m) / P_ref,m^(1981-2025)) × 100
+                Déficit_{`%, y, m`} = ((P_ref,m - P_y,m) / P_ref,m) × 100
                 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
                 Déficit_Moyen_(2020-2022) = 1/3 Σ(y=2020 à 2022) Déficit_{`%, y`}
               </div>
@@ -6355,7 +6439,7 @@ function TableauExplorer({
 
     if (datasetType === "precip") {
       headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Precipitation Annuelle (mm)", "Normale Ref 1981-2025 (mm)", "Deficit 2020-22 (%)", "Ecart (mm)", "Statut Secheresse"
+        "Echelle", "Code", "Nom", "District", "Region", "Precipitation Annuelle (mm)", "Normale Ref 1981–Présent (mm)", "Deficit 2020-22 (%)", "Ecart (mm)", "Statut Secheresse"
       ];
       rows = filteredData.map((r) => [
         scale.toUpperCase(), r.code, r.name, r.district, r.region, r.precip, r.precipRef, r.deficit, r.ecartMm, r.droughtStatus
@@ -6452,7 +6536,7 @@ function TableauExplorer({
                 <th>District</th>
                 <th>Région</th>
                 <th>Précip. Annuelle</th>
-                <th>Normale (1981-2025)</th>
+                <th>Normale (1981–Présent)</th>
                 <th>Déficit 2020–22</th>
                 <th>Écart (mm)</th>
                 <th>Statut Sécheresse</th>
@@ -6588,13 +6672,13 @@ function GuideMethodologie() {
             <div className="guide-card">
               <div className="guide-card-header">
                 <span className="guide-card-title">1. Normale Climatologique de Référence</span>
-                <span className="guide-card-badge">P_ref (1981–2025)</span>
+                <span className="guide-card-badge">P_ref (1981–Présent)</span>
               </div>
               <div className="guide-formula-box">
-                P_ref,m = (1 / N) × Σ (y=1981 à 2025) P_y,m
+                P_ref,m = (1 / N) × Σ (y=1981 à aujourd'hui) P_y,m
               </div>
               <p className="guide-desc-text">
-                Moyenne arithmétique mensuelle calculée sur la série continue de 45 ans. Elle constitue le référentiel historique pour chaque commune.
+                Moyenne arithmétique mensuelle calculée sur la série continue historique. Elle constitue le référentiel climatologique pour chaque commune.
               </p>
               <div className="guide-param-list">
                 <div className="guide-param-row">
@@ -6603,7 +6687,7 @@ function GuideMethodologie() {
                 </div>
                 <div className="guide-param-row">
                   <span className="guide-param-name">N :</span>
-                  <span className="guide-param-desc">Nombre d'années de la fenêtre historique (N = 45 ans).</span>
+                  <span className="guide-param-desc">Nombre d'années de la série continue (depuis 1981).</span>
                 </div>
               </div>
             </div>
@@ -6744,7 +6828,7 @@ function GuideMethodologie() {
                 VCI = [ (NDVI - NDVI_min) / (NDVI_max - NDVI_min) ] × 100 %
               </div>
               <p className="guide-desc-text">
-                Normalise le NDVI par rapport à ses valeurs extrêmes historiques enregistrées sur 25 ans (2000–2025). Isole le stress hydrique conjoncturel de la signature végétale naturelle.
+                Normalise le NDVI par rapport à ses valeurs extrêmes historiques enregistrées (depuis 2000, série continue). Isole le stress hydrique conjoncturel de la signature végétale naturelle.
               </p>
               <div className="guide-param-list">
                 <div className="guide-param-row">
