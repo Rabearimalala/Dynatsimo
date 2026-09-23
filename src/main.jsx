@@ -27,7 +27,7 @@ const tabs = [
   { id: "all", label: "📊 Vue Complète (Page Unique)" },
   { id: "overview", label: "Vue d'ensemble" },
   { id: "carte", label: "Cartographie" },
-  { id: "stats", label: "Statistiques & Analyses" },
+  { id: "stats", label: "Statistiques" },
   { id: "data", label: "Base de Données" },
   { id: "guide", label: "Guide & Méthodologie" },
 ];
@@ -599,7 +599,7 @@ function App() {
                     <div className="nav-sub-list">
                       {[
                         { id: "precip", label: "🌧️ Précipitations" },
-                        { id: "deficit", label: "📉 Déficit 2020-22" },
+                        { id: "deficit", label: "📉 Déficits Pluviométriques" },
                         { id: "ndvi_classes", label: "🌿 Végétation (NDVI)" },
                       ].map((sub) => (
                         <button
@@ -897,7 +897,7 @@ function UnifiedSinglePage({
           <div className="section-index-badge">02</div>
           <div>
             <h2 className="section-title">Cartographie Géospatiale Interactive Agrandie</h2>
-            <p className="section-subtitle">Précipitations, Isohyètes CHIRPS, Déficit triennal (2020–22) et Animation NDVI 6-Classes</p>
+            <p className="section-subtitle">Précipitations, Isohyètes CHIRPS, Analyse des Déficits et Animation NDVI 6-Classes</p>
           </div>
         </div>
         <Carte
@@ -1201,13 +1201,16 @@ function Overview({ annualData, communes, overview, vegData }) {
           value={overview?.nb_communes ?? communes.length}
           type="communes"
         />
-        <Metric label="Précipitation Moyenne" value={`${avgPrecip} mm`} type="precip" />
+        <Metric
+          label="Précipitation Moyenne (1981–2026)"
+          value={avgPrecip}
+          type="precip"
+        />
         <Metric
           label="NDVI Moyen Régional (1999–2026)"
           value={avgRegionalNdvi}
           type="ndvi"
         />
-        <Metric label="Historique Données" value={overview?.nb_years || "1981–2026"} type="years" />
       </section>
 
       <section className="panel" style={{ marginTop: "4px" }}>
@@ -1270,7 +1273,7 @@ function Overview({ annualData, communes, overview, vegData }) {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={11} interval="preserveStartEnd" />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
+                  <YAxis orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" />
                   <RechartsTooltip content={<CustomPrecipTooltip />} />
                   <Legend verticalAlign="top" height={32} />
                   <Bar
@@ -1304,11 +1307,11 @@ function Overview({ annualData, communes, overview, vegData }) {
               <ResponsiveContainer>
                 <ComposedChart
                   data={computedVegTrendData}
-                  margin={{ top: 15, right: 15, bottom: 20, left: 0 }}
+                  margin={{ top: 15, right: 25, bottom: 20, left: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} interval="preserveStartEnd" angle={-25} textAnchor="end" height={40} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainVeg} />
+                  <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainVeg} />
                   <RechartsTooltip content={<CustomVegTooltip />} />
                   <Legend verticalAlign="top" height={32} />
                   <Line
@@ -1487,23 +1490,38 @@ function SuiviVegetation({
   }, [annualData, polyOrder]);
 
   const annualStats = React.useMemo(() => {
-    if (annualData.length === 0) return { mean: 0, minSeason: "-", minVal: 0, maxSeason: "-", maxVal: 0, deficitYearsCount: 0 };
+    if (annualData.length === 0) {
+      return {
+        mean: 0,
+        minSeason: "-",
+        minVal: 0,
+        maxSeason: "-",
+        maxVal: 0,
+        deficitYearsCount: 0,
+        deficitSeasonsList: [],
+      };
+    }
     const mean = annualData.reduce((a, b) => a + b.meanNdvi, 0) / annualData.length;
     let minD = annualData[0];
     let maxD = annualData[0];
-    let defCount = 0;
+    const deficitSeasonsList = [];
+
     annualData.forEach((d) => {
       if (d.meanNdvi < minD.meanNdvi) minD = d;
       if (d.meanNdvi > maxD.meanNdvi) maxD = d;
-      if (d.anomalyPercent < -5) defCount++;
+      if (d.anomalyPercent < -5) {
+        deficitSeasonsList.push(d);
+      }
     });
+
     return {
       mean: Number(mean.toFixed(3)),
       minSeason: minD.season,
       minVal: minD.meanNdvi,
       maxSeason: maxD.season,
       maxVal: maxD.meanNdvi,
-      deficitYearsCount: defCount,
+      deficitYearsCount: deficitSeasonsList.length,
+      deficitSeasonsList,
     };
   }, [annualData]);
 
@@ -1831,10 +1849,10 @@ function SuiviVegetation({
             </div>
             <div style={{ width: "100%", height: 280 }}>
               <ResponsiveContainer>
-                <ComposedChart data={annualChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+                <ComposedChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} interval="preserveStartEnd" angle={-25} textAnchor="end" height={45} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainNdviAnnual} />
+                  <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviAnnual} />
                   <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(3), name]} />
                   <Legend verticalAlign="top" height={36} />
                   <Line name="Normale Pluriannuelle (Référence)" type="monotone" dataKey="meanBaseline" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
@@ -1854,10 +1872,10 @@ function SuiviVegetation({
             </div>
             <div style={{ width: "100%", height: 280 }}>
               <ResponsiveContainer>
-                <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 20, bottom: 25, left: 10 }}>
+                <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 25, bottom: 25, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
-                  <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainNdviMonthly} />
+                  <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
                   <RechartsTooltip
                     formatter={(val, name, item) => {
                       const nameStr = String(name || "");
@@ -1907,10 +1925,10 @@ function SuiviVegetation({
           </div>
           <div style={{ width: "100%", height: 220 }}>
             <ResponsiveContainer>
-              <ComposedChart data={annualChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+              <ComposedChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} angle={-25} textAnchor="end" height={40} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} />
+                <YAxis orientation="right" stroke="#059669" fontSize={11} />
                 <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(2), name]} />
                 <Legend verticalAlign="top" height={32} />
                 <Line name="Référence Végétation (Moyenne)" type="monotone" dataKey="baselineProductivity" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
@@ -1927,10 +1945,10 @@ function SuiviVegetation({
           </div>
           <div style={{ width: "100%", height: 220 }}>
             <ResponsiveContainer>
-              <RechartsBarChart data={annualChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+              <RechartsBarChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} angle={-25} textAnchor="end" height={40} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainAnomAnnual} />
+                <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainAnomAnnual} />
                 <RechartsTooltip formatter={(val, name, item) => [
                   `${val >= 0 ? "+" : ""}${Number(val).toFixed(3)} (${item?.payload?.anomalyPercent >= 0 ? "+" : ""}${item?.payload?.anomalyPercent}%)`,
                   "Écart annuel à la normale"
@@ -1957,10 +1975,10 @@ function SuiviVegetation({
           </div>
           <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
-              <ComposedChart data={monthlyChartData} margin={{ top: 10, right: 15, bottom: 10, left: 0 }}>
+              <ComposedChart data={monthlyChartData} margin={{ top: 10, right: 20, bottom: 10, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis yAxisId="left" stroke="#2563eb" fontSize={11} unit=" mm" domain={yDomainPrecipMonthly} />
+                <YAxis yAxisId="left" orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" domain={yDomainPrecipMonthly} />
                 <YAxis yAxisId="right" orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
                 <RechartsTooltip
                   content={({ active, payload, label }) => {
@@ -2024,10 +2042,10 @@ function SuiviVegetation({
           </div>
           <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
-              <RechartsBarChart data={monthlyChartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
+              <RechartsBarChart data={monthlyChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} domain={yDomainAnomMonthly} />
+                <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainAnomMonthly} />
                 <ReferenceLine y={0} stroke="#94a3b8" strokeWidth={1.5} />
                 <RechartsTooltip
                   content={({ active, payload, label }) => {
@@ -2131,6 +2149,81 @@ function SuiviVegetation({
             Quantifie le déficit végétal par rapport à la moyenne climatologique : des <strong>barres rouges</strong> signalent un retard pluviométrique ou un flétrissement anormal, tandis que des <strong>barres vertes</strong> traduisent une vigueur biophysique supérieure.
           </div>
         </div>
+
+        <div className="formula-item">
+          <div className="formula-item-title">
+            <span>4. Détection des Saisons Déficitaires</span>
+            <span style={{ color: "var(--danger)" }}>📉 Seuil Critique (&lt; -5%)</span>
+          </div>
+          <div className="formula-code" style={{ color: "var(--danger)" }}>
+            Saison Déficitaire ⟺ Anomalie_% &lt; -5 %
+          </div>
+          <div className="formula-desc">
+            Une campagne agricole est déclarée en <strong>déficit végétal</strong> lorsque son NDVI moyen chute de plus de 5% sous sa normale historique (1999–2026), traduisant un stress hydrique impactant la biomasse cultivée.
+          </div>
+        </div>
+      </div>
+
+      {/* Encadré d'explication détaillée et liste des saisons déficitaires pour la commune sélectionnée */}
+      <div
+        style={{
+          marginTop: "12px",
+          padding: "12px 16px",
+          backgroundColor: "var(--bg-app)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--border-color)",
+          borderLeft: "4px solid var(--danger)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ fontSize: "12px", fontWeight: "800", color: "var(--text-main)" }}>
+            📉 Justification & Liste des {annualStats.deficitYearsCount} Saisons Déficitaires — Commune de <span style={{ color: "var(--primary)" }}>{activeCommuneObj?.nom || "la commune sélectionnée"}</span> (sur {annualData.length} campagnes) :
+          </div>
+          <span style={{ fontSize: "10.5px", fontWeight: "700", color: "var(--danger)", backgroundColor: "var(--danger-light)", padding: "3px 8px", borderRadius: "4px", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+            Critère scientifique : Anomalie relative &lt; -5 %
+          </span>
+        </div>
+
+        <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: 0, lineHeight: "1.5" }}>
+          <strong>Comment a-t-on obtenu ces {annualStats.deficitYearsCount} saisons ?</strong> Sur l'ensemble des {annualData.length} campagnes MODIS analysées ({annualData[0]?.season || "2000-2001"} à {annualData[annualData.length - 1]?.season || "2021-2022"}), l'indice NDVI moyen annuel de la commune a subi un déficit significatif supérieur à 5% par rapport à sa normale pluriannuelle ({annualStats.mean.toFixed(3)}) au cours des saisons suivantes :
+        </p>
+
+        {annualStats.deficitSeasonsList.length > 0 ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "8px", marginTop: "4px" }}>
+            {annualStats.deficitSeasonsList.map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: "8px 12px",
+                  backgroundColor: "var(--bg-panel)",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-color)",
+                  borderLeft: "3px solid var(--danger)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  fontSize: "11px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <strong style={{ color: "var(--text-main)", fontSize: "11.5px" }}>🌾 Campagne {item.season}</strong>
+                  <span style={{ color: "var(--danger)", fontWeight: "800", fontSize: "11px" }}>{item.anomalyPercent}%</span>
+                </div>
+                <div style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
+                  <span>NDVI obs : <strong>{item.meanNdvi}</strong></span>
+                  <span>Normale : <strong>{item.meanBaseline}</strong></span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: "11px", color: "var(--accent)", fontStyle: "italic", padding: "6px 0" }}>
+            ✓ Aucune campagne agricole n'a dépassé le seuil de déficit de -5% pour cette commune.
+          </div>
+        )}
       </div>
     </div>
   </div>
@@ -2484,7 +2577,7 @@ function Saison({
                         height={50}
                         tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
                       />
-                      <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
+                      <YAxis orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" />
                       <RechartsTooltip content={<CustomMaxMonthTooltip />} />
                       <Bar
                         name="Précipitation Mois Max"
@@ -2717,7 +2810,7 @@ function Saison({
             </div>
           </div>
           <div className="formula-note">
-            📌 <strong>Lecture Agro-Climatique :</strong> Un décalage de la barre vers la droite (ex: début en Janvier) traduit un retard des pluies d'installation ou une sécheresse précoce (Kéré).
+            📌 <strong>Lecture Agro-Climatique :</strong> Un décalage de la barre vers la droite (ex: début en Janvier) traduit un retard des pluies d'installation ou une sécheresse précoce.
           </div>
         </div>
       )}
@@ -3217,7 +3310,7 @@ function Statistiques({
                   >
                     {availableYears.map((yr) => (
                       <option key={yr} value={yr}>
-                        Année {yr} {yr === 2020 || yr === 2021 || yr === 2022 ? "(Sécheresse Kéré)" : ""}
+                        Année {yr} {yr === 2020 || yr === 2021 || yr === 2022 ? "(Sécheresse Triennale)" : ""}
                       </option>
                     ))}
                   </select>
@@ -3317,7 +3410,8 @@ function Statistiques({
                           fontSize={12}
                         />
                         <YAxis
-                          stroke="var(--text-muted)"
+                          orientation="left"
+                          stroke="#2563eb"
                           fontSize={11}
                           unit=" mm"
                         />
@@ -3375,7 +3469,7 @@ function Statistiques({
                             <RechartsBarChart data={climatologyData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
                               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                               <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                              <YAxis stroke="var(--text-muted)" fontSize={11} unit=" mm" />
+                              <YAxis orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" />
                               <RechartsTooltip formatter={(val, name, item) => [`${val >= 0 ? "+" : ""}${val} mm (${item?.payload?.deficitPct >= 0 ? "+" : ""}${item?.payload?.deficitPct}%)`, "Écart à la normale"]} />
                               <Bar name="Déficit / Excédent" dataKey="deficit">
                                 {climatologyData.map((entry, index) => (
@@ -3486,10 +3580,11 @@ function Statistiques({
                         label={{ value: "Année", position: "insideBottom", offset: -5, fontSize: 11, fill: "var(--text-main)" }}
                       />
                       <YAxis
-                        stroke="var(--text-muted)"
+                        orientation="left"
+                        stroke="#2563eb"
                         fontSize={11}
                         unit=" mm"
-                        label={{ value: "Précipitation annuelle (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "var(--text-main)", offset: 5 }}
+                        label={{ value: "Précipitation annuelle (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#2563eb", offset: 5 }}
                       />
                       <RechartsTooltip
                         formatter={(val, name) => [`${Math.round(val)} mm`, name]}
@@ -3515,10 +3610,11 @@ function Statistiques({
                         label={{ value: "Année", position: "insideBottom", offset: -5, fontSize: 11, fill: "var(--text-main)" }}
                       />
                       <YAxis
-                        stroke="var(--text-muted)"
+                        orientation="left"
+                        stroke="#2563eb"
                         fontSize={11}
                         unit=" mm"
-                        label={{ value: "Anomalie pluviométrique (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "var(--text-main)", offset: 5 }}
+                        label={{ value: "Anomalie pluviométrique (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#2563eb", offset: 5 }}
                       />
                       <RechartsTooltip
                         formatter={(val) => [`${val > 0 ? "+" : ""}${Math.round(val)} mm`, "Anomalie"]}
@@ -3610,7 +3706,6 @@ function Carte({
   const [localMapSubItem, setLocalMapSubItem] = React.useState("precip");
   const mapSubItem = parentMapSubItem || localMapSubItem;
   const setMapSubItem = parentSetMapSubItem || setLocalMapSubItem;
-  const [showDeficitMethodo, setShowDeficitMethodo] = React.useState(false);
   const [typeCarte, setTypeCarte] = React.useState("Choroplèthe"); // 'Choroplèthe' vs 'Isohyètes'
   const [typePeriode, setTypePeriode] = React.useState("Mensuel"); // 'Mensuel' | 'Annuel' | 'Décennies'
   const [selectedDecades, setSelectedDecades] = React.useState(["1981–1989"]);
@@ -3853,6 +3948,14 @@ function Carte({
   }), []);
 
   const precipTimelineList = React.useMemo(() => {
+    if (typePeriode === "Crise 2020–2022") {
+      return [
+        { key: "crise_triennale", label: "Moyenne Triennale (2020–2022)", type: "crisis", value: "2020–2022" },
+        { key: "crise_2020", label: "Année 2020 (Sécheresse précoce)", type: "year", year: 2020 },
+        { key: "crise_2021", label: "Année 2021 (Pic du déficit pluviométrique)", type: "year", year: 2021 },
+        { key: "crise_2022", label: "Année 2022 (Poursuite du déficit)", type: "year", year: 2022 },
+      ];
+    }
     if (typePeriode === "Décennies") {
       const decadesFromMeta = localIsohyetesMeta?.decades;
       if (decadesFromMeta && decadesFromMeta.length > 0) {
@@ -3896,9 +3999,12 @@ function Carte({
       type: "year",
       year: y,
     }));
-  }, [typePeriode, availableYears]);
+  }, [typePeriode, availableYears, localIsohyetesMeta]);
 
   const currentPrecipTimelineIndex = React.useMemo(() => {
+    if (typePeriode === "Crise 2020–2022") {
+      return 0;
+    }
     if (typePeriode === "Décennies") {
       const idx = precipTimelineList.findIndex((item) => item.value === selectedDecades[0]);
       return idx >= 0 ? idx : 0;
@@ -4008,13 +4114,68 @@ function Carte({
     };
   }, [typeCarte, activeIsohyeteItem, activeIsohyeteKey]);
 
-  // Compute calculated rainfall values for features based on active filters
-  const calculatedPrecipMap = React.useMemo(() => {
-    const map = {};
-    if (!precipRecords || precipRecords.length === 0) return map;
+  // Baseline climatologique par commune (mensuelle et annuelle) calculée sur l'ensemble de la série historique
+  const communeBaselines = React.useMemo(() => {
+    if (!precipRecords || precipRecords.length === 0) return { monthly: {}, annual: {} };
+    const monthlySums = {};
+    const annualSums = {};
+
+    precipRecords.forEach((r) => {
+      if (r.precip === null || r.precip === undefined) return;
+      const p = Number(r.precip);
+      if (isNaN(p)) return;
+      const code = r.code;
+      if (!monthlySums[code]) monthlySums[code] = {};
+      if (!monthlySums[code][r.month]) monthlySums[code][r.month] = { sum: 0, count: 0 };
+      monthlySums[code][r.month].sum += p;
+      monthlySums[code][r.month].count += 1;
+
+      if (!annualSums[code]) annualSums[code] = {};
+      annualSums[code][r.year] = (annualSums[code][r.year] || 0) + p;
+    });
+
+    const monthlyBaseline = {};
+    const annualBaseline = {};
+
+    Object.keys(monthlySums).forEach((code) => {
+      monthlyBaseline[code] = {};
+      let totalAnnualNorm = 0;
+      for (let m = 1; m <= 12; m++) {
+        const item = monthlySums[code][m];
+        const avg = item && item.count > 0 ? item.sum / item.count : 0;
+        monthlyBaseline[code][m] = avg;
+        totalAnnualNorm += avg;
+      }
+      if (totalAnnualNorm > 0) {
+        annualBaseline[code] = totalAnnualNorm;
+      }
+    });
+
+    return { monthly: monthlyBaseline, annual: annualBaseline };
+  }, [precipRecords]);
+
+  // Compute calculated rainfall values and deficits for features based on active filters
+  const { calculatedPrecipMap, calculatedDeficitMap, activeDeficitStats } = React.useMemo(() => {
+    const pMap = {};
+    const dMap = {};
+    if (!precipRecords || precipRecords.length === 0) {
+      return {
+        calculatedPrecipMap: pMap,
+        calculatedDeficitMap: dMap,
+        activeDeficitStats: { min: -40, max: 0, mean: -20, count: 0 },
+      };
+    }
 
     let filtered = precipRecords;
-    if (typePeriode === "Décennies") {
+    let isMultiYear = false;
+    let numYears = 1;
+
+    if (typePeriode === "Crise 2020–2022") {
+      const years = [2020, 2021, 2022];
+      numYears = 3;
+      isMultiYear = true;
+      filtered = filtered.filter((r) => years.includes(r.year));
+    } else if (typePeriode === "Décennies") {
       const years = [];
       const selectedDec = selectedDecades[0] || "1981–1989";
       const parts = selectedDec.split(/–|-/);
@@ -4025,6 +4186,8 @@ function Carte({
           for (let y = startY; y <= endY; y++) years.push(y);
         }
       }
+      numYears = Math.max(1, years.length);
+      isMultiYear = true;
       filtered = filtered.filter((r) => years.includes(r.year));
     } else if (typePeriode === "Mensuel") {
       const currYear = selectedYears[0] || 1981;
@@ -4037,16 +4200,52 @@ function Carte({
     }
 
     const sums = {};
+    const counts = {};
     filtered.forEach((r) => {
-      sums[r.code] = (sums[r.code] || 0) + r.precip;
+      if (r.precip === null || r.precip === undefined) return;
+      const val = Number(r.precip);
+      if (isNaN(val)) return;
+      sums[r.code] = (sums[r.code] || 0) + val;
+      counts[r.code] = (counts[r.code] || 0) + 1;
     });
+
+    const mNum = monthNumMap[selectedMonth] || 1;
 
     Object.keys(sums).forEach((code) => {
-      map[code] = Math.round(sums[code]);
+      if (!counts[code] || counts[code] === 0) return;
+      const rawP = sums[code];
+      const pObs = isMultiYear ? rawP / numYears : rawP;
+      pMap[code] = Math.round(pObs);
+
+      let pRef = 0;
+      if (typePeriode === "Mensuel") {
+        pRef = communeBaselines.monthly[code]?.[mNum] || 0;
+      } else {
+        pRef = communeBaselines.annual[code] || 0;
+      }
+
+      if (pRef > 0) {
+        const deficitPct = ((pObs - pRef) / pRef) * 100;
+        dMap[code] = Number(deficitPct.toFixed(1));
+      }
     });
 
-    return map;
-  }, [precipRecords, typePeriode, selectedDecades, selectedYears, selectedMonth, monthNumMap]);
+    const dVals = Object.values(dMap);
+    let minD = -40;
+    let maxD = 0;
+    let meanD = -20;
+    if (dVals.length > 0) {
+      minD = Math.min(...dVals);
+      maxD = Math.max(...dVals);
+      meanD = Number((dVals.reduce((a, b) => a + b, 0) / dVals.length).toFixed(1));
+    }
+
+    return {
+      calculatedPrecipMap: pMap,
+      calculatedDeficitMap: dMap,
+      activeDeficitStats: { min: minD, max: maxD, mean: meanD, count: dVals.length },
+    };
+  }, [precipRecords, typePeriode, selectedDecades, selectedYears, selectedMonth, monthNumMap, communeBaselines]);
 
   // Statistiques dynamiques et bornes arrondies (nice round numbers : 10, 50, 100, 200...) pour TOUTES les cartes
   const activePrecipStats = React.useMemo(() => {
@@ -4188,27 +4387,40 @@ function Carte({
       const isSelected = selectedFeatureCode === code;
 
       if (mapSubItem === "deficit") {
-        const deficit = feature.properties.deficit ?? 0;
+        const deficit = calculatedDeficitMap[code];
+        if (deficit === undefined || deficit === null) {
+          return {
+            fillColor: "#e2e8f0",
+            fillOpacity: 0.4,
+            color: isSelected ? "#0f172a" : "#cbd5e1",
+            weight: isSelected ? 2.5 : 0.8,
+            opacity: 0.7,
+          };
+        }
+
         const deficitPalette = [
-          "#fff5f0",
-          "#fee0d2",
-          "#fcbba1",
-          "#fc9272",
-          "#fb6a4a",
-          "#ef3b2c",
-          "#cb181d",
-          "#99000d",
-          "#67000d",
+          "#fff5f0", // ≥ 0% (pas de déficit ou excédent)
+          "#fee0d2", // 0% à -5%
+          "#fcbba1", // -5% à -10%
+          "#fc9272", // -10% à -15%
+          "#fb6a4a", // -15% à -20%
+          "#ef3b2c", // -20% à -25%
+          "#cb181d", // -25% à -30%
+          "#99000d", // -30% à -35%
+          "#67000d", // ≤ -35% (sécheresse critique)
         ];
-        // Plage de déficit de 0% à -40% (adaptée aux données réelles de -6.9% à -29.9%)
-        const absVal = Math.max(0, Math.min(40, Math.abs(deficit)));
-        const ratio = absVal / 40.0;
+        // Plage de déficit négatif de 0% à -40%
+        let ratio = 0;
+        if (deficit < 0) {
+          const absVal = Math.min(40, Math.abs(deficit));
+          ratio = absVal / 40.0;
+        }
         const idx = Math.min(deficitPalette.length - 1, Math.floor(ratio * deficitPalette.length));
         const fillColor = deficitPalette[idx];
 
         return {
           fillColor,
-          fillOpacity: isSelected ? 0.95 : 0.75,
+          fillOpacity: isSelected ? 0.95 : 0.78,
           color: isSelected ? "#0f172a" : "#334155",
           weight: isSelected ? 2.5 : 0.9,
           opacity: 0.85,
@@ -4231,7 +4443,7 @@ function Carte({
         opacity: 0.85,
       };
     },
-    [selectedFeatureCode, mapSubItem, calculatedPrecipMap, precipScaleMin, precipScaleMax]
+    [selectedFeatureCode, mapSubItem, calculatedDeficitMap, calculatedPrecipMap, precipScaleMin, precipScaleMax]
   );
 
   // Style function for Commune Layer overlaid on top of NDVI raster
@@ -4294,7 +4506,8 @@ function Carte({
   ];
 
   return (
-    <section className="split-layout carte-layout">
+    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+      <section className="split-layout carte-layout">
       <aside className="filters-panel">
         <h2>Paramètres Carte</h2>
 
@@ -4780,40 +4993,268 @@ function Carte({
 
 
         {mapSubItem === "deficit" && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "12px 14px",
-              backgroundColor: "var(--bg-panel-secondary)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--border-color)",
-              borderLeft: "4px solid var(--danger)",
-              fontSize: "11px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-            }}
-          >
-            <div style={{ fontWeight: "700", color: "var(--danger)", display: "flex", alignItems: "center", gap: "6px", fontSize: "11.5px" }}>
-              <span>📉</span> Épisode Sécheresse (2020–2022)
+          <div className="deficit-controls-box" style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "16px" }}>📉</span>
+              <div>
+                <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--danger)", margin: 0 }}>
+                  Déficits Pluviométriques
+                </h3>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
+                  Analyse d'anomalies pluviométriques (1981–2026)
+                </span>
+              </div>
             </div>
-            <div style={{ color: "var(--text-muted)", lineHeight: "1.4" }}>
-              Comparaison de la pluviométrie triennale 2020–2022 par rapport à la normale de référence CHIRPS (1981–Présent).
+
+            <div className="filter-group">
+              <label style={{ fontWeight: "700" }}>Période d'analyse :</label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "4px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="deficit_type_periode"
+                    value="Annuel"
+                    checked={typePeriode === "Annuel"}
+                    onChange={() => {
+                      setTypePeriode("Annuel");
+                      setSelectedMonth("Tous");
+                    }}
+                  />
+                  Annuel (Cumul)
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="deficit_type_periode"
+                    value="Mensuel"
+                    checked={typePeriode === "Mensuel"}
+                    onChange={() => {
+                      setTypePeriode("Mensuel");
+                      if (selectedMonth === "Tous") setSelectedMonth("Jan");
+                    }}
+                  />
+                  Mensuel (Mois)
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="deficit_type_periode"
+                    value="Décennies"
+                    checked={typePeriode === "Décennies"}
+                    onChange={() => setTypePeriode("Décennies")}
+                  />
+                  Décennies
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", cursor: "pointer", color: "var(--danger)", fontWeight: "600" }}>
+                  <input
+                    type="radio"
+                    name="deficit_type_periode"
+                    value="Crise 2020–2022"
+                    checked={typePeriode === "Crise 2020–2022"}
+                    onChange={() => setTypePeriode("Crise 2020–2022")}
+                  />
+                  Crise 2020–22
+                </label>
+              </div>
             </div>
+
+            {typePeriode === "Décennies" ? (
+              <div className="filter-group">
+                <label htmlFor="deficit-decade-sel">Décennie d'analyse :</label>
+                <select
+                  id="deficit-decade-sel"
+                  value={selectedDecades[0]}
+                  onChange={(e) => setSelectedDecades([e.target.value])}
+                >
+                  {(localIsohyetesMeta?.decades || [
+                    "1981–1989",
+                    "1990–1999",
+                    "2000–2009",
+                    "2010–2019",
+                    `2020–${availableYears[availableYears.length - 1] || 2026}`,
+                  ]).map((dec) => (
+                    <option key={dec} value={dec}>
+                      {dec}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : typePeriode === "Mensuel" ? (
+              <div style={{ display: "flex", gap: "8px" }}>
+                <div className="filter-group" style={{ flex: 1 }}>
+                  <label htmlFor="deficit-mois-sel">Mois :</label>
+                  <select
+                    id="deficit-mois-sel"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                  >
+                    {[
+                      { code: "Jan", name: "Janvier" },
+                      { code: "Fev", name: "Février" },
+                      { code: "Mar", name: "Mars" },
+                      { code: "Avr", name: "Avril" },
+                      { code: "Mai", name: "Mai" },
+                      { code: "Jun", name: "Juin" },
+                      { code: "Jul", name: "Juillet" },
+                      { code: "Aou", name: "Août" },
+                      { code: "Sep", name: "Septembre" },
+                      { code: "Oct", name: "Octobre" },
+                      { code: "Nov", name: "Novembre" },
+                      { code: "Dec", name: "Décembre" },
+                    ].map((m) => (
+                      <option key={m.code} value={m.code}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-group" style={{ flex: 1 }}>
+                  <label htmlFor="deficit-annee-sel">Année :</label>
+                  <select
+                    id="deficit-annee-sel"
+                    value={selectedYears[0]}
+                    onChange={(e) => setSelectedYears([Number(e.target.value)])}
+                  >
+                    {availableYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : typePeriode === "Crise 2020–2022" ? (
+              <div
+                style={{
+                  padding: "8px 10px",
+                  backgroundColor: "var(--bg-panel-secondary)",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-color)",
+                  borderLeft: "3px solid var(--danger)",
+                  fontSize: "11px",
+                  color: "var(--text-muted)",
+                  lineHeight: "1.4",
+                }}
+              >
+                <strong style={{ color: "var(--danger)" }}>Épisode de Sécheresse Triennale (2020–2022) :</strong>
+                <br />
+                Moyenne des précipitations observées sur 3 années consécutives de sécheresse historique par rapport à la normale CHIRPS (1981–2026).
+              </div>
+            ) : (
+              <div className="filter-group">
+                <label htmlFor="deficit-annee-annuel-sel">Année (Cumul annuel) :</label>
+                <select
+                  id="deficit-annee-annuel-sel"
+                  value={selectedYears[0]}
+                  onChange={(e) => setSelectedYears([Number(e.target.value)])}
+                >
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Lecteur Temporel / Animation Timeline pour Déficits */}
+            <div className="timeline-player-panel" style={{ marginTop: "4px" }}>
+              <div className="timeline-header">
+                <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase" }}>
+                  Animation Temporelle :
+                </span>
+                <span className="timeline-period-badge" style={{ borderColor: "var(--danger)", color: "var(--danger)" }}>
+                  {typePeriode === "Crise 2020–2022"
+                    ? "Crise 2020–2022"
+                    : activePrecipTimelineItem?.label || (typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${selectedMonth} ${selectedYears[0]}` : `Année ${selectedYears[0]}`)}
+                </span>
+              </div>
+
+              <div className="timeline-buttons">
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={() => handlePrecipTimelineStep(-1)}
+                  title="Période précédente"
+                >
+                  ⏮ Préc.
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-btn ${isPlayingPrecipTimeline ? "play-active" : ""}`}
+                  onClick={() => setIsPlayingPrecipTimeline(!isPlayingPrecipTimeline)}
+                  title={isPlayingPrecipTimeline ? "Mettre en pause" : "Lancer l'animation chronologique"}
+                >
+                  {isPlayingPrecipTimeline ? "⏸ Pause" : "▶ Lecture"}
+                </button>
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={() => handlePrecipTimelineStep(1)}
+                  title="Période suivante"
+                >
+                  Suiv. ⏭
+                </button>
+              </div>
+
+              <input
+                type="range"
+                className="timeline-scrubber"
+                min={0}
+                max={Math.max(0, precipTimelineList.length - 1)}
+                value={currentPrecipTimelineIndex}
+                onChange={(e) => handlePrecipTimelineScrub(Number(e.target.value))}
+                title="Glissez pour changer de période"
+              />
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "var(--text-muted)" }}>
+                <span>Vitesse :</span>
+                <select
+                  value={precipPlaySpeed}
+                  onChange={(e) => setPrecipPlaySpeed(Number(e.target.value))}
+                  style={{ fontSize: "10px", padding: "2px 4px" }}
+                >
+                  <option value={2000}>Lente (2.0s)</option>
+                  <option value={1200}>Normale (1.2s)</option>
+                  <option value={600}>Rapide (0.6s)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Boîte de statistiques synthétiques */}
             <div
               style={{
-                padding: "6px 8px",
-                backgroundColor: "var(--bg-app)",
-                borderRadius: "var(--radius-sm)",
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                fontSize: "10px",
-                fontWeight: "600",
-                color: "var(--danger)",
+                marginTop: "4px",
+                padding: "10px 12px",
+                backgroundColor: "var(--bg-panel-secondary)",
+                borderRadius: "var(--radius-md)",
                 border: "1px solid var(--border-color)",
-                textAlign: "center",
+                fontSize: "11px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "5px",
               }}
             >
-              Déficit % = ((P_ref - P_obs) / P_ref) × 100
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--text-muted)" }}>Moyenne Grand Sud :</span>
+                <strong style={{ color: activeDeficitStats.mean < 0 ? "#ef4444" : "#059669" }}>
+                  {activeDeficitStats.mean > 0 ? `+${activeDeficitStats.mean}` : activeDeficitStats.mean}%
+                </strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--text-muted)" }}>Déficit le plus sévère :</span>
+                <strong style={{ color: "#b91c1c" }}>{activeDeficitStats.min}%</strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--text-muted)" }}>Déficit min. / Excédent :</span>
+                <strong style={{ color: activeDeficitStats.max >= 0 ? "#059669" : "#d97706" }}>
+                  {activeDeficitStats.max > 0 ? `+${activeDeficitStats.max}` : activeDeficitStats.max}%
+                </strong>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed var(--border-color)", paddingTop: "4px", marginTop: "2px", color: "var(--text-muted)", fontSize: "10px" }}>
+                <span>Communes évaluées :</span>
+                <strong>{activeDeficitStats.count || Object.keys(calculatedDeficitMap).length} communes</strong>
+              </div>
             </div>
           </div>
         )}
@@ -4827,34 +5268,26 @@ function Carte({
               {mapSubItem === "ndvi_classes"
                 ? `Classification NDVI MODIS 6 Classes — ${activePeriod?.label || `${monthNamesFr[ndviMonth - 1]} ${ndviYear}`}`
                 : mapSubItem === "deficit"
-                ? "Carte du déficit de précipitation (2020-2022)"
+                ? `Carte des déficits pluviométriques — ${
+                    typePeriode === "Crise 2020–2022"
+                      ? "Épisode de Sécheresse Triennale (2020–2022)"
+                      : typePeriode === "Décennies"
+                      ? selectedDecades[0]
+                      : typePeriode === "Mensuel"
+                      ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}`
+                      : `Année ${selectedYears[0]}`
+                  }`
                 : typeCarte === "Isohyètes"
                 ? `Carte des Isohyètes CHIRPS — ${activeIsohyeteItem?.label || (typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`)}`
                 : `Carte des précipitations (Choroplèthe) — ${typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}`}
             </h2>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {mapSubItem === "deficit" && (
-              <button
-                type="button"
-                className="timeline-btn"
-                onClick={() => setShowDeficitMethodo((prev) => !prev)}
-                style={{
-                  fontSize: "11px",
-                  padding: "3px 8px",
-                  backgroundColor: showDeficitMethodo ? "var(--danger)" : "transparent",
-                  color: showDeficitMethodo ? "#fff" : "var(--danger)",
-                  borderColor: "var(--danger)",
-                  fontWeight: "700",
-                }}
-                title="Afficher/Masquer les formules méthodologiques"
-              >
-                {showDeficitMethodo ? "✖ Masquer Formules" : "📐 Voir Formules"}
-              </button>
-            )}
             <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>
               {mapSubItem === "ndvi_classes"
                 ? "Survolez ou cliquez sur une commune"
+                : mapSubItem === "deficit"
+                ? "Cliquez sur une commune pour afficher les détails du déficit"
                 : typeCarte === "Isohyètes"
                 ? "Survolez les courbes isohyètes ou communes"
                 : "Cliquez sur une commune"}
@@ -4967,7 +5400,7 @@ function Carte({
                     onEachFeature={(feature, layer) => {
                       const p = feature.properties;
                       const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const defVal = p.deficit !== undefined ? `${p.deficit} %` : "n/d";
+                      const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
                       layer.bindTooltip(
                         `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
                          <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
@@ -4983,7 +5416,7 @@ function Carte({
                             <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
                             <div class="commune-popup-divider"></div>
                             <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit 2020-22 :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
+                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
                           </div>
                         </div>`,
                         { minWidth: 210 }
@@ -4999,7 +5432,7 @@ function Carte({
                 </>
               )}
 
-              {/* Couche des Communes en mode Choroplèthe ou Déficit */}
+              {/* Couche des Communes en mode Choroplèthe Précipitations */}
               {mapSubItem === "precip" && typeCarte === "Choroplèthe" && geojson && geojson.features && (
                 <>
                   <GeoJSON
@@ -5009,7 +5442,7 @@ function Carte({
                     onEachFeature={(feature, layer) => {
                       const p = feature.properties;
                       const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const defVal = p.deficit !== undefined ? `${p.deficit} %` : "n/d";
+                      const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
                       layer.bindTooltip(
                         `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
                          <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
@@ -5025,7 +5458,7 @@ function Carte({
                             <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
                             <div class="commune-popup-divider"></div>
                             <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit 2020-22 :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
+                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
                           </div>
                         </div>`,
                         { minWidth: 210 }
@@ -5039,20 +5472,30 @@ function Carte({
                 </>
               )}
 
+              {/* Couche des Communes en mode Déficits Pluviométriques */}
               {mapSubItem === "deficit" && geojson && geojson.features && (
                 <>
                   <GeoJSON
-                    key={`deficit-${selectedFeatureCode}-${basemap}`}
+                    key={`deficit-${typePeriode}-${selectedYears[0]}-${selectedMonth}-${selectedDecades[0]}-${selectedFeatureCode}-${basemap}`}
                     data={geojson}
                     style={getFeatureStyle}
                     onEachFeature={(feature, layer) => {
                       const p = feature.properties;
                       const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const defVal = p.deficit !== undefined ? `${p.deficit} %` : "n/d";
+                      const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
+                      const periodLabel = typePeriode === "Crise 2020–2022"
+                        ? "Crise 2020–2022"
+                        : typePeriode === "Décennies"
+                        ? selectedDecades[0]
+                        : typePeriode === "Mensuel"
+                        ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}`
+                        : `Année ${selectedYears[0]}`;
+
                       layer.bindTooltip(
                         `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
                          <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
-                         <div style="font-size:11px;color:#ef4444;font-weight:700;margin-top:2px;">Déficit 2020–2022 : ${defVal}</div>`,
+                         <div style="font-size:11px;color:#ef4444;font-weight:700;margin-top:2px;">Déficit (${periodLabel}) : ${defVal}</div>
+                         <div style="font-size:10px;color:#2563eb;font-weight:600;">Pluie obs. : ${precip} mm</div>`,
                         { sticky: true, direction: "top", opacity: 0.95 }
                       );
                       layer.bindPopup(
@@ -5063,11 +5506,12 @@ function Carte({
                             <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
                             <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
                             <div class="commune-popup-divider"></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit triennal :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
+                            <div class="commune-popup-row"><span class="commune-popup-label">Période :</span><strong class="commune-popup-val">${periodLabel}</strong></div>
+                            <div class="commune-popup-row"><span class="commune-popup-label">Pluie Observée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
+                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit" style="color: #ef4444;">${defVal}</strong></div>
                           </div>
                         </div>`,
-                        { minWidth: 210 }
+                        { minWidth: 220 }
                       );
                       layer.on({
                         click: () => setSelectedFeatureCode((prev) => (prev === feature.properties.code ? null : feature.properties.code)),
@@ -5145,10 +5589,10 @@ function Carte({
             <div className="map-legend-compact">
               <div className="map-legend-info">
                 <span className="map-legend-title" style={{ color: "var(--danger)" }}>
-                  📉 Déficit de Précipitation (2020–2022)
+                  📉 Déficit Pluviométrique — {typePeriode === "Crise 2020–2022" ? "Épisode Triennal 2020–2022" : typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}
                 </span>
                 <span className="map-legend-stats">
-                  &bull; Moyenne : <strong>-20.2%</strong> &bull; Étendue observée : <strong>-6.9%</strong> à <strong>-29.9%</strong>
+                  &bull; Moyenne Grand Sud : <strong style={{ color: activeDeficitStats.mean < 0 ? "#ef4444" : "#059669" }}>{activeDeficitStats.mean > 0 ? `+${activeDeficitStats.mean}` : activeDeficitStats.mean}%</strong> &bull; Min (Max déficit) : <strong>{activeDeficitStats.min}%</strong> &bull; Max : <strong>{activeDeficitStats.max}%</strong>
                 </span>
               </div>
 
@@ -5169,11 +5613,12 @@ function Carte({
                   ))}
                 </div>
                 <div className="map-legend-ticks">
-                  {["0%", "-10%", "-20%", "-30%", "-40%"].map((val, idx) => (
+                  {["≥ 0%", "-5%", "-10%", "-15%", "-20%", "-25%", "-30%", "-35%", "≤ -40%"].map((val, idx) => (
                     <span
                       key={idx}
                       style={{
-                        textAlign: idx === 0 ? "left" : idx === 4 ? "right" : "center",
+                        textAlign: idx === 0 ? "left" : idx === 8 ? "right" : "center",
+                        fontSize: "9.5px",
                       }}
                     >
                       {val}
@@ -5221,107 +5666,109 @@ function Carte({
             </div>
           ) : null}
         </div>
-
-        {mapSubItem === "deficit" && showDeficitMethodo && (
-          <div className="formula-card" style={{ marginTop: "10px", borderLeftColor: "var(--danger)", maxHeight: "240px", overflowY: "auto" }}>
-            <div className="formula-card-header">
-              <Icons.Info />
-              <span>Méthodologie & Formules de Calcul du Déficit Pluviométrique (Crise Kéré 2020–2022)</span>
-            </div>
-            <div className="formula-grid">
-              <div className="formula-item">
-                <div className="formula-item-title">
-                  <span>1. Pluviométrie de Référence Climatologique (P_ref)</span>
-                  <span style={{ color: "#2563eb" }}>📊 Réf. 1981–Présent</span>
-                </div>
-                <div className="formula-code" style={{ color: "#2563eb" }}>
-                  P_ref,m = (1 / N) * Σ (y=1981 à aujourd'hui) P_y,m
-                </div>
-                <div className="formula-desc">
-                  Moyenne climatique mensuelle calculée sur la série historique continue CHIRPS (depuis 1981).
-                </div>
-              </div>
-
-              <div className="formula-item">
-                <div className="formula-item-title">
-                  <span>2. Pluies Observées & Déficit Absolu (D_abs)</span>
-                  <span style={{ color: "#d97706" }}>💧 Écart (mm)</span>
-                </div>
-                <div className="formula-code" style={{ color: "#d97706" }}>
-                  D_y,m = P_ref,m - P_y,m  (en mm)
-                </div>
-                <div className="formula-desc">
-                  Écart absolu entre la normale et la pluie enregistrée en 2020, 2021 et 2022.
-                </div>
-              </div>
-
-              <div className="formula-item">
-                <div className="formula-item-title">
-                  <span>3. Déficit Relatif en Pourcentage (D_%)</span>
-                  <span style={{ color: "#ef4444" }}>📉 Taux (%)</span>
-                </div>
-                <div className="formula-code" style={{ color: "#ef4444" }}>
-                  Déficit_% = [(P_ref - P_obs) / P_ref] × 100 %
-                </div>
-                <div className="formula-desc">
-                  Intensité du manque d'eau par rapport à la normale.
-                </div>
-              </div>
-
-              <div className="formula-item">
-                <div className="formula-item-title">
-                  <span>4. Approche Saisonnière Agricole (Grand Sud)</span>
-                  <span style={{ color: "#059669" }}>🌾 Saison Utile</span>
-                </div>
-                <div className="formula-code" style={{ color: "#059669" }}>
-                  P_saison = Σ (m=Oct à Avr) P_m  |  D_saison = [(P_ref,saison - P_saison) / P_ref,saison] × 100
-                </div>
-                <div className="formula-desc">
-                  Cumul sur la saison utile agricole (Novembre à Mars/Avril) pour les 3 régions (Androy, Anosy, Atsimo-Andrefana).
-                </div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: "8px",
-                padding: "8px 12px",
-                backgroundColor: "var(--bg-app)",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-color)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-              }}
-            >
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-main)" }}>
-                📐 Formule Synthétique du Mémoire / Rapport :
-              </div>
-              <div
-                style={{
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  color: "var(--danger)",
-                  padding: "6px 10px",
-                  backgroundColor: "var(--bg-panel-secondary)",
-                  borderRadius: "4px",
-                  border: "1px solid var(--border-color)",
-                  textAlign: "center",
-                  letterSpacing: "0.2px",
-                  overflowX: "auto",
-                }}
-              >
-                Déficit_{`%, y, m`} = ((P_ref,m - P_y,m) / P_ref,m) × 100
-                &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-                Déficit_Moyen_(2020-2022) = 1/3 Σ(y=2020 à 2022) Déficit_{`%, y`}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </section>
-  );
+
+    {/* Méthodologie & Formules de Calcul des Déficits Pluviométriques affichée en bas de l'ensemble (Paramètres + Carte + Légende) */}
+    {mapSubItem === "deficit" && (
+      <div className="formula-card" style={{ marginTop: "0px", borderLeftColor: "var(--danger)" }}>
+        <div className="formula-card-header">
+          <Icons.Info />
+          <span>Méthodologie & Formules de Calcul des Déficits Pluviométriques (1981–2026)</span>
+        </div>
+        <div className="formula-grid">
+          <div className="formula-item">
+            <div className="formula-item-title">
+              <span>1. Normale Climatologique de Référence (P_ref)</span>
+              <span style={{ color: "#2563eb" }}>📊 Réf. 1981–2026</span>
+            </div>
+            <div className="formula-code" style={{ color: "#2563eb" }}>
+              P_ref,m(c) = (1 / N) * Σ (y=1981 à 2026) P_y,m(c)
+            </div>
+            <div className="formula-desc">
+              Moyenne climatique historique par commune (c) pour chaque mois (m) et chaque cumul annuel sur la série continue CHIRPS v2.0.
+            </div>
+          </div>
+
+          <div className="formula-item">
+            <div className="formula-item-title">
+              <span>2. Déficit Absolu en Eau (D_abs)</span>
+              <span style={{ color: "#d97706" }}>💧 Écart (mm)</span>
+            </div>
+            <div className="formula-code" style={{ color: "#d97706" }}>
+              D_abs(c, t) = P_obs(c, t) - P_ref(c, t)  (en mm)
+            </div>
+            <div className="formula-desc">
+              Écart absolu entre la pluie observée et la normale climatique de référence. Une valeur négative indique un manque d'eau.
+            </div>
+          </div>
+
+          <div className="formula-item">
+            <div className="formula-item-title">
+              <span>3. Déficit Relatif en Pourcentage (D_%)</span>
+              <span style={{ color: "#ef4444" }}>📉 Taux (%)</span>
+            </div>
+            <div className="formula-code" style={{ color: "#ef4444" }}>
+              Déficit_% = [(P_obs - P_ref) / P_ref] × 100 %
+            </div>
+            <div className="formula-desc">
+              Intensité relative de l'anomalie hydrique par rapport à la normale séculaire (calculé dynamiquement pour toutes les années).
+            </div>
+          </div>
+
+          <div className="formula-item">
+            <div className="formula-item-title">
+              <span>4. Épisodes Majeurs & Crise Triennale (2020–2022)</span>
+              <span style={{ color: "#b91c1c" }}>🔥 Sécheresse Triennale</span>
+            </div>
+            <div className="formula-code" style={{ color: "#b91c1c" }}>
+              Déficit_Triennal = 1/3 Σ (y=2020..2022) Déficit_% (y)
+            </div>
+            <div className="formula-desc">
+              Cumul de 3 années consécutives de déficit pluviométrique extrême ayant touché l'ensemble du Grand Sud.
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "10px 14px",
+            backgroundColor: "var(--bg-app)",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--border-color)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+          }}
+        >
+          <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-main)" }}>
+            📐 Formule Générale du Mémoire & Calcul Dynamique :
+          </div>
+          <div
+            style={{
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              fontSize: "11px",
+              fontWeight: "700",
+              color: "var(--danger)",
+              padding: "8px 12px",
+              backgroundColor: "var(--bg-panel-secondary)",
+              borderRadius: "4px",
+              border: "1px solid var(--border-color)",
+              textAlign: "center",
+              letterSpacing: "0.2px",
+              overflowX: "auto",
+            }}
+          >
+            Déficit_{`%, t`}(c) = ((P_obs(c, t) - P_ref(c, t)) / P_ref(c, t)) × 100 %
+            &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+            P_ref(c) = Moyenne(1981–2026)
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
 
 function MapBoundsManager({ geojson }) {
@@ -5330,6 +5777,10 @@ function MapBoundsManager({ geojson }) {
 
   React.useEffect(() => {
     map.invalidateSize();
+    const t = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+
     if (geojson && geojson.features && geojson.features.length > 0 && !hasFittedRef.current) {
       try {
         const bounds = L.geoJSON(geojson).getBounds();
@@ -5341,6 +5792,7 @@ function MapBoundsManager({ geojson }) {
         console.error("Error setting map bounds:", err);
       }
     }
+    return () => clearTimeout(t);
   }, [geojson, map]);
 
   React.useEffect(() => {
@@ -6744,11 +7196,11 @@ function GuideMethodologie() {
               </div>
             </div>
 
-            {/* Card 4: Déficit Triennal de la Crise Kéré */}
+            {/* Card 4: Déficit Triennal de la Sécheresse Historique */}
             <div className="guide-card">
               <div className="guide-card-header">
                 <span className="guide-card-title">4. Déficit Triennal Cumulé (2020–2022)</span>
-                <span className="guide-card-badge" style={{ background: "rgba(220, 38, 38, 0.15)", color: "#dc2626", borderColor: "rgba(220, 38, 38, 0.35)" }}>Crise Kéré</span>
+                <span className="guide-card-badge" style={{ background: "rgba(220, 38, 38, 0.15)", color: "#dc2626", borderColor: "rgba(220, 38, 38, 0.35)" }}>Sécheresse 2020–2022</span>
               </div>
               <div className="guide-formula-box red">
                 D_triennal = (1 / 3) × Σ (y=2020 à 2022) [ (P_y - P_ref) / P_ref ] × 100
