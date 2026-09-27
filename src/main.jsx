@@ -3224,10 +3224,6 @@ function Statistiques({
     return [...new Set(list)].sort();
   }, [communes, selectedRegion]);
 
-  React.useEffect(() => {
-    setSelectedDistrict("");
-  }, [selectedRegion]);
-
   const filteredCommunes = React.useMemo(() => {
     return communes.filter((c) => {
       if (selectedRegion && c.region !== selectedRegion) return false;
@@ -3236,17 +3232,59 @@ function Statistiques({
     });
   }, [communes, selectedRegion, selectedDistrict]);
 
+  // Sync selectedRegion and selectedDistrict when selectedCommune changes
   React.useEffect(() => {
-    if (filteredCommunes.length > 0 && !filteredCommunes.some((c) => c.code === selectedCommune)) {
-      const firstCode = filteredCommunes[0].code;
-      setSelectedCommune(firstCode);
-      if (appSetSelectedCommune) appSetSelectedCommune(firstCode);
+    if (!selectedCommune || !communes.length) return;
+    const cObj = communes.find((c) => c.code === selectedCommune);
+    if (cObj) {
+      if (cObj.region && selectedRegion !== cObj.region && setSelectedRegion) {
+        setSelectedRegion(cObj.region);
+      }
+      if (cObj.district && selectedDistrict !== cObj.district) {
+        setSelectedDistrict(cObj.district);
+      }
     }
-  }, [filteredCommunes, selectedCommune]);
+  }, [selectedCommune, communes]);
+
+  const handleRegionChange = (newReg) => {
+    if (setSelectedRegion) setSelectedRegion(newReg);
+    if (!newReg) {
+      setSelectedDistrict("");
+      return;
+    }
+    const communesInReg = communes.filter((c) => c.region === newReg);
+    const districtsInReg = [...new Set(communesInReg.map((c) => c.district).filter(Boolean))].sort();
+    const firstDistrict = districtsInReg[0] || "";
+    setSelectedDistrict(firstDistrict);
+    const firstCommune = communesInReg.find((c) => !firstDistrict || c.district === firstDistrict) || communesInReg[0];
+    if (firstCommune) {
+      handleCommuneChange(firstCommune.code);
+    }
+  };
+
+  const handleDistrictChange = (newDist) => {
+    setSelectedDistrict(newDist);
+    if (!newDist) return;
+    const communesInDist = communes.filter((c) => c.district === newDist && (!selectedRegion || c.region === selectedRegion));
+    if (communesInDist.length > 0) {
+      handleCommuneChange(communesInDist[0].code);
+    } else {
+      const anyCommune = communes.find((c) => c.district === newDist);
+      if (anyCommune) {
+        if (anyCommune.region && setSelectedRegion) setSelectedRegion(anyCommune.region);
+        handleCommuneChange(anyCommune.code);
+      }
+    }
+  };
 
   const handleCommuneChange = (code) => {
     setSelectedCommune(code);
     if (appSetSelectedCommune) appSetSelectedCommune(code);
+    const cObj = communes.find((c) => c.code === code);
+    if (cObj) {
+      if (cObj.region && setSelectedRegion) setSelectedRegion(cObj.region);
+      if (cObj.district) setSelectedDistrict(cObj.district);
+    }
   };
 
   const selectedCommuneObj = React.useMemo(() => {
@@ -3599,7 +3637,7 @@ function Statistiques({
                     <select
                       id="stat-region-sel"
                       value={selectedRegion}
-                      onChange={(e) => setSelectedRegion(e.target.value)}
+                      onChange={(e) => handleRegionChange(e.target.value)}
                     >
                       <option value="">Toutes les régions</option>
                       {regions.map((r) => (
@@ -3613,7 +3651,7 @@ function Statistiques({
                     <select
                       id="stat-district-sel"
                       value={selectedDistrict}
-                      onChange={(e) => setSelectedDistrict(e.target.value)}
+                      onChange={(e) => handleDistrictChange(e.target.value)}
                     >
                       <option value="">Tous les districts</option>
                       {districtsList.map((d) => (
