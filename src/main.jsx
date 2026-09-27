@@ -2526,6 +2526,7 @@ function Saison({
   setStatsCategory,
 }) {
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [selectedDistrict, setSelectedDistrict] = React.useState("");
   const [subTab, setSubTab] = React.useState("start_end"); // 'start_end', 'max_month', 'timeline'
 
   // Min and Max season slider state
@@ -2542,6 +2543,76 @@ function Saison({
       setSeasonRange(availableSeasons);
     }
   }, [availableSeasons]);
+
+  const districtsList = React.useMemo(() => {
+    const list = (communes || [])
+      .filter((c) => !selectedRegion || c.region === selectedRegion)
+      .map((c) => c.district)
+      .filter(Boolean);
+    return [...new Set(list)].sort();
+  }, [communes, selectedRegion]);
+
+  const filteredCommunesDropdown = React.useMemo(() => {
+    return (communes || []).filter((c) => {
+      if (selectedRegion && c.region !== selectedRegion) return false;
+      if (selectedDistrict && c.district !== selectedDistrict) return false;
+      return true;
+    });
+  }, [communes, selectedRegion, selectedDistrict]);
+
+  // Sync selectedRegion and selectedDistrict when selectedCommune changes
+  React.useEffect(() => {
+    if (!selectedCommune || !communes.length) return;
+    const cObj = communes.find((c) => c.code === selectedCommune);
+    if (cObj) {
+      if (cObj.region && selectedRegion !== cObj.region && setSelectedRegion) {
+        setSelectedRegion(cObj.region);
+      }
+      if (cObj.district && selectedDistrict !== cObj.district) {
+        setSelectedDistrict(cObj.district);
+      }
+    }
+  }, [selectedCommune, communes]);
+
+  const handleRegionChange = (newReg) => {
+    if (setSelectedRegion) setSelectedRegion(newReg);
+    if (!newReg) {
+      setSelectedDistrict("");
+      return;
+    }
+    const communesInReg = communes.filter((c) => c.region === newReg);
+    const districtsInReg = [...new Set(communesInReg.map((c) => c.district).filter(Boolean))].sort();
+    const firstDistrict = districtsInReg[0] || "";
+    setSelectedDistrict(firstDistrict);
+    const firstCommune = communesInReg.find((c) => !firstDistrict || c.district === firstDistrict) || communesInReg[0];
+    if (firstCommune && setSelectedCommune) {
+      setSelectedCommune(firstCommune.code);
+    }
+  };
+
+  const handleDistrictChange = (newDist) => {
+    setSelectedDistrict(newDist);
+    if (!newDist) return;
+    const communesInDist = communes.filter((c) => c.district === newDist && (!selectedRegion || c.region === selectedRegion));
+    if (communesInDist.length > 0 && setSelectedCommune) {
+      setSelectedCommune(communesInDist[0].code);
+    } else {
+      const anyCommune = communes.find((c) => c.district === newDist);
+      if (anyCommune) {
+        if (anyCommune.region && setSelectedRegion) setSelectedRegion(anyCommune.region);
+        if (setSelectedCommune) setSelectedCommune(anyCommune.code);
+      }
+    }
+  };
+
+  const handleCommuneChange = (code) => {
+    if (setSelectedCommune) setSelectedCommune(code);
+    const cObj = communes.find((c) => c.code === code);
+    if (cObj) {
+      if (cObj.region && setSelectedRegion) setSelectedRegion(cObj.region);
+      if (cObj.district) setSelectedDistrict(cObj.district);
+    }
+  };
 
   const searchedCommunes = React.useMemo(() => {
     const sTerm = String(searchTerm || "").toLowerCase().trim();
@@ -2692,14 +2763,20 @@ function Saison({
           <h2>Paramètres Début et fin de pluie</h2>
 
           <div className="filter-group">
-            <label htmlFor="region-filter">Région</label>
+            <label style={{ fontWeight: "700" }}>🔍 Chercher Commune :</label>
+            <CommuneSearchBar
+              communes={communes}
+              placeholder="Nom ou code..."
+              onSelectCommune={(c) => handleCommuneChange(c.code)}
+            />
+          </div>
+
+          <div className="filter-group" style={{ marginTop: "10px" }}>
+            <label htmlFor="season-region-filter">Région</label>
             <select
-              id="region-filter"
+              id="season-region-filter"
               value={selectedRegion}
-              onChange={(e) => {
-                setSelectedRegion(e.target.value);
-                setSelectedCommune("");
-              }}
+              onChange={(e) => handleRegionChange(e.target.value)}
             >
               <option value="">Toutes les régions</option>
               {regions.map((reg) => (
@@ -2709,25 +2786,30 @@ function Saison({
           </div>
 
           <div className="filter-group">
-            <label style={{ fontWeight: "700" }}>🔍 Chercher Commune :</label>
-            <CommuneSearchBar
-              communes={communes}
-              placeholder="Nom ou code..."
-              onSelectCommune={(c) => setSelectedCommune(c.code)}
-            />
+            <label htmlFor="season-district-filter">District</label>
+            <select
+              id="season-district-filter"
+              value={selectedDistrict}
+              onChange={(e) => handleDistrictChange(e.target.value)}
+            >
+              <option value="">Tous les districts</option>
+              {districtsList.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
 
           <div className="filter-group">
-            <label htmlFor="commune-select">Commune</label>
+            <label htmlFor="season-commune-select">Commune</label>
             <select
-              id="commune-select"
+              id="season-commune-select"
               value={selectedCommune}
-              onChange={(e) => setSelectedCommune(e.target.value)}
+              onChange={(e) => handleCommuneChange(e.target.value)}
             >
-              {searchedCommunes.length === 0 ? (
+              {filteredCommunesDropdown.length === 0 ? (
                 <option value="">Aucune commune trouvée</option>
               ) : (
-                searchedCommunes.map((c) => (
+                filteredCommunesDropdown.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.nom} ({c.code})
                   </option>
