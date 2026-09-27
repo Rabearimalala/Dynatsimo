@@ -796,8 +796,8 @@ def build_react_payload(engine: Engine) -> dict:
     annual_data = (
         yearly_commune_precip.groupby("Year", as_index=False)["p"]
         .mean()
-        .assign(precip=lambda data: data["p"].round(2))
-        .rename(columns={"Year": "year", "p": "precip"})[["year", "precip"]]
+        .rename(columns={"Year": "year", "p": "precip"})
+        .assign(precip=lambda data: data["precip"].round(2))[["year", "precip"]]
         .to_dict("records")
     )
 

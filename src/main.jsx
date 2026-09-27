@@ -282,6 +282,153 @@ function computeIDWGrid(points, gridSize = 35, power = 2) {
   return { cells, minVal, maxVal };
 }
 
+// Composant Barre de recherche rapide de commune avec autocomplétion
+function CommuneSearchBar({
+  communes = [],
+  onSelectCommune,
+  placeholder = "Rechercher une commune (ex: Ambovombe, Tsihombe...)",
+  className = "",
+  autoClearOnSelect = false,
+}) {
+  const [query, setQuery] = React.useState("");
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+  const containerRef = React.useRef(null);
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredCommunes = React.useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return communes
+      .filter((c) => {
+        const nom = (c.nom || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const code = (c.code || "").toString().toLowerCase();
+        const dist = (c.district || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const reg = (c.region || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return nom.includes(q) || code.includes(q) || dist.includes(q) || reg.includes(q);
+      })
+      .slice(0, 15);
+  }, [communes, query]);
+
+  const handleSelect = (commune) => {
+    if (onSelectCommune) {
+      onSelectCommune(commune);
+    }
+    if (autoClearOnSelect) {
+      setQuery("");
+    } else {
+      setQuery(commune.nom || commune.code);
+    }
+    setIsOpen(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen || filteredCommunes.length === 0) {
+      if (e.key === "ArrowDown" && filteredCommunes.length > 0) {
+        setIsOpen(true);
+      }
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev + 1) % filteredCommunes.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev - 1 + filteredCommunes.length) % filteredCommunes.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (filteredCommunes[highlightedIndex]) {
+        handleSelect(filteredCommunes[highlightedIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className={`commune-search-container ${className}`} ref={containerRef}>
+      <div className="commune-search-input-wrapper">
+        <span className="commune-search-icon">
+          <Icons.Search />
+        </span>
+        <input
+          ref={inputRef}
+          type="text"
+          className="commune-search-input"
+          placeholder={placeholder}
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+            setHighlightedIndex(0);
+          }}
+          onFocus={() => {
+            if (query.trim().length > 0) setIsOpen(true);
+          }}
+          onKeyDown={handleKeyDown}
+          aria-label="Rechercher une commune"
+          autoComplete="off"
+        />
+        {query && (
+          <button
+            type="button"
+            className="commune-search-clear-btn"
+            onClick={() => {
+              setQuery("");
+              setIsOpen(false);
+              inputRef.current?.focus();
+            }}
+            title="Effacer la recherche"
+          >
+            &times;
+          </button>
+        )}
+      </div>
+
+      {isOpen && query.trim().length > 0 && (
+        <div className="commune-search-dropdown">
+          {filteredCommunes.length === 0 ? (
+            <div className="commune-search-empty">
+              Aucune commune trouvée pour &laquo; <strong>{query}</strong> &raquo;
+            </div>
+          ) : (
+            filteredCommunes.map((c, index) => {
+              const isHigh = index === highlightedIndex;
+              return (
+                <div
+                  key={c.code}
+                  className={`commune-search-item ${isHigh ? "active" : ""}`}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onClick={() => handleSelect(c)}
+                >
+                  <div className="commune-search-item-main">
+                    <span className="commune-search-name">{c.nom}</span>
+                    <span className="commune-search-code">{c.code}</span>
+                  </div>
+                  <div className="commune-search-item-sub">
+                    {c.district && <span className="commune-search-badge district">{c.district}</span>}
+                    {c.region && <span className="commune-search-badge region">{c.region}</span>}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Palette de référence des précipitations et des courbes isohyètes (6 teintes de bleu contrastées et bien visibles)
 const PRECIP_BLUE_PALETTE = [
   "#dbeafe", // Bleu très clair / ciel
@@ -418,6 +565,7 @@ function App() {
   const [statsCategory, setStatsCategory] = React.useState("precip");
   const [mapSubItem, setMapSubItem] = React.useState("precip");
   const [dataCategory, setDataCategory] = React.useState("precip");
+  const [guideSection, setGuideSection] = React.useState("precip");
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const [selectedCommune, setSelectedCommune] = React.useState("");
   const [selectedRegion, setSelectedRegion] = React.useState("");
@@ -489,8 +637,20 @@ function App() {
   React.useEffect(() => {
     if (!selectedCommune && data?.communes?.length > 0) {
       setSelectedCommune(data.communes[0].code);
+      if (data.communes[0].region) {
+        setSelectedRegion(data.communes[0].region);
+      }
     }
   }, [data, selectedCommune]);
+
+  React.useEffect(() => {
+    if (selectedCommune && data?.communes?.length > 0) {
+      const match = data.communes.find((c) => c.code === selectedCommune);
+      if (match?.region && selectedRegion !== match.region) {
+        setSelectedRegion(match.region);
+      }
+    }
+  }, [data, selectedCommune, selectedRegion]);
 
   const regionsList = React.useMemo(() => {
     if (!data?.communes) return [];
@@ -625,8 +785,7 @@ function App() {
                       {[
                         { id: "precip", label: "🌧️ Précipitations" },
                         { id: "vegetation", label: "🌿 Suivi Végétation" },
-                        { id: "saison", label: "🗓️ Saison des Pluies" },
-                        { id: "sensors", label: "🛰️ Capteurs" },
+                        { id: "saison", label: "🗓️ Début et fin de pluie" },
                       ].map((sub) => (
                         <button
                           key={sub.id}
@@ -659,6 +818,33 @@ function App() {
                             e.stopPropagation();
                             setActiveTab("data");
                             setDataCategory(sub.id);
+                            setMobileNavOpen(false);
+                          }}
+                          type="button"
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Sous-onglets de Guide & Méthodologie dans la barre latérale gauche */}
+                  {tab.id === "guide" && activeTab === "guide" && (
+                    <div className="nav-sub-list">
+                      {[
+                        { id: "precip", label: "🌧️ Pluviométrie & Sécheresse" },
+                        { id: "vegetation", label: "🌿 Indices Végétaux" },
+                        { id: "ecoregions", label: "🌲 Écorégions & Forêts" },
+                        { id: "sensors", label: "🛰️ Capteurs & Télédétection" },
+                        { id: "geospatial", label: "🗺️ Isohyètes & Interpolation" },
+                      ].map((sub) => (
+                        <button
+                          key={sub.id}
+                          className={`nav-sub-item ${guideSection === sub.id ? "active" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveTab("guide");
+                            setGuideSection(sub.id);
                             setMobileNavOpen(false);
                           }}
                           type="button"
@@ -704,6 +890,16 @@ function App() {
               <span className="breadcrumb-separator">/</span>
               <span className="breadcrumb-active">{tabs.find((t) => t.id === activeTab)?.label}</span>
             </div>
+          </div>
+
+          <div className="navbar-search-wrap">
+            <CommuneSearchBar
+              communes={data?.communes || []}
+              placeholder="🔍 Rechercher une commune (ex: Ambovombe, Tsihombe...)"
+              onSelectCommune={(c) => {
+                setSelectedCommune(c.code);
+              }}
+            />
           </div>
 
           <div className="navbar-right">
@@ -762,6 +958,8 @@ function App() {
               isohyetesMeta={data.isohyetesMeta}
               mapSubItem={mapSubItem}
               setMapSubItem={setMapSubItem}
+              selectedCommune={selectedCommune}
+              setSelectedCommune={setSelectedCommune}
             />
           )}
           {activeTab === "stats" && (
@@ -791,7 +989,14 @@ function App() {
               setDatasetType={setDataCategory}
             />
           )}
-          {activeTab === "guide" && <GuideMethodologie />}
+          {activeTab === "guide" && (
+            <GuideMethodologie
+              vegData={data.vegetationData}
+              selectedCommune={selectedCommune}
+              activeSection={guideSection}
+              setActiveSection={setGuideSection}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -860,16 +1065,13 @@ function UnifiedSinglePage({
             <span className="pill-num">04</span> Végétation NDVI 🌿
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-stats-saison")}>
-            <span className="pill-num">05</span> Saisons des Pluies 🗓️
-          </button>
-          <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-stats-sensors")}>
-            <span className="pill-num">06</span> Capteurs Satellitaires 🛰️
+            <span className="pill-num">05</span> Début et fin de pluie 🗓️
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-data")}>
-            <span className="pill-num">07</span> Base de Données 📋
+            <span className="pill-num">06</span> Base de Données 📋
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-guide")}>
-            <span className="pill-num">08</span> Guide & Calculs 📖
+            <span className="pill-num">07</span> Guide & Capteurs 📖
           </button>
         </div>
       </div>
@@ -909,6 +1111,8 @@ function UnifiedSinglePage({
           isohyetesMeta={data.isohyetesMeta}
           mapSubItem={mapSubItem}
           setMapSubItem={setMapSubItem}
+          selectedCommune={selectedCommune}
+          setSelectedCommune={setSelectedCommune}
         />
       </section>
 
@@ -964,13 +1168,13 @@ function UnifiedSinglePage({
         />
       </section>
 
-      {/* 05. CALENDRIER DES SAISONS DES PLUIES */}
+      {/* 05. CALENDRIER DE DÉBUT ET FIN DE PLUIE */}
       <section id="sec-stats-saison" className="section-anchor" style={{ marginTop: "32px" }}>
         <div className="section-header-banner">
           <div className="section-index-badge">05</div>
           <div>
-            <h2 className="section-title">Calendrier & Régime des Saisons des Pluies</h2>
-            <p className="section-subtitle">Dates de début et fin de saison, durées utiles (jours) et régimes pluviométriques communaux</p>
+            <h2 className="section-title">Calendrier, Début & Fin de Pluie</h2>
+            <p className="section-subtitle">Dates de début et fin de pluie, durées utiles (jours) et régimes pluviométriques communaux</p>
           </div>
         </div>
         <Saison
@@ -987,25 +1191,10 @@ function UnifiedSinglePage({
         />
       </section>
 
-      {/* 06. SIMULATION & MULTI-CAPTEURS */}
-      <section id="sec-stats-sensors" className="section-anchor" style={{ marginTop: "32px" }}>
-        <div className="section-header-banner">
-          <div className="section-index-badge">06</div>
-          <div>
-            <h2 className="section-title">Imbrication & Résolution Spatiale des Capteurs</h2>
-            <p className="section-subtitle">Comparaison multi-échelle MODIS 250m / Landsat 30m / Sentinel-2 10m et simulation de pixel</p>
-          </div>
-        </div>
-        <ComparaisonCapteurs
-          vegData={data?.vegetationData || {}}
-          selectedCommune={selectedCommune}
-        />
-      </section>
-
-      {/* 07. BASE DE DONNÉES COMMUNALES */}
+      {/* 06. BASE DE DONNÉES COMMUNALES */}
       <section id="sec-data" className="section-anchor" style={{ marginTop: "32px" }}>
         <div className="section-header-banner">
-          <div className="section-index-badge">07</div>
+          <div className="section-index-badge">06</div>
           <div>
             <h2 className="section-title">Base de Données des 225 Communes</h2>
             <p className="section-subtitle">Explorateur tabulaire interactif avec recherche, tri multi-colonnes et export CSV</p>
@@ -1019,16 +1208,19 @@ function UnifiedSinglePage({
         />
       </section>
 
-      {/* 08. GUIDE MÉTHODOLOGIQUE & FORMULES DE CALCUL */}
+      {/* 07. GUIDE MÉTHODOLOGIQUE & PHYSIQUE DES CAPTEURS */}
       <section id="sec-guide" className="section-anchor" style={{ marginTop: "32px" }}>
         <div className="section-header-banner">
-          <div className="section-index-badge">08</div>
+          <div className="section-index-badge">07</div>
           <div>
-            <h2 className="section-title">Guide Méthodologique & Formules Scientifiques</h2>
+            <h2 className="section-title">Guide Méthodologique & Physique des Capteurs</h2>
             <p className="section-subtitle">Documentation des équations mathématiques, capteurs (CHIRPS, MODIS, Landsat, Sentinel-2) et indices agro-climatiques</p>
           </div>
         </div>
-        <GuideMethodologie />
+        <GuideMethodologie
+          vegData={data?.vegetationData || {}}
+          selectedCommune={selectedCommune}
+        />
       </section>
     </div>
   );
@@ -1383,10 +1575,6 @@ function SuiviVegetation({
     return [...new Set(list)].sort();
   }, [communes, selectedRegion]);
 
-  React.useEffect(() => {
-    setSelectedDistrict("");
-  }, [selectedRegion]);
-
   const filteredCommunesDropdown = React.useMemo(() => {
     return communes.filter((c) => {
       if (selectedRegion && c.region !== selectedRegion) return false;
@@ -1395,14 +1583,59 @@ function SuiviVegetation({
     });
   }, [communes, selectedRegion, selectedDistrict]);
 
+  // Sync selectedRegion and selectedDistrict when selectedCommune changes
   React.useEffect(() => {
-    if (
-      filteredCommunesDropdown.length > 0 &&
-      !filteredCommunesDropdown.some((c) => c.code === selectedCommune)
-    ) {
-      setSelectedCommune(filteredCommunesDropdown[0].code);
+    if (!selectedCommune || !communes.length) return;
+    const cObj = communes.find((c) => c.code === selectedCommune);
+    if (cObj) {
+      if (cObj.region && selectedRegion !== cObj.region && setSelectedRegion) {
+        setSelectedRegion(cObj.region);
+      }
+      if (cObj.district && selectedDistrict !== cObj.district) {
+        setSelectedDistrict(cObj.district);
+      }
     }
-  }, [filteredCommunesDropdown, selectedCommune]);
+  }, [selectedCommune, communes]);
+
+  const handleRegionChange = (newReg) => {
+    if (setSelectedRegion) setSelectedRegion(newReg);
+    if (!newReg) {
+      setSelectedDistrict("");
+      return;
+    }
+    const communesInReg = communes.filter((c) => c.region === newReg);
+    const districtsInReg = [...new Set(communesInReg.map((c) => c.district).filter(Boolean))].sort();
+    const firstDistrict = districtsInReg[0] || "";
+    setSelectedDistrict(firstDistrict);
+    const firstCommune = communesInReg.find((c) => !firstDistrict || c.district === firstDistrict) || communesInReg[0];
+    if (firstCommune && setSelectedCommune) {
+      setSelectedCommune(firstCommune.code);
+    }
+  };
+
+  const handleDistrictChange = (newDist) => {
+    setSelectedDistrict(newDist);
+    if (!newDist) return;
+    const communesInDist = communes.filter((c) => c.district === newDist && (!selectedRegion || c.region === selectedRegion));
+    if (communesInDist.length > 0 && setSelectedCommune) {
+      setSelectedCommune(communesInDist[0].code);
+    } else {
+      const anyCommune = communes.find((c) => c.district === newDist);
+      if (anyCommune) {
+        if (anyCommune.region && setSelectedRegion) setSelectedRegion(anyCommune.region);
+        if (setSelectedCommune) setSelectedCommune(anyCommune.code);
+      }
+    }
+  };
+
+  const handleCommuneChange = (code) => {
+    if (setSelectedCommune) setSelectedCommune(code);
+    const cObj = communes.find((c) => c.code === code);
+    if (cObj) {
+      if (cObj.region && setSelectedRegion) setSelectedRegion(cObj.region);
+      if (cObj.district) setSelectedDistrict(cObj.district);
+    }
+  };
 
   const activeCommuneObj = communes.find((c) => c.code === selectedCommune) || filteredCommunesDropdown[0] || communes[0];
   const activeEcoregion = activeCommuneObj?.ecoregion || "spiny";
@@ -1759,6 +1992,15 @@ function SuiviVegetation({
             </div>
           </div>
 
+          <div className="filter-group">
+            <label style={{ fontWeight: "700" }}>🔍 Chercher Commune :</label>
+            <CommuneSearchBar
+              communes={communes}
+              placeholder="Nom ou code..."
+              onSelectCommune={(c) => setSelectedCommune(c.code)}
+            />
+          </div>
+
           <div className="filter-group" style={{ marginTop: "10px" }}>
             <label htmlFor="region-sel">Région</label>
             <select id="region-sel" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)}>
@@ -1920,7 +2162,7 @@ function SuiviVegetation({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Production Végétale Annuelle (Σ NDVI / Campagne) — {activeCommuneObj?.nom}</h3>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Production Chlorophilienne Annuelle (Σ NDVI / Campagne) — {activeCommuneObj?.nom}</h3>
             <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Indice de végétation totale cumulée produite chaque année (somme des 12 mois)</span>
           </div>
           <div style={{ width: "100%", height: 220 }}>
@@ -2122,6 +2364,16 @@ function SuiviVegetation({
           <div className="formula-desc">
             Agrège les 12 mois de chaque campagne pour dégager l'évolution pluriannuelle continue. Permet d'isoler les <strong>grandes crises de sécheresse</strong> (ex: effondrement du couvert végétal en 2020–2021 et 2021–2022) et les tendances écologiques à long terme (dégradation vs verdissement).
           </div>
+          <div className="formula-vars">
+            <div className="formula-var-row">
+              <span className="formula-var-name">NDVI_moyen,y :</span>
+              <span className="formula-var-desc">Indice NDVI moyen annuel sur les 12 mois de la campagne <em>y</em>.</span>
+            </div>
+            <div className="formula-var-row">
+              <span className="formula-var-name">NDVI_y,m :</span>
+              <span className="formula-var-desc">Indice NDVI du mois <em>m</em> pour la campagne <em>y</em>.</span>
+            </div>
+          </div>
         </div>
 
         <div className="formula-item">
@@ -2134,6 +2386,16 @@ function SuiviVegetation({
           </div>
           <div className="formula-desc">
             Révèle le calendrier intra-annuel : <strong>Reverdissement dès Octobre/Novembre</strong> (premières pluies), <strong>Pic végétal maximal en Février–Mars</strong> (floraison/maturation), et <strong>Dessèchement progressif à partir de Mai</strong> (transition vers la saison sèche).
+          </div>
+          <div className="formula-vars">
+            <div className="formula-var-row">
+              <span className="formula-var-name">NDVI_m :</span>
+              <span className="formula-var-desc">Vigueur chlorophyllienne moyenne pour le mois <em>m</em>.</span>
+            </div>
+            <div className="formula-var-row">
+              <span className="formula-var-name">[0.15 ; 0.85] :</span>
+              <span className="formula-var-desc">Plage typique (sol nu / savane aride jusqu'à canopée dense).</span>
+            </div>
           </div>
         </div>
 
@@ -2148,6 +2410,16 @@ function SuiviVegetation({
           <div className="formula-desc">
             Quantifie le déficit végétal par rapport à la moyenne climatologique : des <strong>barres rouges</strong> signalent un retard pluviométrique ou un flétrissement anormal, tandis que des <strong>barres vertes</strong> traduisent une vigueur biophysique supérieure.
           </div>
+          <div className="formula-vars">
+            <div className="formula-var-row">
+              <span className="formula-var-name">NDVI_observé :</span>
+              <span className="formula-var-desc">Valeur NDVI mesurée par satellite (MODIS/Sentinel).</span>
+            </div>
+            <div className="formula-var-row">
+              <span className="formula-var-name">NDVI_référence :</span>
+              <span className="formula-var-desc">Normale historique calculée sur la série temporelle 1999–2026.</span>
+            </div>
+          </div>
         </div>
 
         <div className="formula-item">
@@ -2160,6 +2432,16 @@ function SuiviVegetation({
           </div>
           <div className="formula-desc">
             Une campagne agricole est déclarée en <strong>déficit végétal</strong> lorsque son NDVI moyen chute de plus de 5% sous sa normale historique (1999–2026), traduisant un stress hydrique impactant la biomasse cultivée.
+          </div>
+          <div className="formula-vars">
+            <div className="formula-var-row">
+              <span className="formula-var-name">Anomalie_% :</span>
+              <span className="formula-var-desc">Taux d'écart relatif du NDVI par rapport à la moyenne historique.</span>
+            </div>
+            <div className="formula-var-row">
+              <span className="formula-var-name">&lt; -5% :</span>
+              <span className="formula-var-desc">Seuil statistique marquant un stress hydrique/végétal significatif.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -2407,7 +2689,7 @@ function Saison({
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <section className="split-layout" style={{ marginBottom: "6px" }}>
         <aside className="filters-panel">
-          <h2>Paramètres Saison</h2>
+          <h2>Paramètres Début et fin de pluie</h2>
 
           <div className="filter-group">
             <label htmlFor="region-filter">Région</label>
@@ -2427,13 +2709,11 @@ function Saison({
           </div>
 
           <div className="filter-group">
-            <label htmlFor="search-commune">Chercher Commune</label>
-            <input
-              id="search-commune"
-              type="text"
+            <label style={{ fontWeight: "700" }}>🔍 Chercher Commune :</label>
+            <CommuneSearchBar
+              communes={communes}
               placeholder="Nom ou code..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onSelectCommune={(c) => setSelectedCommune(c.code)}
             />
           </div>
 
@@ -2489,7 +2769,7 @@ function Saison({
         <div className="panel">
           <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <h2><Icons.Rain /> Saison des pluies - {selectedCommuneName}</h2>
+              <h2><Icons.Rain /> Début et fin de pluie — {selectedCommuneName}</h2>
               <span>Début, durée et mois le plus pluvieux ({seasonRange[0]}–{Number(seasonRange[0]) + 1} à {seasonRange[1]}–{Number(seasonRange[1]) + 1})</span>
             </div>
 
@@ -2677,6 +2957,20 @@ function Saison({
               <div className="formula-desc">
                 Identifie l'arrivée des pluies d'installation nécessaires aux semis. Référence standard Grand Sud : <strong>Novembre</strong> (ou Décembre/Janvier en cas de retard sévère).
               </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">M_début :</span>
+                  <span className="formula-var-desc">Mois de démarrage des pluies utiles à l'agriculture.</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">P_m :</span>
+                  <span className="formula-var-desc">Précipitation totale cumulée du mois <em>m</em> (en mm).</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">≥ 25 mm :</span>
+                  <span className="formula-var-desc">Seuil agro-climatique d'humectation des sols propice aux semis.</span>
+                </div>
+              </div>
             </div>
 
             <div className="formula-item">
@@ -2690,6 +2984,16 @@ function Saison({
               <div className="formula-desc">
                 Marque la fin des pluies utiles à la maturation des cultures. Référence standard Grand Sud : <strong>Mars</strong> (ou Avril dans l'Anosy et zones humides).
               </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">M_fin :</span>
+                  <span className="formula-var-desc">Mois de clôture de la période pluvieuse utile.</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">&lt; 25 mm :</span>
+                  <span className="formula-var-desc">Seuil de tarissement marquant le début de la saison sèche.</span>
+                </div>
+              </div>
             </div>
 
             <div className="formula-item">
@@ -2702,6 +3006,16 @@ function Saison({
               </div>
               <div className="formula-desc">
                 Nombre total de mois de la fenêtre pluvieuse active (généralement <strong>4 à 5 mois</strong> dans le Grand Sud, suivis de 7 à 8 mois de saison sèche).
+              </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">D :</span>
+                  <span className="formula-var-desc">Durée totale active de la saison culturale (en mois).</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">12 :</span>
+                  <span className="formula-var-desc">Nombre de mois sur l'année hydrologique (Octobre à Septembre).</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2729,6 +3043,16 @@ function Saison({
               <div className="formula-desc">
                 Mois au cours duquel le cumul mensuel atteint son maximum absolu sur la campagne agricole active.
               </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">M_max :</span>
+                  <span className="formula-var-desc">Mois de pointe enregistrant le plus gros volume pluviométrique.</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">P_m :</span>
+                  <span className="formula-var-desc">Cumul de précipitations pour le mois <em>m</em> (en mm).</span>
+                </div>
+              </div>
             </div>
 
             <div className="formula-item">
@@ -2742,6 +3066,12 @@ function Saison({
               <div className="formula-desc">
                 Hauteur maximale de pluie enregistrée pendant le mois le plus arrosé de la saison agricole.
               </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">P_max :</span>
+                  <span className="formula-var-desc">Volume d'eau record atteint lors du mois le plus humide (en mm).</span>
+                </div>
+              </div>
             </div>
 
             <div className="formula-item">
@@ -2754,6 +3084,16 @@ function Saison({
               </div>
               <div className="formula-desc">
                 Dans le Grand Sud, ce mois de pic (généralement <strong>Janvier</strong> ou <strong>Février</strong>) apporte à lui seul entre <strong>35% et 50%</strong> de toute la pluie annuelle.
+              </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">Part_max :</span>
+                  <span className="formula-var-desc">Poids relatif du mois de pic dans le cumul annuel global (en %).</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">P_annuel :</span>
+                  <span className="formula-var-desc">Précipitation cumulée totale sur les 12 mois de la campagne.</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2781,6 +3121,12 @@ function Saison({
               <div className="formula-desc">
                 Représente graphiquement la continuité des mois pluvieux utiles, de l'installation des semis jusqu'à la maturation des récoltes.
               </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">M_début, M_fin :</span>
+                  <span className="formula-var-desc">Bornes de début et fin de la fenêtre agricole utile.</span>
+                </div>
+              </div>
             </div>
 
             <div className="formula-item">
@@ -2794,6 +3140,16 @@ function Saison({
               <div className="formula-desc">
                 Positionne la barre colorée proportionnellement sur les 12 mois du calendrier hydrologique (d'Octobre = 0% à Septembre = 100%).
               </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">D :</span>
+                  <span className="formula-var-desc">Durée de la saison active (en mois).</span>
+                </div>
+                <div className="formula-var-row">
+                  <span className="formula-var-name">12 :</span>
+                  <span className="formula-var-desc">Nombre total de mois de l'année hydrologique.</span>
+                </div>
+              </div>
             </div>
 
             <div className="formula-item">
@@ -2806,6 +3162,12 @@ function Saison({
               </div>
               <div className="formula-desc">
                 Met en évidence la brièveté de la période culturale (4 à 5 mois) face à la longue saison sèche (Avril à Octobre) caractéristique de l'aridité du Grand Sud.
+              </div>
+              <div className="formula-vars">
+                <div className="formula-var-row">
+                  <span className="formula-var-name">12 - D :</span>
+                  <span className="formula-var-desc">Nombre de mois secs sans pluies agricoles utiles (7 à 8 mois).</span>
+                </div>
               </div>
             </div>
           </div>
@@ -3162,13 +3524,6 @@ function Statistiques({
         />
       )}
 
-      {statsCategory === "sensors" && (
-        <ComparaisonCapteurs
-          vegData={vegData}
-          selectedCommune={appSelectedCommune}
-        />
-      )}
-
       {statsCategory === "precip" && (
         <>
           {/* Top Executive KPI Cards */}
@@ -3230,6 +3585,15 @@ function Statistiques({
 
               {modeCommune === "Choisir une commune" && (
                 <>
+                  <div className="filter-group" style={{ marginTop: "10px" }}>
+                    <label style={{ fontWeight: "700" }}>🔍 Chercher Commune :</label>
+                    <CommuneSearchBar
+                      communes={communes}
+                      placeholder="Nom ou code..."
+                      onSelectCommune={(c) => handleCommuneChange(c.code)}
+                    />
+                  </div>
+
                   <div className="filter-group" style={{ marginTop: "10px" }}>
                     <label htmlFor="stat-region-sel">Région :</label>
                     <select
@@ -3314,21 +3678,6 @@ function Statistiques({
                       </option>
                     ))}
                   </select>
-                </div>
-              )}
-
-              {typeGraph === "Anomalies" && (
-                <div
-                  className="info-bulletin"
-                  style={{
-                    marginTop: "14px",
-                    marginBottom: 0,
-                    fontSize: "11px",
-                    lineHeight: "1.45",
-                    padding: "10px 12px",
-                  }}
-                >
-                  <strong>Note méthodologique :</strong> La zone en arrière-plan gris sur le graphique d'anomalie correspond à ±1 écart-type par rapport à la moyenne climatologique de la période de référence 1981–2010 ({meanClim} mm/an). Les barres rouges représentent des années de déficit pluvial critique.
                 </div>
               )}
             </aside>
@@ -3637,6 +3986,85 @@ function Statistiques({
           </section>
 
           {/* Méthodologie Climatologique affichée en bas de l'ensemble (Paramètres + Figures) sur 3 colonnes */}
+          {typeGraph === "Anomalies" && (
+            <div className="formula-card" style={{ marginTop: "0px", borderLeftColor: "#2563eb" }}>
+              <div className="formula-card-header">
+                <Icons.Info />
+                <span>Méthodologie & Interprétation du Graphique des Anomalies Pluviométriques (1981–2026)</span>
+              </div>
+              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>1. Normale & Écart-Type (Zone Grisée)</span>
+                    <span style={{ color: "#64748b" }}>±1 SD (Écart-Type)</span>
+                  </div>
+                  <div className="formula-code">
+                    Bande Grisée = [ -1 σ ; +1 σ ] = [ -{sdClim} mm ; +{sdClim} mm ]
+                  </div>
+                  <div className="formula-desc">
+                    La zone en arrière-plan gris sur le graphique d'anomalie correspond à <strong>±1 écart-type (±{sdClim} mm)</strong> par rapport à la moyenne climatologique de la période de référence 1981–2010 (<strong>{meanClim} mm/an</strong>).
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">Moyenne Réf. :</span>
+                      <span className="formula-var-desc">Normale 1981–2010 ({meanClim} mm/an).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">±1 SD (σ) :</span>
+                      <span className="formula-var-desc">Intervalle de variabilité naturelle standard (±{sdClim} mm).</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>2. Calcul de l'Anomalie Annuelle</span>
+                    <span style={{ color: "#2563eb" }}>💧 Écart Net (mm)</span>
+                  </div>
+                  <div className="formula-code">
+                    Anomalie_y = P_y - P_ref,clim
+                  </div>
+                  <div className="formula-desc">
+                    Écart arithmétique entre la pluie totale enregistrée pour l'année <em>y</em> et la normale séculaire de référence.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_y :</span>
+                      <span className="formula-var-desc">Précipitation totale de l'année <em>y</em> (en mm).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_ref,clim :</span>
+                      <span className="formula-var-desc">Moyenne 1981–2010 ({meanClim} mm/an).</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>3. Diagnostic Visuel & Sévérité</span>
+                    <span style={{ color: "#ef4444" }}>🔴 Déficit vs 🔵 Excédent</span>
+                  </div>
+                  <div className="formula-code">
+                    Barre Rouge : Anomalie &lt; 0  |  Barre Bleue : Anomalie &gt; 0
+                  </div>
+                  <div className="formula-desc">
+                    Les <strong>barres rouges</strong> représentent des années de déficit pluvial critique (ex: sécheresse 2020–2022). Les <strong>barres bleues</strong> représentent des années excédentaires.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">&lt; -1 SD :</span>
+                      <span className="formula-var-desc" style={{ color: "#ef4444", fontWeight: "600" }}>Déficit pluvial exceptionnel / Sécheresse sévère.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">&gt; +1 SD :</span>
+                      <span className="formula-var-desc" style={{ color: "#2563eb", fontWeight: "600" }}>Année exceptionnellement humide.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {typeGraph === "Climatologie mensuelle" && (
             <div className="formula-card" style={{ marginTop: "0px" }}>
               <div className="formula-card-header">
@@ -3655,6 +4083,24 @@ function Statistiques({
                   <div className="formula-desc">
                     Pour chaque mois <em>m</em> (Janv à Déc), moyenne sur la série historique continue d'observation CHIRPS (depuis 1981).
                   </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_ref,m :</span>
+                      <span className="formula-var-desc">Normale climatologique moyenne du mois <em>m</em> sur 1981–2026 (en mm).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_y,m :</span>
+                      <span className="formula-var-desc">Précipitation enregistrée au mois <em>m</em> de l'année <em>y</em>.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">N :</span>
+                      <span className="formula-var-desc">Nombre d'années de la série d'observation (46 ans : 1981–2026).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">m :</span>
+                      <span className="formula-var-desc">Mois analysé (Janvier à Décembre).</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="formula-item">
@@ -3668,6 +4114,16 @@ function Statistiques({
                   <div className="formula-desc">
                     Précipitation mesurée au cours du mois <em>m</em> pour l'année sélectionnée ({selectedYearForMonth}).
                   </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_obs,m :</span>
+                      <span className="formula-var-desc">Hauteur d'eau mensuelle observée (en mm) au mois <em>m</em>.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">m :</span>
+                      <span className="formula-var-desc">Mois de l'année sélectionnée ({selectedYearForMonth}).</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="formula-item">
@@ -3680,6 +4136,20 @@ function Statistiques({
                   </div>
                   <div className="formula-desc">
                     Une valeur négative (barre rouge) traduit un déficit hydrique par rapport à la normale du mois.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">D_m :</span>
+                      <span className="formula-var-desc">Déficit volumétrique net en millimètres (mm) pour le mois <em>m</em>.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">D% :</span>
+                      <span className="formula-var-desc">Taux d'écart en % (&lt; 0 = déficit rouge, &gt; 0 = excédent bleu).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_ref,m :</span>
+                      <span className="formula-var-desc">Pluie normale de référence pour le mois <em>m</em>.</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3701,6 +4171,8 @@ function Carte({
   isohyetesMeta = null,
   mapSubItem: parentMapSubItem,
   setMapSubItem: parentSetMapSubItem,
+  selectedCommune: externalSelectedCommune,
+  setSelectedCommune: externalSetSelectedCommune,
 }) {
   const features = geojson?.features ?? [];
   const [localMapSubItem, setLocalMapSubItem] = React.useState("precip");
@@ -3714,7 +4186,30 @@ function Carte({
   const [basemap, setBasemap] = React.useState("OpenStreetMap");
   const [showBasemapMenu, setShowBasemapMenu] = React.useState(false);
   const basemapRef = React.useRef(null);
-  const [selectedFeatureCode, setSelectedFeatureCode] = React.useState(null);
+  const [selectedFeatureCode, setSelectedFeatureCode] = React.useState(externalSelectedCommune || null);
+  const [targetZoomCode, setTargetZoomCode] = React.useState(null);
+  const [resetTrigger, setResetTrigger] = React.useState(0);
+
+  React.useEffect(() => {
+    if (externalSelectedCommune && externalSelectedCommune !== selectedFeatureCode) {
+      setSelectedFeatureCode(externalSelectedCommune);
+      setTargetZoomCode(externalSelectedCommune);
+    }
+  }, [externalSelectedCommune]);
+
+  const handleSelectCommune = (code) => {
+    setSelectedFeatureCode(code);
+    setTargetZoomCode(code);
+    if (externalSetSelectedCommune) {
+      externalSetSelectedCommune(code);
+    }
+  };
+
+  const handleResetZoom = () => {
+    setSelectedFeatureCode(null);
+    setTargetZoomCode(null);
+    setResetTrigger((prev) => prev + 1);
+  };
 
   React.useEffect(() => {
     function handleClickOutside(event) {
@@ -4360,10 +4855,10 @@ function Carte({
 
       if (isSelected) {
         return {
-          fillColor: "rgba(37, 99, 235, 0.15)",
-          fillOpacity: 0.15,
-          color: "#1d4ed8",
-          weight: 2.5,
+          fillColor: "rgba(245, 158, 11, 0.2)",
+          fillOpacity: 0.2,
+          color: "#f59e0b",
+          weight: 3.5,
           opacity: 1,
         };
       }
@@ -4392,38 +4887,32 @@ function Carte({
           return {
             fillColor: "#e2e8f0",
             fillOpacity: 0.4,
-            color: isSelected ? "#0f172a" : "#cbd5e1",
-            weight: isSelected ? 2.5 : 0.8,
-            opacity: 0.7,
+            color: isSelected ? "#f59e0b" : "#cbd5e1",
+            weight: isSelected ? 3.5 : 0.8,
+            opacity: isSelected ? 1 : 0.7,
           };
         }
 
-        const deficitPalette = [
-          "#fff5f0", // ≥ 0% (pas de déficit ou excédent)
-          "#fee0d2", // 0% à -5%
-          "#fcbba1", // -5% à -10%
-          "#fc9272", // -10% à -15%
-          "#fb6a4a", // -15% à -20%
-          "#ef3b2c", // -20% à -25%
-          "#cb181d", // -25% à -30%
-          "#99000d", // -30% à -35%
-          "#67000d", // ≤ -35% (sécheresse critique)
-        ];
-        // Plage de déficit négatif de 0% à -40%
-        let ratio = 0;
-        if (deficit < 0) {
-          const absVal = Math.min(40, Math.abs(deficit));
-          ratio = absVal / 40.0;
-        }
-        const idx = Math.min(deficitPalette.length - 1, Math.floor(ratio * deficitPalette.length));
-        const fillColor = deficitPalette[idx];
+        // Palette bicolore divergente : Rouge pour Déficits (< 0%) | Bleu pour Excédents (> 0%) | Blanc/Neutre pour 0%
+        let fillColor = "#ffffff";
+        if (deficit <= -40) fillColor = "#67000d";       // Déficit critique / extrême (≤ -40%)
+        else if (deficit <= -30) fillColor = "#99000d";  // Déficit très fort (-30% à -40%)
+        else if (deficit <= -20) fillColor = "#cb181d";  // Déficit fort (-20% à -30%)
+        else if (deficit <= -10) fillColor = "#ef3b2c";  // Déficit modéré (-10% à -20%)
+        else if (deficit < 0) fillColor = "#fc9272";     // Déficit faible (0% à -10%)
+        else if (deficit === 0) fillColor = "#f8fafc";   // Équilibre / Normale (0%)
+        else if (deficit <= 10) fillColor = "#9ecae1";   // Excédent faible (0% à +10%)
+        else if (deficit <= 20) fillColor = "#6baed6";   // Excédent modéré (+10% à +20%)
+        else if (deficit <= 30) fillColor = "#3182bd";   // Excédent fort (+20% à +30%)
+        else if (deficit <= 40) fillColor = "#2171b5";   // Excédent très fort (+30% à +40%)
+        else fillColor = "#084594";                      // Excédent exceptionnel (> +40%)
 
         return {
           fillColor,
-          fillOpacity: isSelected ? 0.95 : 0.78,
-          color: isSelected ? "#0f172a" : "#334155",
-          weight: isSelected ? 2.5 : 0.9,
-          opacity: 0.85,
+          fillOpacity: isSelected ? 0.95 : 0.82,
+          color: isSelected ? "#f59e0b" : "#334155",
+          weight: isSelected ? 3.5 : 0.9,
+          opacity: isSelected ? 1 : 0.85,
         };
       }
 
@@ -4438,9 +4927,9 @@ function Carte({
       return {
         fillColor,
         fillOpacity: isSelected ? 0.95 : 0.8,
-        color: isSelected ? "#0f172a" : "#334155",
-        weight: isSelected ? 2.5 : 0.9,
-        opacity: 0.85,
+        color: isSelected ? "#f59e0b" : "#334155",
+        weight: isSelected ? 3.5 : 0.9,
+        opacity: isSelected ? 1 : 0.85,
       };
     },
     [selectedFeatureCode, mapSubItem, calculatedDeficitMap, calculatedPrecipMap, precipScaleMin, precipScaleMax]
@@ -4454,10 +4943,10 @@ function Carte({
 
       if (isSelected) {
         return {
-          fillColor: "rgba(59, 130, 246, 0.25)",
+          fillColor: "rgba(245, 158, 11, 0.25)",
           fillOpacity: 0.25,
-          color: "#2563eb",
-          weight: 2.5,
+          color: "#f59e0b",
+          weight: 3.5,
           opacity: 1,
         };
       }
@@ -4510,6 +4999,31 @@ function Carte({
       <section className="split-layout carte-layout">
       <aside className="filters-panel">
         <h2>Paramètres Carte</h2>
+
+        {/* Recherche & Zoom Rapide Commune */}
+        <div className="filter-group" style={{ marginBottom: "14px", paddingBottom: "12px", borderBottom: "1px solid var(--border-color)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+            <label style={{ fontWeight: "700", margin: 0 }}>🔍 Chercher & Zoomer Commune :</label>
+            {selectedFeatureCode && (
+              <button
+                type="button"
+                className="reset-zoom-btn"
+                onClick={handleResetZoom}
+                title="Réinitialiser la vue sur tout le Grand Sud"
+                style={{ padding: "2px 8px", fontSize: "10.5px" }}
+              >
+                🎯 Recentrer
+              </button>
+            )}
+          </div>
+          <CommuneSearchBar
+            communes={communes}
+            placeholder="Nom ou code de commune..."
+            onSelectCommune={(c) => {
+              handleSelectCommune(c.code);
+            }}
+          />
+        </div>
 
         {/* Options pour NDVI 6 Classes */}
         {mapSubItem === "ndvi_classes" && (
@@ -5237,7 +5751,7 @@ function Carte({
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "var(--text-muted)" }}>Moyenne Grand Sud :</span>
-                <strong style={{ color: activeDeficitStats.mean < 0 ? "#ef4444" : "#059669" }}>
+                <strong style={{ color: activeDeficitStats.mean < 0 ? "#ef4444" : "#2563eb" }}>
                   {activeDeficitStats.mean > 0 ? `+${activeDeficitStats.mean}` : activeDeficitStats.mean}%
                 </strong>
               </div>
@@ -5246,8 +5760,8 @@ function Carte({
                 <strong style={{ color: "#b91c1c" }}>{activeDeficitStats.min}%</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--text-muted)" }}>Déficit min. / Excédent :</span>
-                <strong style={{ color: activeDeficitStats.max >= 0 ? "#059669" : "#d97706" }}>
+                <span style={{ color: "var(--text-muted)" }}>Excédent max. / Déficit min. :</span>
+                <strong style={{ color: activeDeficitStats.max > 0 ? "#2563eb" : "#d97706" }}>
                   {activeDeficitStats.max > 0 ? `+${activeDeficitStats.max}` : activeDeficitStats.max}%
                 </strong>
               </div>
@@ -5261,7 +5775,7 @@ function Carte({
       </aside>
 
       <div className="panel map-panel">
-        <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+        <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
           <div>
             <h2>
               <Icons.Map />{" "}
@@ -5282,7 +5796,24 @@ function Carte({
                 : `Carte des précipitations (Choroplèthe) — ${typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}`}
             </h2>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <div style={{ minWidth: "220px", maxWidth: "300px" }}>
+              <CommuneSearchBar
+                communes={communes}
+                placeholder="🔍 Zoomer sur une commune..."
+                onSelectCommune={(c) => handleSelectCommune(c.code)}
+              />
+            </div>
+            {selectedFeatureCode && (
+              <button
+                type="button"
+                className="reset-zoom-btn"
+                onClick={handleResetZoom}
+                title="Recentrer la carte sur tout le Grand Sud"
+              >
+                🎯 Recentrer tout le Grand Sud
+              </button>
+            )}
             <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>
               {mapSubItem === "ndvi_classes"
                 ? "Survolez ou cliquez sur une commune"
@@ -5423,12 +5954,22 @@ function Carte({
                       );
                       layer.on({
                         click: () => {
-                          setSelectedFeatureCode((prev) => (prev === p.code ? null : p.code));
+                          const code = p.code;
+                          if (selectedFeatureCode === code) {
+                            handleResetZoom();
+                          } else {
+                            handleSelectCommune(code);
+                          }
                         },
                       });
                     }}
                   />
-                  <MapBoundsManager geojson={geojson} />
+                  <MapBoundsManager
+                    geojson={geojson}
+                    targetZoomCode={targetZoomCode}
+                    resetTrigger={resetTrigger}
+                    onZoomHandled={() => setTargetZoomCode(null)}
+                  />
                 </>
               )}
 
@@ -5464,11 +6005,23 @@ function Carte({
                         { minWidth: 210 }
                       );
                       layer.on({
-                        click: () => setSelectedFeatureCode((prev) => (prev === feature.properties.code ? null : feature.properties.code)),
+                        click: () => {
+                          const code = feature.properties.code;
+                          if (selectedFeatureCode === code) {
+                            handleResetZoom();
+                          } else {
+                            handleSelectCommune(code);
+                          }
+                        },
                       });
                     }}
                   />
-                  <MapBoundsManager geojson={geojson} />
+                  <MapBoundsManager
+                    geojson={geojson}
+                    targetZoomCode={targetZoomCode}
+                    resetTrigger={resetTrigger}
+                    onZoomHandled={() => setTargetZoomCode(null)}
+                  />
                 </>
               )}
 
@@ -5482,9 +6035,16 @@ function Carte({
                     onEachFeature={(feature, layer) => {
                       const p = feature.properties;
                       const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
+                      const rawDef = calculatedDeficitMap[p.code] !== undefined ? calculatedDeficitMap[p.code] : p.deficit;
+                      const hasDef = rawDef !== undefined && rawDef !== null && !isNaN(Number(rawDef));
+                      const numDef = hasDef ? Number(rawDef) : 0;
+                      const isDeficit = hasDef && numDef < 0;
+                      const isExcedent = hasDef && numDef > 0;
+                      const defVal = hasDef ? `${isExcedent ? `+${numDef}` : numDef} %` : "n/d";
+                      const statusColor = isDeficit ? "#ef4444" : isExcedent ? "#2563eb" : "#059669";
+                      const statusLabel = isDeficit ? "Déficit" : isExcedent ? "Excédent" : "Écart";
                       const periodLabel = typePeriode === "Crise 2020–2022"
-                        ? "Crise 2020–2022"
+                        ? "Sécheresse Triennale (2020–2022)"
                         : typePeriode === "Décennies"
                         ? selectedDecades[0]
                         : typePeriode === "Mensuel"
@@ -5494,7 +6054,7 @@ function Carte({
                       layer.bindTooltip(
                         `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
                          <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
-                         <div style="font-size:11px;color:#ef4444;font-weight:700;margin-top:2px;">Déficit (${periodLabel}) : ${defVal}</div>
+                         <div style="font-size:11px;color:${statusColor};font-weight:700;margin-top:2px;">${statusLabel} (${periodLabel}) : ${defVal}</div>
                          <div style="font-size:10px;color:#2563eb;font-weight:600;">Pluie obs. : ${precip} mm</div>`,
                         { sticky: true, direction: "top", opacity: 0.95 }
                       );
@@ -5508,17 +6068,29 @@ function Carte({
                             <div class="commune-popup-divider"></div>
                             <div class="commune-popup-row"><span class="commune-popup-label">Période :</span><strong class="commune-popup-val">${periodLabel}</strong></div>
                             <div class="commune-popup-row"><span class="commune-popup-label">Pluie Observée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit" style="color: #ef4444;">${defVal}</strong></div>
+                            <div class="commune-popup-row"><span class="commune-popup-label">${statusLabel} Pluviométrique :</span><strong class="commune-popup-deficit" style="color: ${statusColor};">${defVal}</strong></div>
                           </div>
                         </div>`,
                         { minWidth: 220 }
                       );
                       layer.on({
-                        click: () => setSelectedFeatureCode((prev) => (prev === feature.properties.code ? null : feature.properties.code)),
+                        click: () => {
+                          const code = feature.properties.code;
+                          if (selectedFeatureCode === code) {
+                            handleResetZoom();
+                          } else {
+                            handleSelectCommune(code);
+                          }
+                        },
                       });
                     }}
                   />
-                  <MapBoundsManager geojson={geojson} />
+                  <MapBoundsManager
+                    geojson={geojson}
+                    targetZoomCode={targetZoomCode}
+                    resetTrigger={resetTrigger}
+                    onZoomHandled={() => setTargetZoomCode(null)}
+                  />
                 </>
               )}
 
@@ -5551,12 +6123,22 @@ function Carte({
                       );
                       layer.on({
                         click: () => {
-                          setSelectedFeatureCode((prev) => (prev === p.code ? null : p.code));
+                          const code = p.code;
+                          if (selectedFeatureCode === code) {
+                            handleResetZoom();
+                          } else {
+                            handleSelectCommune(code);
+                          }
                         },
                       });
                     }}
                   />
-                  <MapBoundsManager geojson={geojson} />
+                  <MapBoundsManager
+                    geojson={geojson}
+                    targetZoomCode={targetZoomCode}
+                    resetTrigger={resetTrigger}
+                    onZoomHandled={() => setTargetZoomCode(null)}
+                  />
                 </>
               )}
             </MapContainer>
@@ -5588,42 +6170,37 @@ function Carte({
           ) : mapSubItem === "deficit" ? (
             <div className="map-legend-compact">
               <div className="map-legend-info">
-                <span className="map-legend-title" style={{ color: "var(--danger)" }}>
-                  📉 Déficit Pluviométrique — {typePeriode === "Crise 2020–2022" ? "Épisode Triennal 2020–2022" : typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}
+                <span className="map-legend-title" style={{ color: "var(--text-main)" }}>
+                  ⚖️ Anomalies Pluviométriques (Déficits en Rouge &bull; Excédents en Bleu) — {typePeriode === "Crise 2020–2022" ? "Sécheresse Triennale (2020–2022)" : typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}
                 </span>
                 <span className="map-legend-stats">
-                  &bull; Moyenne Grand Sud : <strong style={{ color: activeDeficitStats.mean < 0 ? "#ef4444" : "#059669" }}>{activeDeficitStats.mean > 0 ? `+${activeDeficitStats.mean}` : activeDeficitStats.mean}%</strong> &bull; Min (Max déficit) : <strong>{activeDeficitStats.min}%</strong> &bull; Max : <strong>{activeDeficitStats.max}%</strong>
+                  &bull; Moyenne Grand Sud : <strong style={{ color: activeDeficitStats.mean < 0 ? "#ef4444" : "#2563eb" }}>{activeDeficitStats.mean > 0 ? `+${activeDeficitStats.mean}` : activeDeficitStats.mean}%</strong>
+                  &bull; Déficit max : <strong style={{ color: "#b91c1c" }}>{activeDeficitStats.min}%</strong>
+                  &bull; Excédent max : <strong style={{ color: "#2563eb" }}>{activeDeficitStats.max > 0 ? `+${activeDeficitStats.max}%` : `${activeDeficitStats.max}%`}</strong>
                 </span>
               </div>
 
               <div className="map-legend-bar-wrap">
-                <div className="map-legend-gradient-bar">
-                  {[
-                    "#fff5f0",
-                    "#fee0d2",
-                    "#fcbba1",
-                    "#fc9272",
-                    "#fb6a4a",
-                    "#ef3b2c",
-                    "#cb181d",
-                    "#99000d",
-                    "#67000d",
-                  ].map((col, idx) => (
-                    <div key={idx} style={{ flex: 1, backgroundColor: col }} />
-                  ))}
+                <div className="map-legend-gradient-bar" style={{ display: "flex", border: "1px solid rgba(0, 0, 0, 0.15)" }}>
+                  {/* Déficits (Rouge foncé à saumon) */}
+                  <div style={{ flex: 1, backgroundColor: "#67000d" }} title="Déficit extrême (≤ -40%)" />
+                  <div style={{ flex: 1, backgroundColor: "#99000d" }} title="Déficit très fort (-30% à -40%)" />
+                  <div style={{ flex: 1, backgroundColor: "#cb181d" }} title="Déficit fort (-20% à -30%)" />
+                  <div style={{ flex: 1, backgroundColor: "#ef3b2c" }} title="Déficit modéré (-10% à -20%)" />
+                  <div style={{ flex: 1, backgroundColor: "#fc9272" }} title="Déficit faible (0% à -10%)" />
+                  {/* Excédents (Bleu ciel à bleu foncé) */}
+                  <div style={{ flex: 1, backgroundColor: "#9ecae1" }} title="Excédent faible (0% à +10%)" />
+                  <div style={{ flex: 1, backgroundColor: "#6baed6" }} title="Excédent modéré (+10% à +20%)" />
+                  <div style={{ flex: 1, backgroundColor: "#3182bd" }} title="Excédent fort (+20% à +30%)" />
+                  <div style={{ flex: 1, backgroundColor: "#2171b5" }} title="Excédent très fort (+30% à +40%)" />
+                  <div style={{ flex: 1, backgroundColor: "#084594" }} title="Excédent exceptionnel (≥ +40%)" />
                 </div>
                 <div className="map-legend-ticks">
-                  {["≥ 0%", "-5%", "-10%", "-15%", "-20%", "-25%", "-30%", "-35%", "≤ -40%"].map((val, idx) => (
-                    <span
-                      key={idx}
-                      style={{
-                        textAlign: idx === 0 ? "left" : idx === 8 ? "right" : "center",
-                        fontSize: "9.5px",
-                      }}
-                    >
-                      {val}
-                    </span>
-                  ))}
+                  <span style={{ textAlign: "left", color: "#b91c1c", fontWeight: "800", fontSize: "9.5px" }}>≤ -40% (Déficit)</span>
+                  <span style={{ textAlign: "center", color: "#ef4444", fontSize: "9.5px" }}>-20%</span>
+                  <span style={{ textAlign: "center", color: "var(--text-main)", fontWeight: "800", fontSize: "9.5px" }}>0%</span>
+                  <span style={{ textAlign: "center", color: "#2563eb", fontSize: "9.5px" }}>+20%</span>
+                  <span style={{ textAlign: "right", color: "#084594", fontWeight: "800", fontSize: "9.5px" }}>≥ +40% (Excédent)</span>
                 </div>
               </div>
             </div>
@@ -5688,6 +6265,24 @@ function Carte({
             <div className="formula-desc">
               Moyenne climatique historique par commune (c) pour chaque mois (m) et chaque cumul annuel sur la série continue CHIRPS v2.0.
             </div>
+            <div className="formula-vars">
+              <div className="formula-var-row">
+                <span className="formula-var-name">P_ref,m(c) :</span>
+                <span className="formula-var-desc">Normale climatologique (pluie de référence) du mois <em>m</em> pour la commune <em>c</em> (en mm).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">P_y,m(c) :</span>
+                <span className="formula-var-desc">Précipitation mesurée pour l'année <em>y</em> et le mois <em>m</em> dans la commune <em>c</em>.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">N :</span>
+                <span className="formula-var-desc">Nombre total d'années historiques analysées (46 ans : 1981–2026).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">y, m, c :</span>
+                <span className="formula-var-desc"><em>y</em> = Année (1981..2026), <em>m</em> = Mois (1..12), <em>c</em> = Commune.</span>
+              </div>
+            </div>
           </div>
 
           <div className="formula-item">
@@ -5699,20 +6294,52 @@ function Carte({
               D_abs(c, t) = P_obs(c, t) - P_ref(c, t)  (en mm)
             </div>
             <div className="formula-desc">
-              Écart absolu entre la pluie observée et la normale climatique de référence. Une valeur négative indique un manque d'eau.
+              Écart absolu en millimètres entre la pluie observée et la normale climatique de référence. Une valeur négative indique un manque d'eau.
+            </div>
+            <div className="formula-vars">
+              <div className="formula-var-row">
+                <span className="formula-var-name">D_abs(c, t) :</span>
+                <span className="formula-var-desc">Écart / Déficit absolu en millimètres (mm) pour la commune <em>c</em> à la période <em>t</em>.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">P_obs(c, t) :</span>
+                <span className="formula-var-desc">Précipitation observée (réellement mesurée) dans la commune <em>c</em> sur la période sélectionnée <em>t</em>.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">P_ref(c, t) :</span>
+                <span className="formula-var-desc">Précipitation de référence normale attendue pour la commune <em>c</em> sur la période <em>t</em>.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">t :</span>
+                <span className="formula-var-desc">Période temporelle sélectionnée (un mois donné, une saison ou une année complète).</span>
+              </div>
             </div>
           </div>
 
           <div className="formula-item">
             <div className="formula-item-title">
-              <span>3. Déficit Relatif en Pourcentage (D_%)</span>
+              <span>3. Anomalie Pluviométrique Relative (A_%)</span>
               <span style={{ color: "#ef4444" }}>📉 Taux (%)</span>
             </div>
             <div className="formula-code" style={{ color: "#ef4444" }}>
-              Déficit_% = [(P_obs - P_ref) / P_ref] × 100 %
+              Anomalie_% = [(P_obs(c, t) - P_ref(c, t)) / P_ref(c, t)] × 100 %
             </div>
             <div className="formula-desc">
-              Intensité relative de l'anomalie hydrique par rapport à la normale séculaire (calculé dynamiquement pour toutes les années).
+              Écart relatif à la normale séculaire : les valeurs négatives (&lt; 0%) traduisent un <strong>déficit pluviométrique (en rouge)</strong>, tandis que les valeurs positives (&gt; 0%) traduisent un <strong>excédent pluviométrique (en bleu)</strong>.
+            </div>
+            <div className="formula-vars">
+              <div className="formula-var-row">
+                <span className="formula-var-name">Anomalie_% :</span>
+                <span className="formula-var-desc">Pourcentage d'écart relatif par rapport à la normale historique de référence.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">&lt; 0% (Rouge) :</span>
+                <span className="formula-var-desc" style={{ color: "#ef4444", fontWeight: "600" }}>Déficit pluviométrique (manque d'eau par rapport à la normale).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">&gt; 0% (Bleu) :</span>
+                <span className="formula-var-desc" style={{ color: "#2563eb", fontWeight: "600" }}>Excédent pluviométrique (surplus de pluie par rapport à la normale).</span>
+              </div>
             </div>
           </div>
 
@@ -5727,6 +6354,20 @@ function Carte({
             <div className="formula-desc">
               Cumul de 3 années consécutives de déficit pluviométrique extrême ayant touché l'ensemble du Grand Sud.
             </div>
+            <div className="formula-vars">
+              <div className="formula-var-row">
+                <span className="formula-var-name">Déficit_Triennal :</span>
+                <span className="formula-var-desc">Taux moyen de déficit sur les 3 années consécutives les plus critiques (2020, 2021, 2022).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">Déficit_% (y) :</span>
+                <span className="formula-var-desc">Déficit relatif calculé pour l'année <em>y</em> par rapport à la normale séculaire.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">y :</span>
+                <span className="formula-var-desc">Années d'observation (2020, 2021, 2022).</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -5739,7 +6380,7 @@ function Carte({
             border: "1px solid var(--border-color)",
             display: "flex",
             flexDirection: "column",
-            gap: "6px",
+            gap: "8px",
           }}
         >
           <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-main)" }}>
@@ -5764,6 +6405,38 @@ function Carte({
             &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
             P_ref(c) = Moyenne(1981–2026)
           </div>
+
+          <div className="formula-vars" style={{ marginTop: "2px" }}>
+            <div style={{ fontSize: "10.5px", fontWeight: "700", color: "var(--text-main)", marginBottom: "2px" }}>
+              📖 Légende des Notations & Abréviations :
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "4px 16px" }}>
+              <div className="formula-var-row">
+                <span className="formula-var-name">P_obs(c, t) :</span>
+                <span className="formula-var-desc">Précipitation réellement observée/mesurée dans la commune <strong>c</strong> pour la période temporelle <strong>t</strong> (en mm).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">P_ref(c, t) :</span>
+                <span className="formula-var-desc">Normale climatologique de référence historique (1981–2026) de la commune <strong>c</strong> pour la même période <strong>t</strong> (en mm).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">Déficit_{`%, t`}(c) :</span>
+                <span className="formula-var-desc">Taux d'écart relatif en % (déficit si &lt; 0, excédent si &gt; 0) pour la commune <strong>c</strong> à l'échéance <strong>t</strong>.</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">c :</span>
+                <span className="formula-var-desc">Commune concernée (parmi les 177 communes du Grand Sud de Madagascar).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">t :</span>
+                <span className="formula-var-desc">Période temporelle sélectionnée (un mois spécifique, une saison ou une année complète).</span>
+              </div>
+              <div className="formula-var-row">
+                <span className="formula-var-name">N :</span>
+                <span className="formula-var-desc">Effectif total de la série temporelle continue CHIRPS v2.0 (46 années, de 1981 à 2026).</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )}
@@ -5771,7 +6444,7 @@ function Carte({
 );
 }
 
-function MapBoundsManager({ geojson }) {
+function MapBoundsManager({ geojson, targetZoomCode, resetTrigger, onZoomHandled }) {
   const map = useMap();
   const hasFittedRef = React.useRef(false);
 
@@ -5781,11 +6454,11 @@ function MapBoundsManager({ geojson }) {
       map.invalidateSize();
     }, 100);
 
-    if (geojson && geojson.features && geojson.features.length > 0 && !hasFittedRef.current) {
+    if (geojson && geojson.features && geojson.features.length > 0 && (!hasFittedRef.current || resetTrigger > 0)) {
       try {
         const bounds = L.geoJSON(geojson).getBounds();
         if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [12, 12], maxZoom: 8 });
+          map.fitBounds(bounds, { padding: [16, 16], maxZoom: 8 });
           hasFittedRef.current = true;
         }
       } catch (err) {
@@ -5793,7 +6466,31 @@ function MapBoundsManager({ geojson }) {
       }
     }
     return () => clearTimeout(t);
-  }, [geojson, map]);
+  }, [geojson, map, resetTrigger]);
+
+  React.useEffect(() => {
+    if (!targetZoomCode || !geojson || !geojson.features) return;
+    try {
+      const match = geojson.features.find(
+        (f) =>
+          f.properties?.code?.toString().toLowerCase() === targetZoomCode.toString().toLowerCase() ||
+          f.properties?.nom?.toString().toLowerCase() === targetZoomCode.toString().toLowerCase()
+      );
+      if (match) {
+        const matchBounds = L.geoJSON(match).getBounds();
+        if (matchBounds.isValid()) {
+          map.flyToBounds(matchBounds, {
+            padding: [60, 60],
+            maxZoom: 11,
+            duration: 1.4,
+          });
+          if (onZoomHandled) onZoomHandled();
+        }
+      }
+    } catch (err) {
+      console.error("Error zooming to commune:", err);
+    }
+  }, [targetZoomCode, geojson, map, onZoomHandled]);
 
   React.useEffect(() => {
     const onResize = () => {
@@ -7071,8 +7768,15 @@ function TableauExplorer({
   );
 }
 
-function GuideMethodologie() {
-  const [activeSection, setActiveSection] = React.useState("precip");
+function GuideMethodologie({
+  vegData = {},
+  selectedCommune = "",
+  activeSection: parentActiveSection,
+  setActiveSection: parentSetActiveSection,
+}) {
+  const [localActiveSection, setLocalActiveSection] = React.useState("precip");
+  const activeSection = parentActiveSection || localActiveSection;
+  const setActiveSection = parentSetActiveSection || setLocalActiveSection;
 
   return (
     <div className="guide-container">
@@ -7587,6 +8291,19 @@ function GuideMethodologie() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div style={{ marginTop: "24px" }}>
+            <div className="section-header-banner" style={{ marginBottom: "16px" }}>
+              <div>
+                <h3 className="section-title" style={{ fontSize: "16px" }}>🔬 Simulateur Interactif & Emboîtement Multi-Résolution</h3>
+                <p className="section-subtitle" style={{ fontSize: "12px" }}>Visualisation dynamique du pixel mixte et comparaison spectrale Sentinel-2 (10m) / Landsat (30m) / MODIS (250m)</p>
+              </div>
+            </div>
+            <ComparaisonCapteurs
+              vegData={vegData}
+              selectedCommune={selectedCommune}
+            />
           </div>
         </div>
       )}

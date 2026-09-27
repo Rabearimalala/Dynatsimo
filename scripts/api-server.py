@@ -67,14 +67,20 @@ ROUTES = {
 }
 
 
+import sys
+
+
 class ApiHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         print(f"{self.address_string()} - {format % args}")
 
     def do_OPTIONS(self):
-        self.send_response(HTTPStatus.NO_CONTENT)
-        self.send_cors_headers()
-        self.end_headers()
+        try:
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self.send_cors_headers()
+            self.end_headers()
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+            self.close_connection = True
 
     def do_GET(self):
         path = urlparse(self.path).path
@@ -145,21 +151,29 @@ class ApiHandler(BaseHTTPRequestHandler):
                 return
 
             self.send_json({"error": f"Route inconnue: {path}"}, HTTPStatus.NOT_FOUND)
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+            self.close_connection = True
         except Exception as error:
-            self.send_json({"error": str(error)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            try:
+                self.send_json({"error": str(error)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+                self.close_connection = True
 
     def send_json(self, data, status=HTTPStatus.OK):
-        body = json.dumps(
-            data_module.clean_for_json(data),
-            ensure_ascii=False,
-        ).encode("utf-8")
+        try:
+            body = json.dumps(
+                data_module.clean_for_json(data),
+                ensure_ascii=False,
+            ).encode("utf-8")
 
-        self.send_response(status)
-        self.send_cors_headers()
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+            self.send_response(status)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+            self.close_connection = True
 
     def send_cors_headers(self):
         origin = os.getenv("DYNATSIMO_CORS_ORIGIN", "*")
@@ -168,10 +182,18 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
 
+class DynatsimoServer(ThreadingHTTPServer):
+    def handle_error(self, request, client_address):
+        exc_type, exc_val, _ = sys.exc_info()
+        if exc_type in (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+            return
+        super().handle_error(request, client_address)
+
+
 def main():
     host = os.getenv("DYNATSIMO_API_HOST", "127.0.0.1")
     port = int(os.getenv("DYNATSIMO_API_PORT", "8000"))
-    server = ThreadingHTTPServer((host, port), ApiHandler)
+    server = DynatsimoServer((host, port), ApiHandler)
 
     print(f"API DYNATSIMO prete: http://{host}:{port}/api/data")
     print("Arrete le serveur avec Ctrl+C.")
