@@ -2189,7 +2189,24 @@ function SuiviVegetation({
                       return [Number(val).toFixed(3), nameStr];
                     }}
                   />
-                  <Legend verticalAlign="top" height={36} />
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
+                    payload={[
+                      {
+                        value: `Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`,
+                        type: "rect",
+                        id: "ndvi",
+                        color: "#10b981",
+                      },
+                      {
+                        value: "Normale Végétale (Moyenne Historique)",
+                        type: "line",
+                        id: "baseline",
+                        color: "#64748b",
+                      },
+                    ]}
+                  />
                   <Bar
                     name={`Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`}
                     dataKey="ndvi"
@@ -3954,7 +3971,24 @@ function Statistiques({
                             return [`${val} mm`, nameStr];
                           }}
                         />
-                        <Legend verticalAlign="top" height={36} />
+                        <Legend
+                          verticalAlign="top"
+                          height={36}
+                          payload={[
+                            {
+                              value: monthlyMode === "specific_year" ? `Pluie Observée en ${selectedYearForMonth} (mm)` : "Pluie Moyenne Historique (mm)",
+                              type: "rect",
+                              id: "pObs",
+                              color: monthlyMode === "specific_year" ? "#2563eb" : "#10b981",
+                            },
+                            {
+                              value: "Normale Climatologique (Moyenne 1981–Présent)",
+                              type: "line",
+                              id: "pRef",
+                              color: "#64748b",
+                            },
+                          ]}
+                        />
                         {monthlyMode === "specific_year" ? (
                           <Bar
                             name={`Pluie Observée en ${selectedYearForMonth} (mm)`}
