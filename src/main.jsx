@@ -723,7 +723,7 @@ function App() {
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
             <strong className="state-brand-title">DYNATSIMO</strong>
-            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
+            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ <br/> CHLOROPHYLLIENNE</span>
           </div>
         </div>
         <strong style={{ marginTop: "8px", fontSize: "16px", color: "var(--danger)" }}>Erreur de chargement</strong>
@@ -740,7 +740,7 @@ function App() {
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
             <strong className="state-brand-title">DYNATSIMO</strong>
-            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
+            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ <br/>CHLOROPHYLLIENNE</span>
           </div>
         </div>
         <div className="loader-spinner" style={{ marginTop: "6px" }}></div>
@@ -766,7 +766,7 @@ function App() {
               <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark" />
               <div className="brand-text" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center" }}>
                 <strong className="brand-title">DYNATSIMO</strong>
-                <span className="brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
+                <span className="brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ <br/>CHLOROPHYLLIENNE</span>
               </div>
             </div>
             <button
@@ -1465,7 +1465,7 @@ function Overview({ annualData, communes, overview, vegData }) {
         <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           <div>
             <h2>
-              <Icons.Stats /> Dynamique des Précipitations & Activité Chlorophyllienne Régionale (Toutes les communes)
+              <Icons.Stats /> Dynamique des PRÉCIPITATIONS & ACTIVITÉ <br/>CHLOROPHYLLIENNE Régionale (Toutes les communes)
             </h2>
             <span>Séries temporelles historiques régionales avec régression polynomiale harmonisée</span>
           </div>
