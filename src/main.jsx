@@ -555,7 +555,7 @@ class ErrorBoundary extends React.Component {
             <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
             <div className="state-brand-text">
               <strong className="state-brand-title">DYNATSIMO</strong>
-              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
+              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ \n CHLOROPHYLLIENNE</span>
             </div>
           </div>
           <strong style={{ fontSize: "18px", color: "var(--danger)" }}>
