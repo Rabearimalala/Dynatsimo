@@ -555,7 +555,7 @@ class ErrorBoundary extends React.Component {
             <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
             <div className="state-brand-text">
               <strong className="state-brand-title">DYNATSIMO</strong>
-              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ <br/> CHLOROPHYLLIENNE</span>
+              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
             </div>
           </div>
           <strong style={{ fontSize: "18px", color: "var(--danger)" }}>
@@ -723,7 +723,7 @@ function App() {
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
             <strong className="state-brand-title">DYNATSIMO</strong>
-            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ <br/> CHLOROPHYLLIENNE</span>
+            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS CHLOROPHYLLIENNES</span>
           </div>
         </div>
         <strong style={{ marginTop: "8px", fontSize: "16px", color: "var(--danger)" }}>Erreur de chargement</strong>
@@ -740,7 +740,7 @@ function App() {
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
             <strong className="state-brand-title">DYNATSIMO</strong>
-            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS <br/>CHLOROPHYLLIENNES</span>
+            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS CHLOROPHYLLIENNES</span>
           </div>
         </div>
         <div className="loader-spinner" style={{ marginTop: "6px" }}></div>
