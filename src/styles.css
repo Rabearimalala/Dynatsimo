@@ -3876,11 +3876,25 @@ html {
   background-color: var(--bg-panel);
 }
 
-.commune-search-icon {
+.commune-search-icon,
+.commune-search-icon-btn {
   width: 16px;
   height: 16px;
   color: var(--primary);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.commune-search-icon-btn:hover {
+  transform: scale(1.18);
+  color: var(--primary-dark);
 }
 
 .commune-search-input {

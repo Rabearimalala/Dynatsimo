@@ -321,6 +321,7 @@ function CommuneSearchBar({
   }, [communes, query]);
 
   const handleSelect = (commune) => {
+    if (!commune) return;
     if (onSelectCommune) {
       onSelectCommune(commune);
     }
@@ -332,7 +333,29 @@ function CommuneSearchBar({
     setIsOpen(false);
   };
 
+  const triggerDirectSearch = () => {
+    if (filteredCommunes.length > 0) {
+      const idx = highlightedIndex >= 0 && highlightedIndex < filteredCommunes.length ? highlightedIndex : 0;
+      handleSelect(filteredCommunes[idx]);
+    } else if (query.trim()) {
+      const q = query.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const directMatch = communes.find((c) => {
+        const nom = (c.nom || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const code = (c.code || "").toString().toLowerCase();
+        return nom === q || code === q || nom.includes(q) || code.includes(q);
+      });
+      if (directMatch) {
+        handleSelect(directMatch);
+      }
+    }
+  };
+
   const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      triggerDirectSearch();
+      return;
+    }
     if (!isOpen || filteredCommunes.length === 0) {
       if (e.key === "ArrowDown" && filteredCommunes.length > 0) {
         setIsOpen(true);
@@ -345,11 +368,6 @@ function CommuneSearchBar({
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlightedIndex((prev) => (prev - 1 + filteredCommunes.length) % filteredCommunes.length);
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (filteredCommunes[highlightedIndex]) {
-        handleSelect(filteredCommunes[highlightedIndex]);
-      }
     } else if (e.key === "Escape") {
       setIsOpen(false);
     }
@@ -358,9 +376,14 @@ function CommuneSearchBar({
   return (
     <div className={`commune-search-container ${className}`} ref={containerRef}>
       <div className="commune-search-input-wrapper">
-        <span className="commune-search-icon">
+        <button
+          type="button"
+          className="commune-search-icon-btn"
+          title="Rechercher et zoomer sur la commune"
+          onClick={triggerDirectSearch}
+        >
           <Icons.Search />
-        </span>
+        </button>
         <input
           ref={inputRef}
           type="text"
@@ -382,7 +405,7 @@ function CommuneSearchBar({
         {query && (
           <button
             type="button"
-            className="commune-search-clear-btn"
+            className="commune-search-clear"
             onClick={() => {
               setQuery("");
               setIsOpen(false);
@@ -569,6 +592,7 @@ function App() {
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const [selectedCommune, setSelectedCommune] = React.useState("");
   const [selectedRegion, setSelectedRegion] = React.useState("");
+  const [communeZoomTrigger, setCommuneZoomTrigger] = React.useState(0);
   const [data, setData] = React.useState(null);
   const [dataSource, setDataSource] = React.useState("");
   const [apiFallbackMessage, setApiFallbackMessage] = React.useState("");
@@ -588,6 +612,34 @@ function App() {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
+
+  const handleSelectCommuneGlobal = React.useCallback(
+    (communeOrCode, options = { scrollToMap: true }) => {
+      const code = typeof communeOrCode === "object" ? communeOrCode.code : communeOrCode;
+      if (!code) return;
+      setSelectedCommune(code);
+      setCommuneZoomTrigger((prev) => prev + 1);
+
+      if (data?.communes) {
+        const match = data.communes.find((c) => c.code === code);
+        if (match?.region && selectedRegion !== match.region) {
+          setSelectedRegion(match.region);
+        }
+      }
+
+      if (options?.scrollToMap) {
+        if (activeTab === "all") {
+          setTimeout(() => {
+            const el = document.getElementById("sec-carte");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 60);
+        }
+      }
+    },
+    [data, activeTab, selectedRegion]
+  );
 
   React.useEffect(() => {
     let ignore = false;
@@ -897,7 +949,7 @@ function App() {
               communes={data?.communes || []}
               placeholder="🔍 Rechercher une commune (ex: Ambovombe, Tsihombe...)"
               onSelectCommune={(c) => {
-                setSelectedCommune(c.code);
+                handleSelectCommuneGlobal(c, { scrollToMap: true });
               }}
             />
           </div>
@@ -930,7 +982,8 @@ function App() {
               selectedRegion={selectedRegion}
               setSelectedRegion={setSelectedRegion}
               selectedCommune={selectedCommune}
-              setSelectedCommune={setSelectedCommune}
+              setSelectedCommune={handleSelectCommuneGlobal}
+              communeZoomTrigger={communeZoomTrigger}
               selectedCommuneName={selectedCommuneName}
               mapSubItem={mapSubItem}
               setMapSubItem={setMapSubItem}
@@ -959,7 +1012,8 @@ function App() {
               mapSubItem={mapSubItem}
               setMapSubItem={setMapSubItem}
               selectedCommune={selectedCommune}
-              setSelectedCommune={setSelectedCommune}
+              setSelectedCommune={handleSelectCommuneGlobal}
+              communeZoomTrigger={communeZoomTrigger}
             />
           )}
           {activeTab === "stats" && (
@@ -975,7 +1029,7 @@ function App() {
               precipRecords={data.precipRecords}
               vegData={data.vegetationData}
               selectedCommune={selectedCommune}
-              setSelectedCommune={setSelectedCommune}
+              setSelectedCommune={handleSelectCommuneGlobal}
               selectedCommuneName={selectedCommuneName}
               statsCategory={statsCategory}
               setStatsCategory={setStatsCategory}
@@ -1032,6 +1086,7 @@ function UnifiedSinglePage({
   setSelectedRegion,
   selectedCommune,
   setSelectedCommune,
+  communeZoomTrigger = 0,
   selectedCommuneName,
   mapSubItem,
   setMapSubItem,
@@ -1113,6 +1168,7 @@ function UnifiedSinglePage({
           setMapSubItem={setMapSubItem}
           selectedCommune={selectedCommune}
           setSelectedCommune={setSelectedCommune}
+          communeZoomTrigger={communeZoomTrigger}
         />
       </section>
 
@@ -2134,6 +2190,12 @@ function SuiviVegetation({
                     }}
                   />
                   <Legend verticalAlign="top" height={36} />
+                  <Bar
+                    name={`Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`}
+                    dataKey="ndvi"
+                    fill="#10b981"
+                    radius={[4, 4, 0, 0]}
+                  />
                   <Line
                     name="Normale Végétale (Moyenne Historique)"
                     type="monotone"
@@ -2142,12 +2204,6 @@ function SuiviVegetation({
                     strokeWidth={2.5}
                     dot={{ r: 4, fill: "#64748b" }}
                     strokeDasharray="4 4"
-                  />
-                  <Bar
-                    name={`Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`}
-                    dataKey="ndvi"
-                    fill="#10b981"
-                    radius={[4, 4, 0, 0]}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
@@ -2173,8 +2229,8 @@ function SuiviVegetation({
                 <YAxis orientation="right" stroke="#059669" fontSize={11} />
                 <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(2), name]} />
                 <Legend verticalAlign="top" height={32} />
-                <Line name="Référence Végétation (Moyenne)" type="monotone" dataKey="baselineProductivity" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
                 <Bar name="Végétation Totale (Σ NDVI)" dataKey="integratedProductivity" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+                <Line name="Référence Végétation (Moyenne)" type="monotone" dataKey="baselineProductivity" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -3899,15 +3955,6 @@ function Statistiques({
                           }}
                         />
                         <Legend verticalAlign="top" height={36} />
-                        <Line
-                          name="Normale Climatologique (Moyenne 1981–Présent)"
-                          type="monotone"
-                          dataKey="pRef"
-                          stroke="#64748b"
-                          strokeWidth={2.5}
-                          dot={{ r: 4, fill: "#64748b" }}
-                          strokeDasharray="4 4"
-                        />
                         {monthlyMode === "specific_year" ? (
                           <Bar
                             name={`Pluie Observée en ${selectedYearForMonth} (mm)`}
@@ -3923,6 +3970,15 @@ function Statistiques({
                             radius={[4, 4, 0, 0]}
                           />
                         )}
+                        <Line
+                          name="Normale Climatologique (Moyenne 1981–Présent)"
+                          type="monotone"
+                          dataKey="pRef"
+                          stroke="#64748b"
+                          strokeWidth={2.5}
+                          dot={{ r: 4, fill: "#64748b" }}
+                          strokeDasharray="4 4"
+                        />
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
@@ -4293,6 +4349,7 @@ function Carte({
   setMapSubItem: parentSetMapSubItem,
   selectedCommune: externalSelectedCommune,
   setSelectedCommune: externalSetSelectedCommune,
+  communeZoomTrigger = 0,
 }) {
   const features = geojson?.features ?? [];
   const [localMapSubItem, setLocalMapSubItem] = React.useState("precip");
@@ -4307,21 +4364,24 @@ function Carte({
   const [showBasemapMenu, setShowBasemapMenu] = React.useState(false);
   const basemapRef = React.useRef(null);
   const [selectedFeatureCode, setSelectedFeatureCode] = React.useState(externalSelectedCommune || null);
-  const [targetZoomCode, setTargetZoomCode] = React.useState(null);
+  const [targetZoomCode, setTargetZoomCode] = React.useState(externalSelectedCommune || null);
+  const [zoomCounter, setZoomCounter] = React.useState(0);
   const [resetTrigger, setResetTrigger] = React.useState(0);
 
   React.useEffect(() => {
-    if (externalSelectedCommune && externalSelectedCommune !== selectedFeatureCode) {
+    if (externalSelectedCommune) {
       setSelectedFeatureCode(externalSelectedCommune);
       setTargetZoomCode(externalSelectedCommune);
+      setZoomCounter((prev) => prev + 1);
     }
-  }, [externalSelectedCommune]);
+  }, [externalSelectedCommune, communeZoomTrigger]);
 
   const handleSelectCommune = (code) => {
     setSelectedFeatureCode(code);
     setTargetZoomCode(code);
+    setZoomCounter((prev) => prev + 1);
     if (externalSetSelectedCommune) {
-      externalSetSelectedCommune(code);
+      externalSetSelectedCommune(code, { scrollToMap: false });
     }
   };
 
@@ -6015,6 +6075,13 @@ function Carte({
             >
               <TileLayer url={tileUrls[basemap]} attribution={tileAttributions[basemap]} />
 
+              <MapBoundsManager
+                geojson={geojson}
+                targetZoomCode={targetZoomCode}
+                zoomCounter={zoomCounter}
+                resetTrigger={resetTrigger}
+              />
+
               {/* Raster NDVI 6-Classes Overlay */}
               {mapSubItem === "ndvi_classes" && activePeriod && (
                 <ImageOverlay
@@ -6043,223 +6110,191 @@ function Carte({
 
               {/* Couche des Communes en mode Isohyètes */}
               {mapSubItem === "precip" && typeCarte === "Isohyètes" && geojson && geojson.features && (
-                <>
-                  <GeoJSON
-                    key={`iso-communes-${activeIsohyeteKey}-${selectedFeatureCode}`}
-                    data={geojson}
-                    style={getCommuneIsohyeteOverlayStyle}
-                    onEachFeature={(feature, layer) => {
-                      const p = feature.properties;
-                      const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
-                      layer.bindTooltip(
-                        `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
-                         <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
-                         <div style="font-size:11px;color:#2563eb;font-weight:600;margin-top:2px;">Précip. : ${precip} mm</div>`,
-                        { sticky: true, direction: "top", opacity: 0.95 }
-                      );
-                      layer.bindPopup(
-                        `<div class="commune-popup-card">
-                          <div class="commune-popup-header">${p.nom || p.code}</div>
-                          <div class="commune-popup-body">
-                            <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><span class="commune-popup-val">${p.nom || p.code}</span></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
-                            <div class="commune-popup-divider"></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
-                          </div>
-                        </div>`,
-                        { minWidth: 210 }
-                      );
-                      layer.on({
-                        click: () => {
-                          const code = p.code;
-                          if (selectedFeatureCode === code) {
-                            handleResetZoom();
-                          } else {
-                            handleSelectCommune(code);
-                          }
-                        },
-                      });
-                    }}
-                  />
-                  <MapBoundsManager
-                    geojson={geojson}
-                    targetZoomCode={targetZoomCode}
-                    resetTrigger={resetTrigger}
-                    onZoomHandled={() => setTargetZoomCode(null)}
-                  />
-                </>
+                <GeoJSON
+                  key={`iso-communes-${activeIsohyeteKey}-${selectedFeatureCode}`}
+                  data={geojson}
+                  style={getCommuneIsohyeteOverlayStyle}
+                  onEachFeature={(feature, layer) => {
+                    const p = feature.properties;
+                    const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
+                    const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
+                    layer.bindTooltip(
+                      `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
+                       <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
+                       <div style="font-size:11px;color:#2563eb;font-weight:600;margin-top:2px;">Précip. : ${precip} mm</div>`,
+                      { sticky: true, direction: "top", opacity: 0.95 }
+                    );
+                    layer.bindPopup(
+                      `<div class="commune-popup-card">
+                        <div class="commune-popup-header">${p.nom || p.code}</div>
+                        <div class="commune-popup-body">
+                          <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><span class="commune-popup-val">${p.nom || p.code}</span></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
+                          <div class="commune-popup-divider"></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
+                        </div>
+                      </div>`,
+                      { minWidth: 210 }
+                    );
+                    layer.on({
+                      click: () => {
+                        const code = p.code;
+                        if (selectedFeatureCode === code) {
+                          handleResetZoom();
+                        } else {
+                          handleSelectCommune(code);
+                        }
+                      },
+                    });
+                  }}
+                />
               )}
 
               {/* Couche des Communes en mode Choroplèthe Précipitations */}
               {mapSubItem === "precip" && typeCarte === "Choroplèthe" && geojson && geojson.features && (
-                <>
-                  <GeoJSON
-                    key={`choropleth-${activeIsohyeteKey}-${typePeriode}-${selectedFeatureCode}-${basemap}`}
-                    data={geojson}
-                    style={getFeatureStyle}
-                    onEachFeature={(feature, layer) => {
-                      const p = feature.properties;
-                      const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
-                      layer.bindTooltip(
-                        `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
-                         <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
-                         <div style="font-size:11px;color:#2563eb;font-weight:600;margin-top:2px;">Précip. : ${precip} mm</div>`,
-                        { sticky: true, direction: "top", opacity: 0.95 }
-                      );
-                      layer.bindPopup(
-                        `<div class="commune-popup-card">
-                          <div class="commune-popup-header">${p.nom || p.code}</div>
-                          <div class="commune-popup-body">
-                            <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><span class="commune-popup-val">${p.nom || p.code}</span></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
-                            <div class="commune-popup-divider"></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
-                          </div>
-                        </div>`,
-                        { minWidth: 210 }
-                      );
-                      layer.on({
-                        click: () => {
-                          const code = feature.properties.code;
-                          if (selectedFeatureCode === code) {
-                            handleResetZoom();
-                          } else {
-                            handleSelectCommune(code);
-                          }
-                        },
-                      });
-                    }}
-                  />
-                  <MapBoundsManager
-                    geojson={geojson}
-                    targetZoomCode={targetZoomCode}
-                    resetTrigger={resetTrigger}
-                    onZoomHandled={() => setTargetZoomCode(null)}
-                  />
-                </>
+                <GeoJSON
+                  key={`choropleth-${activeIsohyeteKey}-${typePeriode}-${selectedFeatureCode}-${basemap}`}
+                  data={geojson}
+                  style={getFeatureStyle}
+                  onEachFeature={(feature, layer) => {
+                    const p = feature.properties;
+                    const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
+                    const defVal = calculatedDeficitMap[p.code] !== undefined ? `${calculatedDeficitMap[p.code]} %` : (p.deficit !== undefined ? `${p.deficit} %` : "n/d");
+                    layer.bindTooltip(
+                      `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
+                       <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
+                       <div style="font-size:11px;color:#2563eb;font-weight:600;margin-top:2px;">Précip. : ${precip} mm</div>`,
+                      { sticky: true, direction: "top", opacity: 0.95 }
+                    );
+                    layer.bindPopup(
+                      `<div class="commune-popup-card">
+                        <div class="commune-popup-header">${p.nom || p.code}</div>
+                        <div class="commune-popup-body">
+                          <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><span class="commune-popup-val">${p.nom || p.code}</span></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
+                          <div class="commune-popup-divider"></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Précip. Calculée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Déficit Pluviométrique :</span><strong class="commune-popup-deficit">${defVal}</strong></div>
+                        </div>
+                      </div>`,
+                      { minWidth: 210 }
+                    );
+                    layer.on({
+                      click: () => {
+                        const code = feature.properties.code;
+                        if (selectedFeatureCode === code) {
+                          handleResetZoom();
+                        } else {
+                          handleSelectCommune(code);
+                        }
+                      },
+                    });
+                  }}
+                />
               )}
 
               {/* Couche des Communes en mode Déficits Pluviométriques */}
               {mapSubItem === "deficit" && geojson && geojson.features && (
-                <>
-                  <GeoJSON
-                    key={`deficit-${typePeriode}-${selectedYears[0]}-${selectedMonth}-${selectedDecades[0]}-${selectedFeatureCode}-${basemap}`}
-                    data={geojson}
-                    style={getFeatureStyle}
-                    onEachFeature={(feature, layer) => {
-                      const p = feature.properties;
-                      const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
-                      const rawDef = calculatedDeficitMap[p.code] !== undefined ? calculatedDeficitMap[p.code] : p.deficit;
-                      const hasDef = rawDef !== undefined && rawDef !== null && !isNaN(Number(rawDef));
-                      const numDef = hasDef ? Number(rawDef) : 0;
-                      const isDeficit = hasDef && numDef < 0;
-                      const isExcedent = hasDef && numDef > 0;
-                      const defVal = hasDef ? `${isExcedent ? `+${numDef}` : numDef} %` : "n/d";
-                      const statusColor = isDeficit ? "#ef4444" : isExcedent ? "#2563eb" : "#059669";
-                      const statusLabel = isDeficit ? "Déficit" : isExcedent ? "Excédent" : "Écart";
-                      const periodLabel = typePeriode === "Crise 2020–2022"
-                        ? "Sécheresse Triennale (2020–2022)"
-                        : typePeriode === "Décennies"
-                        ? selectedDecades[0]
-                        : typePeriode === "Mensuel"
-                        ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}`
-                        : `Année ${selectedYears[0]}`;
+                <GeoJSON
+                  key={`deficit-${typePeriode}-${selectedYears[0]}-${selectedMonth}-${selectedDecades[0]}-${selectedFeatureCode}-${basemap}`}
+                  data={geojson}
+                  style={getFeatureStyle}
+                  onEachFeature={(feature, layer) => {
+                    const p = feature.properties;
+                    const precip = calculatedPrecipMap[p.code] ?? p.precip ?? "n/d";
+                    const rawDef = calculatedDeficitMap[p.code] !== undefined ? calculatedDeficitMap[p.code] : p.deficit;
+                    const hasDef = rawDef !== undefined && rawDef !== null && !isNaN(Number(rawDef));
+                    const numDef = hasDef ? Number(rawDef) : 0;
+                    const isDeficit = hasDef && numDef < 0;
+                    const isExcedent = hasDef && numDef > 0;
+                    const defVal = hasDef ? `${isExcedent ? `+${numDef}` : numDef} %` : "n/d";
+                    const statusColor = isDeficit ? "#ef4444" : isExcedent ? "#2563eb" : "#059669";
+                    const statusLabel = isDeficit ? "Déficit" : isExcedent ? "Excédent" : "Écart";
+                    const periodLabel = typePeriode === "Crise 2020–2022"
+                      ? "Sécheresse Triennale (2020–2022)"
+                      : typePeriode === "Décennies"
+                      ? selectedDecades[0]
+                      : typePeriode === "Mensuel"
+                      ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}`
+                      : `Année ${selectedYears[0]}`;
 
-                      layer.bindTooltip(
-                        `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
-                         <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
-                         <div style="font-size:11px;color:${statusColor};font-weight:700;margin-top:2px;">${statusLabel} (${periodLabel}) : ${defVal}</div>
-                         <div style="font-size:10px;color:#2563eb;font-weight:600;">Pluie obs. : ${precip} mm</div>`,
-                        { sticky: true, direction: "top", opacity: 0.95 }
-                      );
-                      layer.bindPopup(
-                        `<div class="commune-popup-card">
-                          <div class="commune-popup-header">${p.nom || p.code}</div>
-                          <div class="commune-popup-body">
-                            <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><span class="commune-popup-val">${p.nom || p.code}</span></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
-                            <div class="commune-popup-divider"></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Période :</span><strong class="commune-popup-val">${periodLabel}</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Pluie Observée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">${statusLabel} Pluviométrique :</span><strong class="commune-popup-deficit" style="color: ${statusColor};">${defVal}</strong></div>
-                          </div>
-                        </div>`,
-                        { minWidth: 220 }
-                      );
-                      layer.on({
-                        click: () => {
-                          const code = feature.properties.code;
-                          if (selectedFeatureCode === code) {
-                            handleResetZoom();
-                          } else {
-                            handleSelectCommune(code);
-                          }
-                        },
-                      });
-                    }}
-                  />
-                  <MapBoundsManager
-                    geojson={geojson}
-                    targetZoomCode={targetZoomCode}
-                    resetTrigger={resetTrigger}
-                    onZoomHandled={() => setTargetZoomCode(null)}
-                  />
-                </>
+                    layer.bindTooltip(
+                      `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
+                       <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>
+                       <div style="font-size:11px;color:${statusColor};font-weight:700;margin-top:2px;">${statusLabel} (${periodLabel}) : ${defVal}</div>
+                       <div style="font-size:10px;color:#2563eb;font-weight:600;">Pluie obs. : ${precip} mm</div>`,
+                      { sticky: true, direction: "top", opacity: 0.95 }
+                    );
+                    layer.bindPopup(
+                      `<div class="commune-popup-card">
+                        <div class="commune-popup-header">${p.nom || p.code}</div>
+                        <div class="commune-popup-body">
+                          <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><span class="commune-popup-val">${p.nom || p.code}</span></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">District :</span><span class="commune-popup-val">${p.district || "n/d"}</span></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><span class="commune-popup-val">${p.region || "n/d"}</span></div>
+                          <div class="commune-popup-divider"></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Période :</span><strong class="commune-popup-val">${periodLabel}</strong></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Pluie Observée :</span><strong class="commune-popup-precip">${precip} mm</strong></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">${statusLabel} Pluviométrique :</span><strong class="commune-popup-deficit" style="color: ${statusColor};">${defVal}</strong></div>
+                        </div>
+                      </div>`,
+                      { minWidth: 220 }
+                    );
+                    layer.on({
+                      click: () => {
+                        const code = feature.properties.code;
+                        if (selectedFeatureCode === code) {
+                          handleResetZoom();
+                        } else {
+                          handleSelectCommune(code);
+                        }
+                      },
+                    });
+                  }}
+                />
               )}
 
               {/* Couche des Communes superposée au NDVI (commutable à volonté) */}
               {mapSubItem === "ndvi_classes" && showCommunesLayer && geojson && geojson.features && (
-                <>
-                  <GeoJSON
-                    key={`ndvi-overlay-${selectedFeatureCode}-${communeOverlayStyle}`}
-                    data={geojson}
-                    style={getCommuneNdviOverlayStyle}
-                    onEachFeature={(feature, layer) => {
-                      const p = feature.properties;
-                      layer.bindTooltip(
-                        `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
-                         <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>`,
-                        { sticky: true, direction: "top", opacity: 0.95 }
-                      );
-                      layer.bindPopup(
-                        `<div class="commune-popup-card">
-                          <div class="commune-popup-header">${p.nom || p.code}</div>
-                          <div class="commune-popup-body">
-                            <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><strong class="commune-popup-val">${p.nom || p.code}</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">District :</span><strong class="commune-popup-val">${p.district || "n/d"}</strong></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><strong class="commune-popup-val">${p.region || "n/d"}</strong></div>
-                            <div class="commune-popup-divider"></div>
-                            <div class="commune-popup-row"><span class="commune-popup-label">Code Commune :</span><strong class="commune-popup-val" style="font-size: 13px; font-weight: 800; color: #0f172a;">${p.code || "n/d"}</strong></div>
-                          </div>
-                        </div>`,
-                        { minWidth: 220 }
-                      );
-                      layer.on({
-                        click: () => {
-                          const code = p.code;
-                          if (selectedFeatureCode === code) {
-                            handleResetZoom();
-                          } else {
-                            handleSelectCommune(code);
-                          }
-                        },
-                      });
-                    }}
-                  />
-                  <MapBoundsManager
-                    geojson={geojson}
-                    targetZoomCode={targetZoomCode}
-                    resetTrigger={resetTrigger}
-                    onZoomHandled={() => setTargetZoomCode(null)}
-                  />
-                </>
+                <GeoJSON
+                  key={`ndvi-overlay-${selectedFeatureCode}-${communeOverlayStyle}`}
+                  data={geojson}
+                  style={getCommuneNdviOverlayStyle}
+                  onEachFeature={(feature, layer) => {
+                    const p = feature.properties;
+                    layer.bindTooltip(
+                      `<div style="font-weight:700;font-size:12px;">${p.nom || p.code}</div>
+                       <div style="font-size:11px;color:#64748b;">${p.district || ""}${p.district && p.region ? " - " : ""}${p.region || ""}</div>`,
+                      { sticky: true, direction: "top", opacity: 0.95 }
+                    );
+                    layer.bindPopup(
+                      `<div class="commune-popup-card">
+                        <div class="commune-popup-header">${p.nom || p.code}</div>
+                        <div class="commune-popup-body">
+                          <div class="commune-popup-row"><span class="commune-popup-label">Commune :</span><strong class="commune-popup-val">${p.nom || p.code}</strong></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">District :</span><strong class="commune-popup-val">${p.district || "n/d"}</strong></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Région :</span><strong class="commune-popup-val">${p.region || "n/d"}</strong></div>
+                          <div class="commune-popup-divider"></div>
+                          <div class="commune-popup-row"><span class="commune-popup-label">Code Commune :</span><strong class="commune-popup-val" style="font-size: 13px; font-weight: 800; color: #0f172a;">${p.code || "n/d"}</strong></div>
+                        </div>
+                      </div>`,
+                      { minWidth: 220 }
+                    );
+                    layer.on({
+                      click: () => {
+                        const code = p.code;
+                        if (selectedFeatureCode === code) {
+                          handleResetZoom();
+                        } else {
+                          handleSelectCommune(code);
+                        }
+                      },
+                    });
+                  }}
+                />
               )}
             </MapContainer>
           </div>
@@ -6564,45 +6599,64 @@ function Carte({
 );
 }
 
-function MapBoundsManager({ geojson, targetZoomCode, resetTrigger, onZoomHandled }) {
+function MapBoundsManager({ geojson, targetZoomCode, zoomCounter, resetTrigger, onZoomHandled }) {
   const map = useMap();
   const hasFittedRef = React.useRef(false);
 
+  // Resize and initial overview bounds fitting
   React.useEffect(() => {
     map.invalidateSize();
-    const t = setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
+    const t1 = setTimeout(() => map.invalidateSize(), 100);
+    const t2 = setTimeout(() => map.invalidateSize(), 350);
 
     if (geojson && geojson.features && geojson.features.length > 0 && (!hasFittedRef.current || resetTrigger > 0)) {
       try {
         const bounds = L.geoJSON(geojson).getBounds();
         if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [16, 16], maxZoom: 8 });
+          map.fitBounds(bounds, { padding: [20, 20], maxZoom: 8 });
           hasFittedRef.current = true;
         }
       } catch (err) {
         console.error("Error setting map bounds:", err);
       }
     }
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [geojson, map, resetTrigger]);
 
+  // Robust Commune Zoom effect
   React.useEffect(() => {
     if (!targetZoomCode || !geojson || !geojson.features) return;
     try {
-      const match = geojson.features.find(
-        (f) =>
-          f.properties?.code?.toString().toLowerCase() === targetZoomCode.toString().toLowerCase() ||
-          f.properties?.nom?.toString().toLowerCase() === targetZoomCode.toString().toLowerCase()
-      );
+      const norm = (s) =>
+        (s || "")
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim();
+      const target = norm(targetZoomCode);
+
+      const match = geojson.features.find((f) => {
+        const cCode = norm(f.properties?.code);
+        const cNom = norm(f.properties?.nom);
+        return (
+          cCode === target ||
+          cNom === target ||
+          (target.length >= 3 && (cNom.includes(target) || target.includes(cNom)))
+        );
+      });
+
       if (match) {
+        map.invalidateSize();
         const matchBounds = L.geoJSON(match).getBounds();
         if (matchBounds.isValid()) {
           map.flyToBounds(matchBounds, {
             padding: [60, 60],
             maxZoom: 11,
-            duration: 1.4,
+            duration: 1.2,
           });
           if (onZoomHandled) onZoomHandled();
         }
@@ -6610,7 +6664,7 @@ function MapBoundsManager({ geojson, targetZoomCode, resetTrigger, onZoomHandled
     } catch (err) {
       console.error("Error zooming to commune:", err);
     }
-  }, [targetZoomCode, geojson, map, onZoomHandled]);
+  }, [targetZoomCode, zoomCounter, geojson, map, onZoomHandled]);
 
   React.useEffect(() => {
     const onResize = () => {
