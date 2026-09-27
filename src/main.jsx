@@ -1997,13 +1997,13 @@ function SuiviVegetation({
             <CommuneSearchBar
               communes={communes}
               placeholder="Nom ou code..."
-              onSelectCommune={(c) => setSelectedCommune(c.code)}
+              onSelectCommune={(c) => handleCommuneChange(c.code)}
             />
           </div>
 
           <div className="filter-group" style={{ marginTop: "10px" }}>
             <label htmlFor="region-sel">Région</label>
-            <select id="region-sel" value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)}>
+            <select id="region-sel" value={selectedRegion} onChange={(e) => handleRegionChange(e.target.value)}>
               <option value="">Toutes les régions</option>
               {regions.map((r) => (
                 <option key={r} value={r}>{r}</option>
@@ -2013,7 +2013,7 @@ function SuiviVegetation({
 
           <div className="filter-group">
             <label htmlFor="district-sel">District</label>
-            <select id="district-sel" value={selectedDistrict} onChange={(e) => setSelectedDistrict(e.target.value)}>
+            <select id="district-sel" value={selectedDistrict} onChange={(e) => handleDistrictChange(e.target.value)}>
               <option value="">Tous les districts</option>
               {districtsList.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -2023,7 +2023,7 @@ function SuiviVegetation({
 
           <div className="filter-group">
             <label htmlFor="commune-sel">Commune</label>
-            <select id="commune-sel" value={selectedCommune} onChange={(e) => setSelectedCommune(e.target.value)}>
+            <select id="commune-sel" value={selectedCommune} onChange={(e) => handleCommuneChange(e.target.value)}>
               {filteredCommunesDropdown.map((c) => (
                 <option key={c.code} value={c.code}>{c.nom} ({c.code})</option>
               ))}
