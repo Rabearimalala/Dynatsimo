@@ -364,7 +364,7 @@ def import_chirps_to_postgres(engine: Engine, force_rebuild: bool = False) -> pd
 
 def calc_saison(df_commune_saison: pd.DataFrame, region: str = "", seuil_chute_mm: float = 50) -> dict:
     """
-    Calcul agrométéorologique de la saison des pluies adapté aux 3 régions du Grand Sud de Madagascar :
+    Calcul hydro-météorologique de la saison des pluies adapté aux 3 régions du Grand Sud de Madagascar :
     - Androy : Début en Novembre (fin nov), Période Nov -> Mars (SRAT / Monographie)
     - Anosy : Début en Novembre (parfois Oct), Période Nov -> Mars ou Avril
     - Atsimo-Andrefana : Début en Novembre (parfois Oct), Période Nov -> Mars (parfois Avril)

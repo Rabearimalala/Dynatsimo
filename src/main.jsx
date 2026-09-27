@@ -555,7 +555,7 @@ class ErrorBoundary extends React.Component {
             <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
             <div className="state-brand-text">
               <strong className="state-brand-title">DYNATSIMO</strong>
-              <span className="state-brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
+              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
             </div>
           </div>
           <strong style={{ fontSize: "18px", color: "var(--danger)" }}>
@@ -723,7 +723,7 @@ function App() {
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
             <strong className="state-brand-title">DYNATSIMO</strong>
-            <span className="state-brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
+            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
           </div>
         </div>
         <strong style={{ marginTop: "8px", fontSize: "16px", color: "var(--danger)" }}>Erreur de chargement</strong>
@@ -740,7 +740,7 @@ function App() {
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
             <strong className="state-brand-title">DYNATSIMO</strong>
-            <span className="state-brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
+            <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
           </div>
         </div>
         <div className="loader-spinner" style={{ marginTop: "6px" }}></div>
@@ -766,7 +766,7 @@ function App() {
               <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark" />
               <div className="brand-text" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center" }}>
                 <strong className="brand-title">DYNATSIMO</strong>
-                <span className="brand-subtitle">GESTION AGRO-VÉGÉTALE</span>
+                <span className="brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
               </div>
             </div>
             <button
@@ -1270,7 +1270,7 @@ function UnifiedSinglePage({
           <div className="section-index-badge">07</div>
           <div>
             <h2 className="section-title">Guide Méthodologique & Physique des Capteurs</h2>
-            <p className="section-subtitle">Documentation des équations mathématiques, capteurs (CHIRPS, MODIS, Landsat, Sentinel-2) et indices agro-climatiques</p>
+            <p className="section-subtitle">Documentation des équations mathématiques, capteurs (CHIRPS, MODIS, Landsat, Sentinel-2) et indices hydro-climatiques et chlorophylliens</p>
           </div>
         </div>
         <GuideMethodologie
@@ -1465,7 +1465,7 @@ function Overview({ annualData, communes, overview, vegData }) {
         <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           <div>
             <h2>
-              <Icons.Stats /> Dynamique Agro-Climatique & Végétale Régionale (Toutes les communes)
+              <Icons.Stats /> Dynamique des Précipitations & Activité Chlorophyllienne Régionale (Toutes les communes)
             </h2>
             <span>Séries temporelles historiques régionales avec régression polynomiale harmonisée</span>
           </div>
@@ -2423,7 +2423,7 @@ function SuiviVegetation({
     <div className="formula-card" style={{ marginTop: "4px" }}>
       <div className="formula-card-header">
         <Icons.Info />
-        <span>Guide Méthodologique & Agro-Phénologique : Double Échelle Temporelle (Année vs Mois)</span>
+        <span>Guide Méthodologique & Phénologique : Double Échelle Temporelle (Année vs Mois)</span>
       </div>
       <div className="formula-grid">
         <div className="formula-item">
@@ -2452,13 +2452,13 @@ function SuiviVegetation({
         <div className="formula-item">
           <div className="formula-item-title">
             <span>2. Échelle Phénologique (Par Mois : Octobre → Septembre)</span>
-            <span style={{ color: "var(--accent)" }}>🌱 Cycle Agricole Saisonnier</span>
+            <span style={{ color: "var(--accent)" }}>🌿 Cycle Végétal Saisonnier</span>
           </div>
           <div className="formula-code">
             NDVI_m ∈ [0.15 ; 0.85] &nbsp;|&nbsp; Octobre → Mai
           </div>
           <div className="formula-desc">
-            Révèle le calendrier intra-annuel : <strong>Reverdissement dès Octobre/Novembre</strong> (premières pluies), <strong>Pic végétal maximal en Février–Mars</strong> (floraison/maturation), et <strong>Dessèchement progressif à partir de Mai</strong> (transition vers la saison sèche).
+            Révèle le calendrier intra-annuel : <strong>Reverdissement dès Octobre/Novembre</strong> (premières pluies), <strong>Pic d'activité chlorophyllienne en Février–Mars</strong> (vigueur maximale), et <strong>Dessèchement progressif à partir de Mai</strong> (transition vers la saison sèche).
           </div>
           <div className="formula-vars">
             <div className="formula-var-row">
@@ -2481,7 +2481,7 @@ function SuiviVegetation({
             Anomalie = NDVI_observé - NDVI_référence
           </div>
           <div className="formula-desc">
-            Quantifie le déficit végétal par rapport à la moyenne climatologique : des <strong>barres rouges</strong> signalent un retard pluviométrique ou un flétrissement anormal, tandis que des <strong>barres vertes</strong> traduisent une vigueur biophysique supérieure.
+            Quantifie le déficit d'activité chlorophyllienne par rapport à la moyenne climatologique : des <strong>barres rouges</strong> signalent un retard pluviométrique ou un flétrissement anormal, tandis que des <strong>barres vertes</strong> traduisent une vigueur biophysique supérieure.
           </div>
           <div className="formula-vars">
             <div className="formula-var-row">
@@ -2504,7 +2504,7 @@ function SuiviVegetation({
             Saison Déficitaire ⟺ Anomalie_% &lt; -5 %
           </div>
           <div className="formula-desc">
-            Une campagne agricole est déclarée en <strong>déficit végétal</strong> lorsque son NDVI moyen chute de plus de 5% sous sa normale historique (1999–2026), traduisant un stress hydrique impactant la biomasse cultivée.
+            Une campagne est déclarée en <strong>déficit de végétation</strong> lorsque son NDVI moyen chute de plus de 5% sous sa normale historique (1999–2026), traduisant un stress hydrique impactant la couverture végétale.
           </div>
           <div className="formula-vars">
             <div className="formula-var-row">
@@ -2564,7 +2564,7 @@ function SuiviVegetation({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong style={{ color: "var(--text-main)", fontSize: "11.5px" }}>🌾 Campagne {item.season}</strong>
+                  <strong style={{ color: "var(--text-main)", fontSize: "11.5px" }}>🌿 Campagne {item.season}</strong>
                   <span style={{ color: "var(--danger)", fontWeight: "800", fontSize: "11px" }}>{item.anomalyPercent}%</span>
                 </div>
                 <div style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
@@ -2576,7 +2576,7 @@ function SuiviVegetation({
           </div>
         ) : (
           <div style={{ fontSize: "11px", color: "var(--accent)", fontStyle: "italic", padding: "6px 0" }}>
-            ✓ Aucune campagne agricole n'a dépassé le seuil de déficit de -5% pour cette commune.
+            ✓ Aucune campagne n'a dépassé le seuil de déficit de -5% pour cette commune.
           </div>
         )}
       </div>
@@ -2891,9 +2891,9 @@ function Saison({
             </select>
           </div>
 
-          {/* Range filter slider for agricultural seasons */}
+          {/* Range filter slider for seasons */}
           <div className="filter-group" style={{ marginTop: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
-            <label style={{ fontWeight: "700" }}>Filtrer saisons agricoles :</label>
+            <label style={{ fontWeight: "700" }}>Filtrer les campagnes :</label>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--primary)", fontWeight: "700", marginTop: "4px" }}>
               <span>{seasonRange[0]}–{Number(seasonRange[0]) + 1}</span>
               <span>{seasonRange[1]}–{Number(seasonRange[1]) + 1}</span>
@@ -3110,12 +3110,12 @@ function Saison({
                 M_début = Premier mois m ∈ &#123;Nov, Déc, Jan, Oct&#125; avec P_m ≥ 25 mm
               </div>
               <div className="formula-desc">
-                Identifie l'arrivée des pluies d'installation nécessaires aux semis. Référence standard Grand Sud : <strong>Novembre</strong> (ou Décembre/Janvier en cas de retard sévère).
+                Identifie l'arrivée des premières pluies effectives. Référence standard Grand Sud : <strong>Novembre</strong> (ou Décembre/Janvier en cas de retard sévère).
               </div>
               <div className="formula-vars">
                 <div className="formula-var-row">
                   <span className="formula-var-name">M_début :</span>
-                  <span className="formula-var-desc">Mois de démarrage des pluies utiles à l'agriculture.</span>
+                  <span className="formula-var-desc">Mois de démarrage de la saison des pluies.</span>
                 </div>
                 <div className="formula-var-row">
                   <span className="formula-var-name">P_m :</span>
@@ -3123,7 +3123,7 @@ function Saison({
                 </div>
                 <div className="formula-var-row">
                   <span className="formula-var-name">≥ 25 mm :</span>
-                  <span className="formula-var-desc">Seuil agro-climatique d'humectation des sols propice aux semis.</span>
+                  <span className="formula-var-desc">Seuil pluviométrique d'humectation des sols propice à l'activité chlorophyllienne.</span>
                 </div>
               </div>
             </div>
@@ -3137,12 +3137,12 @@ function Saison({
                 M_fin = Dernier mois m ∈ &#123;Fév, Mars, Avr, Mai&#125; avant tarissement (&lt; 25 mm)
               </div>
               <div className="formula-desc">
-                Marque la fin des pluies utiles à la maturation des cultures. Référence standard Grand Sud : <strong>Mars</strong> (ou Avril dans l'Anosy et zones humides).
+                Marque la fin de la période pluvieuse avant l'entrée en saison sèche. Référence standard Grand Sud : <strong>Mars</strong> (ou Avril dans l'Anosy et zones humides).
               </div>
               <div className="formula-vars">
                 <div className="formula-var-row">
                   <span className="formula-var-name">M_fin :</span>
-                  <span className="formula-var-desc">Mois de clôture de la période pluvieuse utile.</span>
+                  <span className="formula-var-desc">Mois de clôture de la période pluvieuse active.</span>
                 </div>
                 <div className="formula-var-row">
                   <span className="formula-var-name">&lt; 25 mm :</span>
@@ -3165,7 +3165,7 @@ function Saison({
               <div className="formula-vars">
                 <div className="formula-var-row">
                   <span className="formula-var-name">D :</span>
-                  <span className="formula-var-desc">Durée totale active de la saison culturale (en mois).</span>
+                  <span className="formula-var-desc">Durée totale de la saison des pluies (en mois).</span>
                 </div>
                 <div className="formula-var-row">
                   <span className="formula-var-name">12 :</span>
@@ -3196,7 +3196,7 @@ function Saison({
                 M_max = argmax_(m ∈ [M_début ... M_fin]) ( P_m )
               </div>
               <div className="formula-desc">
-                Mois au cours duquel le cumul mensuel atteint son maximum absolu sur la campagne agricole active.
+                Mois au cours duquel le cumul mensuel atteint son maximum absolu sur la saison des pluies.
               </div>
               <div className="formula-vars">
                 <div className="formula-var-row">
@@ -3219,7 +3219,7 @@ function Saison({
                 P_max = max_(m ∈ [M_début ... M_fin]) ( P_m )  (en mm)
               </div>
               <div className="formula-desc">
-                Hauteur maximale de pluie enregistrée pendant le mois le plus arrosé de la saison agricole.
+                Hauteur maximale de pluie enregistrée pendant le mois le plus arrosé de l'année.
               </div>
               <div className="formula-vars">
                 <div className="formula-var-row">
@@ -3274,12 +3274,12 @@ function Saison({
                 Saison = [ M_début → M_fin ]  sur cycle hydrologique (Oct à Sep)
               </div>
               <div className="formula-desc">
-                Représente graphiquement la continuité des mois pluvieux utiles, de l'installation des semis jusqu'à la maturation des récoltes.
+                Représente graphiquement la continuité des mois pluvieux utiles, du démarrage des précipitations jusqu'au tarissement.
               </div>
               <div className="formula-vars">
                 <div className="formula-var-row">
                   <span className="formula-var-name">M_début, M_fin :</span>
-                  <span className="formula-var-desc">Bornes de début et fin de la fenêtre agricole utile.</span>
+                  <span className="formula-var-desc">Bornes de début et fin de la période pluvieuse.</span>
                 </div>
               </div>
             </div>
@@ -3298,7 +3298,7 @@ function Saison({
               <div className="formula-vars">
                 <div className="formula-var-row">
                   <span className="formula-var-name">D :</span>
-                  <span className="formula-var-desc">Durée de la saison active (en mois).</span>
+                  <span className="formula-var-desc">Durée de la saison pluvieuse active (en mois).</span>
                 </div>
                 <div className="formula-var-row">
                   <span className="formula-var-name">12 :</span>
@@ -3316,18 +3316,18 @@ function Saison({
                 Durée Saison Sèche = 12 - D  (7 à 8 mois secs)
               </div>
               <div className="formula-desc">
-                Met en évidence la brièveté de la période culturale (4 à 5 mois) face à la longue saison sèche (Avril à Octobre) caractéristique de l'aridité du Grand Sud.
+                Met en évidence la brièveté de la période pluvieuse (4 à 5 mois) face à la longue saison sèche (Avril à Octobre) caractéristique de l'aridité du Grand Sud.
               </div>
               <div className="formula-vars">
                 <div className="formula-var-row">
                   <span className="formula-var-name">12 - D :</span>
-                  <span className="formula-var-desc">Nombre de mois secs sans pluies agricoles utiles (7 à 8 mois).</span>
+                  <span className="formula-var-desc">Nombre de mois secs sans pluies significatives (7 à 8 mois).</span>
                 </div>
               </div>
             </div>
           </div>
           <div className="formula-note">
-            📌 <strong>Lecture Agro-Climatique :</strong> Un décalage de la barre vers la droite (ex: début en Janvier) traduit un retard des pluies d'installation ou une sécheresse précoce.
+            📌 <strong>Lecture Hydro-Pluviométrique :</strong> Un décalage de la barre vers la droite (ex: début en Janvier) traduit un retard des pluies d'installation ou une sécheresse précoce.
           </div>
         </div>
       )}
@@ -4045,7 +4045,7 @@ function Statistiques({
 
                       <div className="panel" style={{ background: "var(--bg-panel-secondary)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                         <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
-                          📋 Bilan Agro-Pluviométrique de l'Année {selectedYearForMonth}
+                          📋 Bilan Pluviométrique de l'Année {selectedYearForMonth}
                         </h4>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "12px" }}>
                           <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
@@ -7429,7 +7429,7 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <td><strong style={{ color: "#059669" }}>9 pixels (3×3)</strong></td>
                 <td><strong style={{ color: "#2563eb" }}>625 pixels (25×25)</strong></td>
                 <td>5 jours</td>
-                <td>Détection des coupes fines & parcelles agricoles</td>
+                <td>Détection haute résolution des couverts et hétérogénéités spatiales</td>
               </tr>
               <tr>
                 <td><strong>Landsat-8 / 9 (NASA)</strong></td>
@@ -8128,17 +8128,17 @@ function GuideMethodologie({
               </div>
             </div>
 
-            {/* Card 5: Saison Utile Agricole */}
+            {/* Card 5: Saison des Pluies */}
             <div className="guide-card">
               <div className="guide-card-header">
-                <span className="guide-card-title">5. Cumul de la Saison Utile Agricole</span>
+                <span className="guide-card-title">5. Cumul de la Saison des Pluies (Oct–Avr)</span>
                 <span className="guide-card-badge green">Saison Oct–Avr</span>
               </div>
               <div className="guide-formula-box green">
                 P_saison = Σ (m=Oct à Avr) P_m  |  D_saison = [ (P_saison - P_ref,saison) / P_ref,saison ] × 100
               </div>
               <p className="guide-desc-text">
-                Période critique de développement végétatif pour le manioc, le maïs et le niébé dans le Grand Sud aride et semi-aride.
+                Période critique de recharge hydrique et de pic d'activité chlorophyllienne dans le Grand Sud aride et semi-aride.
               </p>
             </div>
           </div>
@@ -8197,7 +8197,7 @@ function GuideMethodologie({
               <div className="guide-param-list">
                 <div className="guide-param-row">
                   <span className="guide-param-name">VCI &lt; 35% :</span>
-                  <span className="guide-param-desc" style={{ color: "#ef4444", fontWeight: "700" }}>Stress hydrique sévère (Sécheresse agricole).</span>
+                  <span className="guide-param-desc" style={{ color: "#ef4444", fontWeight: "700" }}>Stress hydrique sévère (Sécheresse / Dégradation du couvert végétal).</span>
                 </div>
                 <div className="guide-param-row">
                   <span className="guide-param-name">VCI 35–50% :</span>
@@ -8234,7 +8234,7 @@ function GuideMethodologie({
                 VHI = 0.5 × VCI + 0.5 × TCI
               </div>
               <p className="guide-desc-text">
-                Indice synthétique recommandé par la FAO couplant le déficit en eau et la surchauffe radiométrique pour la détection précoce des crises de faim et de stress agro-écologique.
+                Indice synthétique couplant le déficit en eau et la surchauffe radiométrique pour la détection précoce des crises de sécheresse et de stress environnemental.
               </p>
             </div>
           </div>

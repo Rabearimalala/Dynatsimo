@@ -1,6 +1,6 @@
 # 🌍 Structure Générale du Projet DYNATSIMO
 
-> Système de suivi agro-végétal et pluviométrique pour le Sud de Madagascar (régions Androy, Anosy, Atsimo-Andrefana)
+> Système de suivi des précipitations et des activités chlorophylliennes pour le Sud de Madagascar (régions Androy, Anosy, Atsimo-Andrefana)
 
 ---
 

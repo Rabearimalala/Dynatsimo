@@ -127,7 +127,7 @@ def create_visual_presentation(output_path):
     p.space_after = Pt(10)
 
     p2 = tf_hero.add_paragraph()
-    p2.text = "Objectiver le ciblage géographique, adapter l'appui et suivre l'impact agro-climatique réel dans le Grand Sud de Madagascar."
+    p2.text = "Objectiver le ciblage géographique, caractériser les précipitations et suivre la réponse des activités chlorophylliennes dans le Grand Sud de Madagascar."
     p2.font.name = "Segoe UI"
     p2.font.size = Pt(17)
     p2.font.color.rgb = TEXT_SOFT_WHITE
@@ -510,7 +510,7 @@ def create_visual_presentation(output_path):
     p.space_after = Pt(10)
 
     p = tf3.add_paragraph()
-    p.text = "• Suivi rigoureux des réalisations logistiques : tonnes de semences livrées, montants de cash distribués, listes de bénéficiaires émargées.\n• Mais manque d'indicateurs sur la réussite agronomique réelle après distribution.\n• Risque d'imputer un échec aux bénéficiaires alors qu'une sécheresse post-semis a tout détruit."
+    p.text = "• Suivi rigoureux des réalisations logistiques : livraisons, montants distribués, listes émargées.\n• Mais manque d'indicateurs objectifs sur l'impact réel et l'état du milieu naturel après distribution.\n• Risque d'interprétation biaisée sans corrélation avec la dynamique pluviométrique réelle."
     p.font.name = "Segoe UI"
     p.font.size = Pt(13)
     p.font.color.rgb = TEXT_MAIN
@@ -530,7 +530,7 @@ def create_visual_presentation(output_path):
     p.space_after = Pt(10)
 
     p = tf3_r.add_paragraph()
-    p.text = "• 1. Suivi de la pluie effective post-distribution (CHIRPS) pour valider si le semis a reçu de l'eau.\n• 2. Suivi de la reprise végétale (NDVI Landsat/Sentinel) pour mesurer la vitalité réelle de la biomasse.\n• Évaluation d'impact objective sans mobiliser d'enquêtes lourdes et coûteuses."
+    p.text = "• 1. Suivi de la pluie effective (CHIRPS) pour valider les apports pluviométriques réels.\n• 2. Suivi de la reprise chlorophyllienne (NDVI Landsat/Sentinel) pour mesurer la vitalité du couvert végétal.\n• Évaluation objective sans mobiliser d'enquêtes lourdes et coûteuses."
     p.font.name = "Segoe UI"
     p.font.size = Pt(13)
     p.font.color.rgb = TEXT_MAIN
@@ -550,7 +550,7 @@ def create_visual_presentation(output_path):
     p.space_after = Pt(4)
 
     p2 = tf_q3.add_paragraph()
-    p2.text = "« Suivez-vous uniquement le taux de distribution, ou mesurez-vous aussi les conditions agro-climatiques réelles après la distribution pour évaluer l'impact ? »"
+    p2.text = "« Suivez-vous uniquement les réalisations logistiques, ou mesurez-vous aussi les conditions pluviométriques et végétales réelles pour évaluer l'impact ? »"
     p2.font.name = "Segoe UI"
     p2.font.size = Pt(15)
     p2.font.bold = True
@@ -586,11 +586,11 @@ def create_visual_presentation(output_path):
          PRIMARY_BLUE, RGBColor(29, 78, 216)),
         
         ("EN COURS", "Adaptation & Calendrier",
-         "• Suivre le démarrage effectif de la saison des pluies\n• Alerter sur les faux départs et ruptures de cycle\n• Ajuster le calendrier logistique des distributions",
+         "• Suivre le démarrage effectif de la saison des pluies\n• Alerter sur les faux départs et ruptures de cycle\n• Ajuster le calendrier des interventions",
          TEAL_ACCENT, RGBColor(16, 185, 129)),
         
         ("EN AVAL", "Mesure d'Impact Réel",
-         "• Corréler pluie effective et réponse végétale (NDVI)\n• Évaluer le succès agronomique post-attribution\n• Produire des preuves tangibles pour les bailleurs",
+         "• Corréler pluie effective et réponse chlorophyllienne (NDVI)\n• Évaluer l'évolution du couvert végétal post-attribution\n• Produire des preuves tangibles pour les partenaires",
          AMBER_ACCENT, RGBColor(245, 158, 11))
     ]
 

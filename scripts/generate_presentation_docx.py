@@ -310,9 +310,9 @@ def build_docx(filename):
          "Relance animateur : « Observez-vous des différences dans l'utilisation de l'aide selon que l'on cible la parcelle familiale ou des activités spécifiques portées par les femmes ? »"),
         
         ("Question 3 : « Que suit-on après l’attribution de l’aide ? »",
-         "Dilemmes terrain : On trace rigoureusement les distributions (intrants, semences, cash), mais on manque souvent d'indicateurs de suivi sur le succès agronomique réel post-distribution.",
-         "Apport de DYNATSIMO : Permet un suivi croisé : vérifier si la reprise pluviométrique (CHIRPS) et la réponse de la biomasse végétale (NDVI Landsat/Sentinel) ont effectivement permis la levée et la croissance des cultures appuyées.",
-         "Relance animateur : « Avez-vous déjà constaté des échecs de distribution dus à un arrêt brutal des pluies 15 jours après les semis ? Comment pourrait-on intégrer ce suivi satellite dans vos rapports bailleurs ? »")
+         "Dilemmes terrain : On trace rigoureusement les distributions, mais on manque souvent d'indicateurs objectifs sur l'impact réel et l'état de la végétation post-intervention.",
+         "Apport de DYNATSIMO : Permet un suivi croisé : vérifier la dynamique pluviométrique (CHIRPS) et la réponse de l'activité chlorophyllienne (NDVI Landsat/Sentinel) pour évaluer la reprise du couvert végétal.",
+         "Relance animateur : « Avez-vous déjà constaté des difficultés d'impact dues à un arrêt brutal des pluies ? Comment intégrer ce suivi satellite dans vos bilans territoriaux ? »")
     ]
 
     for q_title, q_ctx, q_app, q_prompt in questions:
@@ -331,7 +331,7 @@ def build_docx(filename):
         doc,
         title="Message de conclusion (Fandresena)",
         speaker="Fandresena",
-        text="DYNATSIMO n'est pas seulement un outil de visualisation climatique : c'est un levier d'aide à la décision tout au long du cycle de projet. Il sécurise le ciblage géographique en amont, optimise le calendrier des distributions pendant la campagne, et mesure l'impact agro-climatique réel en aval.",
+        text="DYNATSIMO n'est pas seulement un outil de visualisation : c'est un levier d'aide à la décision pour le suivi rigoureux des précipitations et des activités chlorophylliennes, objectivant les déficits hydriques et la réponse du couvert végétal.",
         border_color="0F4C81"
     )
 

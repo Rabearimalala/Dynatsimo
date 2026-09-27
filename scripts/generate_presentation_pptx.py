@@ -93,7 +93,7 @@ def create_presentation(output_path):
     p2.space_after = Pt(10)
     
     p3 = tf_s1.add_paragraph()
-    p3.text = "Objectiver le ciblage, adapter l'appui et suivre l'impact agro-climatique dans le Sud"
+    p3.text = "Objectiver le ciblage, adapter l'appui et suivre les précipitations et les activités chlorophylliennes"
     p3.font.size = Pt(16)
     p3.font.color.rgb = RGBColor(203, 213, 225)
     p3.space_after = Pt(28)
@@ -375,7 +375,7 @@ def create_presentation(output_path):
     p.space_after = Pt(8)
     
     p = tf_q3_l.add_paragraph()
-    p.text = "• On suit généralement les indicateurs de réalisation (quantités de semences, montants de cash distribués, nombre de bénéficiaires).\n• Mais on manque souvent de données sur le succès agronomique réel après la distribution.\n• Risque d'attribuer un échec aux bénéficiaires alors qu'une sécheresse post-semis a tout détruit."
+    p.text = "• On suit généralement les indicateurs de distribution logistique et le nombre de bénéficiaires.\n• Mais on manque souvent de données objectives sur l'impact réel et l'état de la végétation après intervention.\n• Risque d'interprétation erronée sans corrélation avec les conditions pluviométriques."
     p.font.size = Pt(11.5)
     p.font.color.rgb = TEXT_DARK
 
@@ -393,7 +393,7 @@ def create_presentation(output_path):
     p.space_after = Pt(8)
     
     p = tf_q3_r.add_paragraph()
-    p.text = "• Suivi de la pluie effective post-distribution (CHIRPS) pour valider la fenêtre de semis.\n• Suivi de la réponse végétale (NDVI Landsat/Sentinel) pour vérifier la levée et la vitalité des cultures.\n• Évaluation objective de l'efficacité de l'appui sans surcoût d'enquêtes lourdes."
+    p.text = "• Suivi de la pluie effective (CHIRPS) pour caractériser les apports hydriques réels.\n• Suivi de la réponse de l'activité chlorophyllienne (NDVI Landsat/Sentinel) pour mesurer l'état du couvert végétal.\n• Évaluation objective des dynamiques environnementales sans surcoût d'enquêtes lourdes."
     p.font.size = Pt(11.5)
     p.font.color.rgb = TEXT_DARK
 
@@ -430,7 +430,7 @@ def create_presentation(output_path):
     pillars = [
         ("EN AMONT", "Ciblage Objectif", "• Détecter les zones en déficit critique\n• Dépolitiser le choix géographique\n• Dimensionner l'aide selon l'anomalie", PRIMARY, LIGHT_BLUE),
         ("EN COURS", "Adaptation & Calendrier", "• Suivre le démarrage réel des pluies\n• Alerter sur les faux départs de saison\n• Synchroniser la logistique avec la météo", SECONDARY, LIGHT_TEAL),
-        ("EN AVAL", "Mesure d'Impact Réel", "• Corréler pluie et vigueur végétale (NDVI)\n• Évaluer le succès agro-climatique post-aide\n• Fournir des preuves solides aux bailleurs", ACCENT, LIGHT_AMBER)
+        ("EN AVAL", "Mesure d'Impact Réel", "• Corréler pluie et vigueur végétale (NDVI)\n• Évaluer la réponse chlorophyllienne post-aide\n• Fournir des preuves solides aux bailleurs", ACCENT, LIGHT_AMBER)
     ]
     
     for idx, (step, title, text, col_b, col_bg) in enumerate(pillars):
