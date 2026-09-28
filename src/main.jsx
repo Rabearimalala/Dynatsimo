@@ -811,7 +811,7 @@ function App() {
                     <div className="nav-sub-list">
                       {[
                         { id: "precip", label: "🌧️ Précipitations" },
-                        { id: "deficit", label: "📉 Déficits Pluviométriques" },
+                        { id: "deficit", label: "📉 Déficits/Excès Pluviométriques" },
                         { id: "ndvi_classes", label: "🌿 Végétation (NDVI)" },
                       ].map((sub) => (
                         <button
