@@ -556,7 +556,7 @@ def build_communes_geojson(engine: Engine, map_precip: pd.DataFrame, deficit_cri
     query = f"""
         SELECT
           *,
-          ST_AsGeoJSON({geom_column}) AS geometry_json
+          ST_AsGeoJSON(ST_SimplifyPreserveTopology({geom_column}, 0.0003), 5) AS geometry_json
         FROM {communes_table}
     """
     try:

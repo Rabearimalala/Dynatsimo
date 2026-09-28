@@ -468,9 +468,8 @@ function getIsohyeteColor(val, minVal = 0, maxVal = 1000) {
   return PRECIP_BLUE_PALETTE[idx];
 }
 
-async function fetchJson(path) {
-  const url = path.includes("?") ? `${path}&_t=${Date.now()}` : `${path}?_t=${Date.now()}`;
-  const response = await fetch(url, { cache: "no-store" });
+async function fetchJson(path, options = {}) {
+  const response = await fetch(path, options);
   if (!response.ok) {
     throw new Error(`Impossible de charger ${path}`);
   }
@@ -685,6 +684,44 @@ function App() {
       ignore = true;
     };
   }, [retryTrigger]);
+
+  const [isGlobalSyncing, setIsGlobalSyncing] = React.useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = React.useState("");
+
+  const handleReloadData = React.useCallback(async () => {
+    try {
+      const result = await loadAppData();
+      setData(result.data);
+      setDataSource(result.source);
+      setIsApiConnected(true);
+    } catch {
+      const result = await loadStaticData();
+      setData(result.data);
+      setDataSource(result.source);
+    }
+  }, []);
+
+  const handleGlobalSync = async () => {
+    setIsGlobalSyncing(true);
+    setSyncStatusMsg("⏳ Synchronisation en cours...");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sync/all`);
+      if (res.ok) {
+        await handleReloadData();
+        setSyncStatusMsg("✓ Synchronisé !");
+        setTimeout(() => setSyncStatusMsg(""), 3500);
+      } else {
+        setSyncStatusMsg("Erreur");
+        setTimeout(() => setSyncStatusMsg(""), 3500);
+      }
+    } catch (err) {
+      console.warn("Global sync error", err);
+      setSyncStatusMsg("Hors-ligne");
+      setTimeout(() => setSyncStatusMsg(""), 3500);
+    } finally {
+      setIsGlobalSyncing(false);
+    }
+  };
 
   React.useEffect(() => {
     if (!selectedCommune && data?.communes?.length > 0) {
@@ -955,6 +992,42 @@ function App() {
           </div>
 
           <div className="navbar-right">
+            {syncStatusMsg && (
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: isGlobalSyncing ? "var(--primary)" : "var(--success, #16a34a)",
+                  background: "var(--bg-secondary)",
+                  padding: "4px 8px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                {syncStatusMsg}
+              </span>
+            )}
+
+            <button
+              type="button"
+              className="timeline-btn"
+              onClick={handleGlobalSync}
+              disabled={isGlobalSyncing}
+              style={{
+                fontSize: "11px",
+                padding: "6px 12px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                fontWeight: "600",
+                cursor: isGlobalSyncing ? "not-allowed" : "pointer",
+                background: "var(--bg-surface)",
+              }}
+              title="Vérifier les nouvelles données satellites, calculer les statistiques et actualiser PostgreSQL"
+            >
+              {isGlobalSyncing ? "⏳ Sync..." : "🔄 Actualiser"}
+            </button>
+
             <button
               onClick={toggleTheme}
               className="theme-toggle-btn"
@@ -991,6 +1064,7 @@ function App() {
               setStatsCategory={setStatsCategory}
               dataCategory={dataCategory}
               setDataCategory={setDataCategory}
+              onReloadData={handleReloadData}
             />
           )}
           {activeTab === "overview" && (
@@ -1014,6 +1088,7 @@ function App() {
               selectedCommune={selectedCommune}
               setSelectedCommune={handleSelectCommuneGlobal}
               communeZoomTrigger={communeZoomTrigger}
+              onReloadData={handleReloadData}
             />
           )}
           {activeTab === "stats" && (
@@ -1094,6 +1169,7 @@ function UnifiedSinglePage({
   setStatsCategory,
   dataCategory,
   setDataCategory,
+  onReloadData,
 }) {
   const scrollTo = (id) => {
     const el = document.getElementById(id);
@@ -1169,6 +1245,7 @@ function UnifiedSinglePage({
           selectedCommune={selectedCommune}
           setSelectedCommune={setSelectedCommune}
           communeZoomTrigger={communeZoomTrigger}
+          onReloadData={onReloadData}
         />
       </section>
 
@@ -4384,6 +4461,7 @@ function Carte({
   selectedCommune: externalSelectedCommune,
   setSelectedCommune: externalSetSelectedCommune,
   communeZoomTrigger = 0,
+  onReloadData,
 }) {
   const features = geojson?.features ?? [];
   const [localMapSubItem, setLocalMapSubItem] = React.useState("precip");
@@ -4450,6 +4528,34 @@ function Carte({
       setLocalIsohyetesMeta(isohyetesMeta);
     }
   }, [isohyetesMeta]);
+
+  // Synchronisation Précipitations CHIRPS
+  const [isSyncingPrecip, setIsSyncingPrecip] = React.useState(false);
+  const [syncPrecipMsg, setSyncPrecipMsg] = React.useState("");
+
+  const handleSyncPrecip = async () => {
+    setIsSyncingPrecip(true);
+    setSyncPrecipMsg("Vérification...");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sync/precipitation`);
+      if (res.ok) {
+        if (onReloadData) {
+          await onReloadData();
+        }
+        setSyncPrecipMsg("✓ À jour !");
+        setTimeout(() => setSyncPrecipMsg(""), 3500);
+      } else {
+        setSyncPrecipMsg("Erreur");
+        setTimeout(() => setSyncPrecipMsg(""), 3500);
+      }
+    } catch (err) {
+      console.warn("Erreur de synchronisation des précipitations", err);
+      setSyncPrecipMsg("Hors-ligne");
+      setTimeout(() => setSyncPrecipMsg(""), 3500);
+    } finally {
+      setIsSyncingPrecip(false);
+    }
+  };
 
   // NDVI 6-Classes States
   const [isSyncing, setIsSyncing] = React.useState(false);
@@ -5416,6 +5522,29 @@ function Carte({
         {/* Options pour Précipitations */}
         {mapSubItem === "precip" && (
           <>
+            <div className="ndvi-controls-box" style={{ marginBottom: "14px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+                <div>
+                  <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>
+                    Contrôles Précipitations CHIRPS
+                  </h3>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
+                    {syncPrecipMsg || "Série 1981–2026 • Base PostgreSQL"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={handleSyncPrecip}
+                  disabled={isSyncingPrecip}
+                  style={{ fontSize: "10px", padding: "4px 8px", whiteSpace: "nowrap" }}
+                  title="Télécharger les nouveaux rasters CHIRPS, calculer les statistiques communales et actualiser PostgreSQL"
+                >
+                  {isSyncingPrecip ? "⏳ Sync..." : "🔄 Actualiser"}
+                </button>
+              </div>
+            </div>
+
             <div className="filter-group" style={{ marginTop: "10px" }}>
               <label style={{ fontWeight: "700" }}>Type de carte :</label>
               <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>

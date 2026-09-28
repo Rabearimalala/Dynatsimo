@@ -831,36 +831,13 @@ while True:
     # AFFICHAGE
     # ============================================================
 
-    print()
-    print()
-    print("=" * 75)
-    print(
-        f"TRAITEMENT : {year}-{month_str}"
-    )
-    print("=" * 75)
-
-
-    # ============================================================
-    # 16. SI LE FICHIER FINAL EXISTE
-    # ============================================================
-
-    if os.path.exists(
-        output_path
-    ):
-
-        print()
-        print(
-            f"✓ Déjà présent : {filename_tif}"
-        )
-
-        print(
-            "→ Aucun téléchargement."
-        )
-
+    if os.path.exists(output_path):
         skipped_count += 1
-
-
     else:
+        print()
+        print("=" * 75)
+        print(f"TRAITEMENT NOUVEAU MOIS : {year}-{month_str}")
+        print("=" * 75)
 
         # ========================================================
         # URL
@@ -1056,13 +1033,7 @@ while True:
                     failed_count += 1
 
 
-        # ========================================================
-        # PAUSE
-        # ========================================================
 
-        time.sleep(
-            DOWNLOAD_DELAY
-        )
 
 
     # ============================================================

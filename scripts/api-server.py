@@ -95,7 +95,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if pipe_mod and hasattr(pipe_mod, "run_full_pipeline"):
                     skip_ndvi = (path == "/api/sync/precipitation")
                     success = pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=skip_ndvi)
-                    self.send_json({"status": "success" if success else "error", "message": "Synchronisation terminée"})
+                    global data_module
+                    data_module = load_data_module()
+                    self.send_json({"status": "success" if success else "error", "message": "Synchronisation terminée avec succès"})
                     return
                 self.send_json({"error": "Module de pipeline introuvable"}, HTTPStatus.INTERNAL_SERVER_ERROR)
                 return
