@@ -1486,18 +1486,19 @@ input[type="checkbox"] {
 
 .table-search-box {
   position: relative;
-  width: 260px;
+  width: 210px;
+  max-width: 100%;
 }
 
 .table-search-box input {
   width: 100%;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 8px 12px 8px 34px;
+  padding: 7px 10px 7px 32px;
   background-color: var(--bg-panel-secondary);
   color: var(--text-main);
   outline: none;
-  font-size: 12.5px;
+  font-size: 12px;
   transition: all var(--transition-fast);
 }
 
@@ -1509,12 +1510,13 @@ input[type="checkbox"] {
 
 .table-search-box svg {
   position: absolute;
-  left: 11px;
+  left: 9px;
   top: 50%;
   transform: translateY(-50%);
   width: 15px;
   height: 15px;
   color: var(--text-muted);
+  pointer-events: none;
 }
 
 .btn-export {

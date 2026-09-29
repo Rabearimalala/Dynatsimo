@@ -1116,6 +1116,10 @@ function App() {
               communesList={data.communes}
               datasetType={dataCategory}
               setDatasetType={setDataCategory}
+              precipRecords={data.precipRecords}
+              annualData={data.annualData}
+              seasonData={data.seasonData}
+              vegData={data.vegetationData}
             />
           )}
           {activeTab === "guide" && (
@@ -1338,6 +1342,10 @@ function UnifiedSinglePage({
           communesList={data.communes}
           datasetType={dataCategory}
           setDatasetType={setDataCategory}
+          precipRecords={data?.precipRecords || []}
+          annualData={data?.annualData || []}
+          seasonData={data?.seasonData || []}
+          vegData={data?.vegetationData || {}}
         />
       </section>
 
@@ -1931,21 +1939,27 @@ function SuiviVegetation({
 
   const monthlyChartData = React.useMemo(() => {
     if (!activeSeasonData) return [];
+
+    const seasonStr = String(activeSeasonData?.season || activeSeason || "");
+    const parts = seasonStr.split(/[-–]/);
+    const startY = Number(parts[0]) || 2025;
+    const endY = Number(parts[1]) || (startY + 1);
+
     // Indexing in raw data is agricultural season starting in Oct:
     // Oct(0), Nov(1), Dec(2), Jan(3), Fev(4), Mar(5), Avr(6), Mai(7), Jun(8), Jul(9), Aou(10), Sep(11)
     const monthDefs = [
-      { name: "Jan", idx: 3, mNum: 1 },
-      { name: "Fév", idx: 4, mNum: 2 },
-      { name: "Mar", idx: 5, mNum: 3 },
-      { name: "Avr", idx: 6, mNum: 4 },
-      { name: "Mai", idx: 7, mNum: 5 },
-      { name: "Jun", idx: 8, mNum: 6 },
-      { name: "Jul", idx: 9, mNum: 7 },
-      { name: "Aoû", idx: 10, mNum: 8 },
-      { name: "Sep", idx: 11, mNum: 9 },
-      { name: "Oct", idx: 0, mNum: 10 },
-      { name: "Nov", idx: 1, mNum: 11 },
-      { name: "Déc", idx: 2, mNum: 12 },
+      { name: "Oct", fullMonth: "Octobre", year: startY, idx: 0, mNum: 10 },
+      { name: "Nov", fullMonth: "Novembre", year: startY, idx: 1, mNum: 11 },
+      { name: "Déc", fullMonth: "Décembre", year: startY, idx: 2, mNum: 12 },
+      { name: "Jan", fullMonth: "Janvier", year: endY, idx: 3, mNum: 1 },
+      { name: "Fév", fullMonth: "Février", year: endY, idx: 4, mNum: 2 },
+      { name: "Mar", fullMonth: "Mars", year: endY, idx: 5, mNum: 3 },
+      { name: "Avr", fullMonth: "Avril", year: endY, idx: 6, mNum: 4 },
+      { name: "Mai", fullMonth: "Mai", year: endY, idx: 7, mNum: 5 },
+      { name: "Jun", fullMonth: "Juin", year: endY, idx: 8, mNum: 6 },
+      { name: "Jul", fullMonth: "Juillet", year: endY, idx: 9, mNum: 7 },
+      { name: "Aoû", fullMonth: "Août", year: endY, idx: 10, mNum: 8 },
+      { name: "Sep", fullMonth: "Septembre", year: endY, idx: 11, mNum: 9 },
     ];
     const baseline = Array.isArray(activeSeasonData.baseline)
       ? activeSeasonData.baseline
@@ -1959,7 +1973,7 @@ function SuiviVegetation({
     const yearDict = monthlyPrecipForCommune?.yearDict || {};
 
     let runningCumul = 0;
-    return monthDefs.map(({ name, idx, mNum }) => {
+    return monthDefs.map(({ name, fullMonth, year, idx, mNum }) => {
       const valNdvi = toFiniteNumber(ndvi[idx], 0);
       const valBase = toFiniteNumber(baseline[idx], 0);
       const diff = valNdvi - valBase;
@@ -1970,6 +1984,9 @@ function SuiviVegetation({
 
       return {
         month: name,
+        fullMonth: fullMonth,
+        year: year,
+        monthDisplay: `${name} (${year})`,
         ndvi: Math.round(valNdvi * 1000) / 1000,
         baseline: Math.round(valBase * 1000) / 1000,
         cumulative: Math.round(runningCumul * 100) / 100,
@@ -1980,7 +1997,7 @@ function SuiviVegetation({
         precipRef: pRef,
       };
     });
-  }, [activeSeasonData, activeEcoregionDetails, monthlyPrecipForCommune]);
+  }, [activeSeasonData, activeSeason, activeEcoregionDetails, monthlyPrecipForCommune]);
 
   const anomalyValues = Array.isArray(activeSeasonData?.anomalies) ? activeSeasonData.anomalies : [];
   const anomalyPercent = (averageFinite(anomalyValues, 4, 0) ?? 0) * 100;
@@ -2099,8 +2116,8 @@ function SuiviVegetation({
         )}
       </section>
 
-      <section className="split-layout">
-        <aside className="filters-panel">
+      <section className="split-layout" style={{ alignItems: "stretch" }}>
+        <aside className="filters-panel" style={{ height: "100%", boxSizing: "border-box" }}>
           <h2>Paramètres Végétation</h2>
 
           <div className="filter-group">
@@ -2190,11 +2207,11 @@ function SuiviVegetation({
           )}
         </aside>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
         {/* Primary Chart */}
         {timeScale === "annual" ? (
-          <div className="panel">
+          <div className="panel" style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box", margin: 0 }}>
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
                 <h2><Icons.Stats /> Évolution Interannuelle du NDVI Moyen — {activeCommuneObj?.nom}</h2>
@@ -2222,8 +2239,8 @@ function SuiviVegetation({
                 </div>
               </div>
             </div>
-            <div style={{ width: "100%", height: 280 }}>
-              <ResponsiveContainer>
+            <div style={{ width: "100%", flex: 1, minHeight: 280, position: "relative" }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} interval="preserveStartEnd" angle={-25} textAnchor="end" height={45} />
@@ -2238,32 +2255,60 @@ function SuiviVegetation({
             </div>
           </div>
         ) : (
-          <div className="panel">
+          <div className="panel" style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box", margin: 0 }}>
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
                 <h2><Icons.Stats /> Profil Phénologique & Végétation Mensuelle — {activeCommuneObj?.nom} (Saison {activeSeasonData?.season ?? activeSeason})</h2>
                 <span>Comparaison mensuelle : Végétation observée (NDVI) et normale de référence historique</span>
               </div>
             </div>
-            <div style={{ width: "100%", height: 280 }}>
-              <ResponsiveContainer>
+            <div style={{ width: "100%", flex: 1, minHeight: 280, position: "relative" }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 25, bottom: 25, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
                   <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
                   <RechartsTooltip
-                    formatter={(val, name, item) => {
-                      const nameStr = String(name || "");
-                      if (nameStr.includes("Observée") || nameStr.includes("Observee") || nameStr.includes("Végétation") || nameStr.includes("NDVI")) {
-                        const baseVal = item?.payload?.baseline ?? 0;
-                        const diff = Number(val) - Number(baseVal);
-                        const diffPct = item?.payload?.diffPct ?? 0;
-                        return [
-                          `${Number(val).toFixed(3)} (Écart: ${diff >= 0 ? "+" : ""}${diff.toFixed(3)} / ${diffPct >= 0 ? "+" : ""}${diffPct}%)`,
-                          `Végétation ${activeSeasonData?.season ?? activeSeason}`
-                        ];
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0]?.payload;
+                        if (!data) return null;
+                        const diff = data.diff ?? (data.ndvi - data.baseline);
+                        const isPos = diff >= 0;
+                        return (
+                          <div style={{
+                            backgroundColor: "var(--bg-panel, #ffffff)",
+                            color: "var(--text-main, #0f172a)",
+                            padding: "8px 12px",
+                            borderRadius: "6px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            fontSize: "11px",
+                            border: "1px solid var(--border-color, #e2e8f0)",
+                            minWidth: "210px"
+                          }}>
+                            <div style={{ fontWeight: "700", marginBottom: "5px", borderBottom: "1px solid var(--border-color, #e2e8f0)", paddingBottom: "3px" }}>
+                              🌿 {data.fullMonth || label} {data.year} (Campagne {activeSeasonData?.season ?? activeSeason})
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                              <span style={{ color: "#10b981", fontWeight: "600" }}>NDVI Observé :</span>
+                              <strong style={{ color: "#047857" }}>{data.ndvi}</strong>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
+                              <span style={{ color: "#64748b" }}>Normale Historique :</span>
+                              <strong style={{ color: "#475569" }}>{data.baseline}</strong>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", margin: "4px 0 0 0", paddingTop: "3px", borderTop: "1px dashed var(--border-color, #e2e8f0)" }}>
+                              <span style={{ color: isPos ? "var(--accent, #10b981)" : "var(--danger, #ef4444)", fontWeight: "600" }}>
+                                {isPos ? "▲ Écart Positif :" : "▼ Écart Négatif :"}
+                              </span>
+                              <strong style={{ color: isPos ? "var(--accent, #10b981)" : "var(--danger, #ef4444)" }}>
+                                {isPos ? "+" : ""}{Number(diff).toFixed(3)} ({isPos ? "+" : ""}{data.diffPct}%)
+                              </strong>
+                            </div>
+                          </div>
+                        );
                       }
-                      return [Number(val).toFixed(3), nameStr];
+                      return null;
                     }}
                   />
                   <Legend
@@ -2271,7 +2316,7 @@ function SuiviVegetation({
                     height={36}
                     payload={[
                       {
-                        value: `Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`,
+                        value: `Végétation Observée (${activeSeasonData?.season ?? activeSeason})`,
                         type: "rect",
                         id: "ndvi",
                         color: "#10b981",
@@ -2285,7 +2330,7 @@ function SuiviVegetation({
                     ]}
                   />
                   <Bar
-                    name={`Végétation Observée en ${activeSeasonData?.season ?? activeSeason} (NDVI)`}
+                    name={`Végétation Observée (${activeSeasonData?.season ?? activeSeason})`}
                     dataKey="ndvi"
                     fill="#10b981"
                     radius={[4, 4, 0, 0]}
@@ -2387,10 +2432,10 @@ function SuiviVegetation({
                           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                           fontSize: "11px",
                           border: "1px solid var(--border-color, #e2e8f0)",
-                          minWidth: "200px"
+                          minWidth: "210px"
                         }}>
                           <div style={{ fontWeight: "700", marginBottom: "5px", borderBottom: "1px solid var(--border-color, #e2e8f0)", paddingBottom: "3px" }}>
-                            Mois : {label} ({activeSeasonData?.season ?? activeSeason})
+                            📅 {data.fullMonth || label} {data.year} (Campagne {activeSeasonData?.season ?? activeSeason})
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
                             <span style={{ color: "#3b82f6" }}>🌧️ Pluie (CHIRPS) :</span>
@@ -2457,7 +2502,7 @@ function SuiviVegetation({
                           minWidth: "210px"
                         }}>
                           <div style={{ fontWeight: "700", marginBottom: "5px", borderBottom: "1px solid var(--border-color, #e2e8f0)", paddingBottom: "3px" }}>
-                            Mois : {label} ({activeSeasonData?.season ?? activeSeason})
+                            📅 {data.fullMonth || label} {data.year} (Campagne {activeSeasonData?.season ?? activeSeason})
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
                             <span style={{ color: "#059669" }}>🌿 NDVI Observé :</span>
@@ -2968,32 +3013,42 @@ function Saison({
             </select>
           </div>
 
-          {/* Range filter slider for seasons */}
+          {/* Range filter for campaigns */}
           <div className="filter-group" style={{ marginTop: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
             <label style={{ fontWeight: "700" }}>Filtrer les campagnes :</label>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--primary)", fontWeight: "700", marginTop: "4px" }}>
               <span>{seasonRange[0]}–{Number(seasonRange[0]) + 1}</span>
               <span>{seasonRange[1]}–{Number(seasonRange[1]) + 1}</span>
             </div>
-            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-              <input
-                type="number"
-                min={availableSeasons[0]}
-                max={seasonRange[1]}
-                value={seasonRange[0]}
-                onChange={(e) => setSeasonRange([Math.max(availableSeasons[0], Number(e.target.value)), seasonRange[1]])}
-                style={{ width: "50%", padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "12px" }}
-                title={`Saison de début : ${seasonRange[0]}-${Number(seasonRange[0]) + 1}`}
-              />
-              <input
-                type="number"
-                min={seasonRange[0]}
-                max={availableSeasons[1]}
-                value={seasonRange[1]}
-                onChange={(e) => setSeasonRange([seasonRange[0], Math.min(availableSeasons[1], Number(e.target.value))])}
-                style={{ width: "50%", padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "12px" }}
-                title={`Saison de fin : ${seasonRange[1]}-${Number(seasonRange[1]) + 1}`}
-              />
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", minWidth: "24px" }}>De :</span>
+                <select
+                  value={seasonRange[0]}
+                  onChange={(e) => setSeasonRange([Number(e.target.value), Math.max(Number(e.target.value), seasonRange[1])])}
+                  style={{ flex: 1, padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "11.5px" }}
+                >
+                  {Array.from({ length: Math.max(1, availableSeasons[1] - availableSeasons[0] + 1) }, (_, i) => availableSeasons[0] + i).map((s) => (
+                    <option key={s} value={s} disabled={s > seasonRange[1]}>
+                      Campagne {s}–{s + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", minWidth: "24px" }}>À :</span>
+                <select
+                  value={seasonRange[1]}
+                  onChange={(e) => setSeasonRange([Math.min(seasonRange[0], Number(e.target.value)), Number(e.target.value)])}
+                  style={{ flex: 1, padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "11.5px" }}
+                >
+                  {Array.from({ length: Math.max(1, availableSeasons[1] - availableSeasons[0] + 1) }, (_, i) => availableSeasons[0] + i).map((s) => (
+                    <option key={s} value={s} disabled={s < seasonRange[0]}>
+                      Campagne {s}–{s + 1}{s === availableSeasons[1] ? " (En cours)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </aside>
@@ -3439,7 +3494,7 @@ function Statistiques({
   const [typeGraph, setTypeGraph] = React.useState("Climatologie mensuelle");
   const [ordrePoly, setOrdrePoly] = React.useState(4);
   const [monthlyMode, setMonthlyMode] = React.useState("specific_year"); // 'specific_year' (Année Spécifique) | 'climatology' (Normale Climatologique)
-  const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2020);
+  const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2026);
 
   // Sync selectedCommune with appSelectedCommune
   React.useEffect(() => {
@@ -3544,6 +3599,12 @@ function Statistiques({
     for (let y = currentYear; y >= 1981; y--) years.push(y);
     return years;
   }, [annualData, precipRecords, seasonData]);
+
+  React.useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYearForMonth)) {
+      setSelectedYearForMonth(availableYears[0]);
+    }
+  }, [availableYears, selectedYearForMonth]);
 
   const communeAnnualSeries = React.useMemo(() => {
     if (modeCommune === "Toutes les communes") {
@@ -4469,9 +4530,9 @@ function Carte({
   const setMapSubItem = parentSetMapSubItem || setLocalMapSubItem;
   const [typeCarte, setTypeCarte] = React.useState("Choroplèthe"); // 'Choroplèthe' vs 'Isohyètes'
   const [typePeriode, setTypePeriode] = React.useState("Mensuel"); // 'Mensuel' | 'Annuel' | 'Décennies'
-  const [selectedDecades, setSelectedDecades] = React.useState(["1981–1989"]);
-  const [selectedYears, setSelectedYears] = React.useState([2024]);
-  const [selectedMonth, setSelectedMonth] = React.useState("Jan");
+  const [selectedDecades, setSelectedDecades] = React.useState(["2020–2026"]);
+  const [selectedYears, setSelectedYears] = React.useState([2026]);
+  const [selectedMonth, setSelectedMonth] = React.useState("Aou");
   const [basemap, setBasemap] = React.useState("OpenStreetMap");
   const [showBasemapMenu, setShowBasemapMenu] = React.useState(false);
   const basemapRef = React.useRef(null);
@@ -4597,12 +4658,12 @@ function Carte({
 
   const periods = React.useMemo(() => localNdviClasses?.periods || [], [localNdviClasses]);
   const availableNdviYears = React.useMemo(
-    () => localNdviClasses?.years || [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008],
+    () => localNdviClasses?.years || [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2025, 2026],
     [localNdviClasses]
   );
 
-  const [ndviYear, setNdviYear] = React.useState(2000);
-  const [ndviMonth, setNdviMonth] = React.useState(2);
+  const [ndviYear, setNdviYear] = React.useState(2026);
+  const [ndviMonth, setNdviMonth] = React.useState(8);
   const [ndviOpacity, setNdviOpacity] = React.useState(0.85);
   const [showCommunesLayer, setShowCommunesLayer] = React.useState(true);
   const [communeOverlayStyle, setCommuneOverlayStyle] = React.useState("borders_only"); // 'borders_only' | 'light_tint'
@@ -4611,7 +4672,7 @@ function Carte({
 
   React.useEffect(() => {
     if (availableNdviYears.length > 0 && !availableNdviYears.includes(ndviYear)) {
-      setNdviYear(availableNdviYears[0]);
+      setNdviYear(availableNdviYears[availableNdviYears.length - 1]);
     }
   }, [availableNdviYears, ndviYear]);
 
@@ -4623,18 +4684,18 @@ function Carte({
   // Adjust month if not available in selected year
   React.useEffect(() => {
     if (availableMonthsForYear.length > 0 && !availableMonthsForYear.includes(ndviMonth)) {
-      setNdviMonth(availableMonthsForYear[0]);
+      setNdviMonth(availableMonthsForYear[availableMonthsForYear.length - 1]);
     }
   }, [availableMonthsForYear, ndviMonth]);
 
   // Current active period object
   const activePeriod = React.useMemo(() => {
-    return periods.find((p) => p.year === ndviYear && p.month === ndviMonth) || periods[0];
+    return periods.find((p) => p.year === ndviYear && p.month === ndviMonth) || periods[periods.length - 1] || periods[0];
   }, [periods, ndviYear, ndviMonth]);
 
   const activePeriodIndex = React.useMemo(() => {
     const idx = periods.findIndex((p) => p.year === ndviYear && p.month === ndviMonth);
-    return idx >= 0 ? idx : 0;
+    return idx >= 0 ? idx : (periods.length > 0 ? periods.length - 1 : 0);
   }, [periods, ndviYear, ndviMonth]);
 
   // Playback timer effect
@@ -4752,6 +4813,22 @@ function Carte({
     const list = annualData.map((d) => d.year).sort((a, b) => a - b);
     return list.length ? list : Array.from({ length: 46 }, (_, i) => 1981 + i);
   }, [annualData]);
+
+  React.useEffect(() => {
+    if (availableYears.length > 0) {
+      const maxYear = availableYears[availableYears.length - 1];
+      if (!selectedYears[0] || !availableYears.includes(selectedYears[0])) {
+        setSelectedYears([maxYear]);
+      }
+    }
+  }, [availableYears]);
+
+  React.useEffect(() => {
+    if (localIsohyetesMeta?.decades && localIsohyetesMeta.decades.length > 0) {
+      const latestDecade = localIsohyetesMeta.decades[localIsohyetesMeta.decades.length - 1];
+      setSelectedDecades((prev) => (prev && localIsohyetesMeta.decades.includes(prev[0]) ? prev : [latestDecade]));
+    }
+  }, [localIsohyetesMeta]);
 
   // Precipitation Timeline Player States & Logic
   const [isPlayingPrecipTimeline, setIsPlayingPrecipTimeline] = React.useState(false);
@@ -7733,6 +7810,10 @@ function TableauExplorer({
   communesList = [],
   datasetType: propDatasetType,
   setDatasetType: propSetDatasetType,
+  precipRecords = [],
+  annualData = [],
+  seasonData = [],
+  vegData = {},
 }) {
   const [localDatasetType, setLocalDatasetType] = React.useState("precip"); // "precip" | "vegetation"
   const datasetType = propDatasetType !== undefined ? propDatasetType : localDatasetType;
@@ -7744,19 +7825,135 @@ function TableauExplorer({
 
   const features = geojson?.features ?? [];
 
+  // Available Years for Precipitation
+  const availablePrecipYears = React.useMemo(() => {
+    if (precipRecords && precipRecords.length > 0) {
+      const yrs = [...new Set(precipRecords.map((r) => Number(r.year)))].filter((y) => !isNaN(y) && y > 1900).sort((a, b) => b - a);
+      if (yrs.length > 0) return yrs;
+    }
+    if (annualData && annualData.length > 0) {
+      return annualData.map((d) => Number(d.year)).filter((y) => !isNaN(y) && y > 1900).sort((a, b) => b - a);
+    }
+    return [2026, 2025, 2024, 2023, 2022, 2021, 2020];
+  }, [precipRecords, annualData]);
+
+  const [selectedPrecipYear, setSelectedPrecipYear] = React.useState(2026);
+
+  React.useEffect(() => {
+    if (availablePrecipYears.length > 0 && !availablePrecipYears.includes(selectedPrecipYear)) {
+      setSelectedPrecipYear(availablePrecipYears[0]);
+    }
+  }, [availablePrecipYears, selectedPrecipYear]);
+
+  // Precompute yearly precipitation sums and normal baseline per commune
+  const communeYearlyPrecipMap = React.useMemo(() => {
+    const dict = {};
+    (precipRecords || []).forEach((r) => {
+      const code = String(r.code || "").trim().toUpperCase();
+      if (!code || r.precip === null || isNaN(Number(r.precip))) return;
+      if (!dict[code]) dict[code] = { years: {}, meanRef: 0 };
+      const y = Number(r.year);
+      dict[code].years[y] = (dict[code].years[y] || 0) + Number(r.precip);
+    });
+
+    Object.keys(dict).forEach((code) => {
+      const allYears = Object.keys(dict[code].years).map(Number);
+      const refYears = allYears.filter((y) => y >= 1981 && y <= 2025);
+      const chosen = refYears.length ? refYears : allYears;
+      const total = chosen.reduce((sum, y) => sum + dict[code].years[y], 0);
+      dict[code].meanRef = Math.round(total / (chosen.length || 1));
+    });
+
+    return dict;
+  }, [precipRecords]);
+
+  // Available Campaigns / Seasons for Vegetation
+  const availableVegSeasons = React.useMemo(() => {
+    const timeSeriesModis = vegData?.timeSeries?.modis;
+    if (timeSeriesModis) {
+      const firstCommuneWithSeasons = Object.values(timeSeriesModis).find((arr) => arr && arr.length > 0);
+      if (firstCommuneWithSeasons) {
+        return firstCommuneWithSeasons.map((s) => s.season).reverse();
+      }
+    }
+    return ["2025-2026", "2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"];
+  }, [vegData]);
+
+  const [selectedVegSeason, setSelectedVegSeason] = React.useState("2025-2026");
+
+  React.useEffect(() => {
+    if (availableVegSeasons.length > 0 && !availableVegSeasons.includes(selectedVegSeason)) {
+      setSelectedVegSeason(availableVegSeasons[0]);
+    }
+  }, [availableVegSeasons, selectedVegSeason]);
+
+  // Compute dynamic commune metrics
+  const getDynamicCommuneMetrics = React.useCallback(
+    (p) => {
+      const base = getCommuneMetrics(p);
+      const code = String(p.code || "").trim().toUpperCase();
+
+      // Precipitation
+      const precipInfo = communeYearlyPrecipMap[code];
+      const hasYearSum = precipInfo?.years?.[selectedPrecipYear] !== undefined;
+      const precipVal = hasYearSum ? Math.round(precipInfo.years[selectedPrecipYear] * 10) / 10 : base.precip;
+      const precipRef = precipInfo?.meanRef || base.precipRef || 600;
+      const defVal = precipRef > 0 ? Number((((precipVal - precipRef) / precipRef) * 100).toFixed(1)) : 0;
+      const ecartMm = Math.round(precipVal - precipRef);
+      const droughtStatus =
+        defVal < -20 ? "Sécheresse Sévère" : defVal < -10 ? "Déficit Modéré" : defVal > 10 ? "Excédent" : "Proche Normale";
+
+      // Vegetation (MODIS)
+      const communeVegArr = vegData?.timeSeries?.modis?.[code];
+      const seasonObj = communeVegArr?.find((s) => s.season === selectedVegSeason);
+      let ndviVal = base.ndvi;
+      let vciVal = base.vci;
+      let vhiVal = base.vhi;
+
+      if (seasonObj && seasonObj.ndvi && seasonObj.ndvi.length > 0) {
+        const nonZero = seasonObj.ndvi.filter((v) => Number.isFinite(v) && v > 0);
+        if (nonZero.length > 0) {
+          ndviVal = Number((nonZero.reduce((a, b) => a + b, 0) / nonZero.length).toFixed(3));
+          vciVal = Math.min(96, Math.max(12, Math.round(50 + defVal * 1.55 + (ndviVal - 0.35) * 35)));
+          vhiVal = Math.min(96, Math.max(10, Math.round(vciVal * 0.95 - (defVal < -18 ? 3 : 1))));
+        }
+      }
+
+      const alertStr = defVal < -18 || vciVal < 32 ? "Alerte Rouge" : defVal < -10 || vciVal < 45 ? "Vigilance" : "Stable";
+
+      return {
+        ...base,
+        year: selectedPrecipYear,
+        season: selectedVegSeason,
+        precip: precipVal,
+        precipRef: precipRef,
+        deficit: defVal,
+        ecartMm: ecartMm,
+        droughtStatus: droughtStatus,
+        ndvi: ndviVal,
+        vci: vciVal,
+        vhi: vhiVal,
+        alert: alertStr,
+      };
+    },
+    [communeYearlyPrecipMap, selectedPrecipYear, vegData, selectedVegSeason]
+  );
+
   const tableData = React.useMemo(() => {
     if (scale === "commune") {
-      return features.map((f) => getCommuneMetrics(f.properties || {}));
+      return features.map((f) => getDynamicCommuneMetrics(f.properties || {}));
     } else if (scale === "district") {
       const dict = {};
       features.forEach((f) => {
-        const m = getCommuneMetrics(f.properties || {});
+        const m = getDynamicCommuneMetrics(f.properties || {});
         const dName = m.district !== "—" ? m.district : "District Inconnu";
         if (!dict[dName]) {
           dict[dName] = {
             name: dName,
             district: dName,
             region: m.region,
+            year: selectedPrecipYear,
+            season: selectedVegSeason,
             ecoregions: new Set(),
             precipList: [],
             precipRefList: [],
@@ -7796,7 +7993,7 @@ function TableauExplorer({
         const vhiAvg = Math.round(d.vhiList.reduce((a, b) => a + b, 0) / n);
         const coverAvg = Number((d.vegCoverList.reduce((a, b) => a + b, 0) / n).toFixed(1));
 
-        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : "Proche Normale";
+        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Normale";
         const alertStr = defAvg < -18 || vciAvg < 32 ? "Alerte Rouge" : defAvg < -10 || vciAvg < 45 ? "Vigilance" : "Stable";
 
         return {
@@ -7804,6 +8001,8 @@ function TableauExplorer({
           code: "DIST-" + String(d.name || "").substring(0, 3).toUpperCase(),
           district: d.name,
           region: d.region,
+          year: d.year,
+          season: d.season,
           ecoregion: Array.from(d.ecoregions).join(", "),
           precip: precipAvg,
           precipRef: precipRefAvg,
@@ -7823,13 +8022,15 @@ function TableauExplorer({
     } else {
       const dict = {};
       features.forEach((f) => {
-        const m = getCommuneMetrics(f.properties || {});
+        const m = getDynamicCommuneMetrics(f.properties || {});
         const rName = m.region !== "—" ? m.region : "Région Inconnue";
         if (!dict[rName]) {
           dict[rName] = {
             name: rName,
             district: "Tous",
             region: rName,
+            year: selectedPrecipYear,
+            season: selectedVegSeason,
             ecoregions: new Set(),
             precipList: [],
             precipRefList: [],
@@ -7869,7 +8070,7 @@ function TableauExplorer({
         const vhiAvg = Math.round(r.vhiList.reduce((a, b) => a + b, 0) / n);
         const coverAvg = Number((r.vegCoverList.reduce((a, b) => a + b, 0) / n).toFixed(1));
 
-        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : "Proche Normale";
+        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Normale";
         const alertStr = defAvg < -18 || vciAvg < 32 ? "Alerte Rouge" : defAvg < -10 || vciAvg < 45 ? "Vigilance" : "Stable";
 
         return {
@@ -7877,6 +8078,8 @@ function TableauExplorer({
           code: "REG-" + String(r.name || "").substring(0, 3).toUpperCase(),
           district: "Tous",
           region: r.name,
+          year: r.year,
+          season: r.season,
           ecoregion: Array.from(r.ecoregions).join(", "),
           precip: precipAvg,
           precipRef: precipRefAvg,
@@ -7894,7 +8097,7 @@ function TableauExplorer({
         };
       });
     }
-  }, [scale, features]);
+  }, [scale, features, getDynamicCommuneMetrics, selectedPrecipYear, selectedVegSeason]);
 
   const filteredData = React.useMemo(() => {
     return tableData.filter((row) => {
@@ -7925,17 +8128,17 @@ function TableauExplorer({
 
     if (datasetType === "precip") {
       headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Precipitation Annuelle (mm)", "Normale Ref 1981–Présent (mm)", "Deficit 2020-22 (%)", "Ecart (mm)", "Statut Secheresse"
+        "Echelle", "Code", "Nom", "District", "Region", "Annee", "Precipitation Annuelle (mm)", "Normale Ref 1981–2025 (mm)", "Deficit (%)", "Ecart (mm)", "Statut Secheresse"
       ];
       rows = filteredData.map((r) => [
-        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.precip, r.precipRef, r.deficit, r.ecartMm, r.droughtStatus
+        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.year || selectedPrecipYear, r.precip, r.precipRef, r.deficit, r.ecartMm, r.droughtStatus
       ]);
     } else {
       headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Ecoregion", "NDVI Moyen", "VCI (%)", "VHI (%)", "Couverture Forestiere (%)", "Surface Foret (ha)", "Perte Annuelle (ha)", "Niveau Alerte"
+        "Echelle", "Code", "Nom", "District", "Region", "Campagne", "Ecoregion", "NDVI Moyen", "VCI (%)", "VHI (%)", "Couverture Forestiere (%)", "Surface Foret (ha)", "Perte Annuelle (ha)", "Niveau Alerte"
       ];
       rows = filteredData.map((r) => [
-        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.ecoregion, r.ndvi, r.vci, r.vhi, r.vegCover, r.forestArea, r.annualLoss, r.alert
+        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.season || selectedVegSeason, r.ecoregion, r.ndvi, r.vci, r.vhi, r.vegCover, r.forestArea, r.annualLoss, r.alert
       ]);
     }
 
@@ -7943,7 +8146,7 @@ function TableauExplorer({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `dynatsimo_${datasetType}_${scale}_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `dynatsimo_${datasetType}_${scale}_${datasetType === "precip" ? selectedPrecipYear : selectedVegSeason}_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -7957,7 +8160,11 @@ function TableauExplorer({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "14px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontSize: "14px", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
-            {datasetType === "precip" ? <><Icons.Rain /> Données Pluviométrie & Déficit (CHIRPS)</> : <><Icons.Leaf /> Données Végétation & Écorégions (MODIS)</>}
+            {datasetType === "precip" ? (
+              <><Icons.Rain /> Données Pluviométrie & Déficit (CHIRPS — {selectedPrecipYear})</>
+            ) : (
+              <><Icons.Leaf /> Données Végétation & Écorégions (MODIS — Campagne {selectedVegSeason})</>
+            )}
           </span>
         </div>
 
@@ -7969,47 +8176,78 @@ function TableauExplorer({
       </div>
 
       {/* Filters & Search Row */}
-      <div className="table-header-row" style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", width: "100%" }}>
-          <div className="table-search-box" style={{ border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", padding: "0 10px", background: "var(--bg-panel-secondary)" }}>
-            <Icons.Search />
-            <input
-              type="text"
-              placeholder="Rechercher par commune, district, région ou code..."
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              style={{ border: "none", outline: "none", width: "100%", padding: "8px 6px", background: "transparent" }}
-            />
-          </div>
+      <div className="table-header-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+        <div className="table-search-box" style={{ width: "200px", flexShrink: 0 }}>
+          <Icons.Search />
+          <input
+            type="text"
+            placeholder="Rechercher..."
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+          />
+        </div>
 
-          <div className="filter-group">
-            <select value={selectedRegFilter} onChange={(e) => setSelectedRegFilter(e.target.value)} style={{ padding: "8px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%" }}>
-              <option value="">Toutes les régions</option>
-              {regionsList.map((r) => (<option key={r} value={r}>{r}</option>))}
+        <div className="filter-group" style={{ minWidth: "140px", maxWidth: "190px", flex: "1 1 140px" }}>
+          <select value={selectedRegFilter} onChange={(e) => setSelectedRegFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
+            <option value="">Toutes les régions</option>
+            {regionsList.map((r) => (<option key={r} value={r}>{r}</option>))}
+          </select>
+        </div>
+
+        {/* Temporal Year / Season Selector */}
+        {datasetType === "precip" ? (
+          <div className="filter-group" style={{ minWidth: "150px", maxWidth: "210px", flex: "1 1 150px" }}>
+            <select
+              value={selectedPrecipYear}
+              onChange={(e) => setSelectedPrecipYear(Number(e.target.value))}
+              style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontWeight: "700", color: "var(--primary)", fontSize: "12px", background: "var(--bg-panel-secondary)" }}
+              title="Sélectionner l'année de pluviométrie"
+            >
+              {availablePrecipYears.map((y) => (
+                <option key={y} value={y}>
+                  {y === availablePrecipYears[0] ? `📅 Année ${y} (En cours)` : `📅 Année ${y}`}
+                </option>
+              ))}
             </select>
           </div>
+        ) : (
+          <div className="filter-group" style={{ minWidth: "170px", maxWidth: "230px", flex: "1 1 170px" }}>
+            <select
+              value={selectedVegSeason}
+              onChange={(e) => setSelectedVegSeason(e.target.value)}
+              style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontWeight: "700", color: "#059669", fontSize: "12px", background: "var(--bg-panel-secondary)" }}
+              title="Sélectionner la campagne de végétation"
+            >
+              {availableVegSeasons.map((s, idx) => (
+                <option key={s} value={s}>
+                  {idx === 0 ? `🌿 Campagne ${s} (En cours)` : `🌿 Campagne ${s}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-          {datasetType === "precip" ? (
-            <div className="filter-group">
-              <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "8px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%" }}>
-                <option value="">Tous les statuts de sécheresse</option>
-                <option value="Sécheresse Sévère">Sécheresse Sévère (Déficit &gt; 20%)</option>
-                <option value="Déficit Modéré">Déficit Modéré (10% à 20%)</option>
-                <option value="Proche Normale">Proche Normale (&lt; 10%)</option>
-              </select>
-            </div>
-          ) : (
-            <div className="filter-group">
-              <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "8px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%" }}>
-                <option value="">Toutes les écorégions</option>
-                <option value="spiny">Forêt Épineuse du Sud</option>
-                <option value="dry">Forêt Sèche du Sud-Ouest</option>
-                <option value="transition">Fourré de Transition</option>
-                <option value="mangrove">Mangrove</option>
-              </select>
-            </div>
-          )}
-        </div>
+        {datasetType === "precip" ? (
+          <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
+            <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
+              <option value="">Tous les statuts</option>
+              <option value="Sécheresse Sévère">Sécheresse Sévère (&gt; 20%)</option>
+              <option value="Déficit Modéré">Déficit Modéré (10% à 20%)</option>
+              <option value="Proche Normale">Proche Normale (&lt; 10%)</option>
+              <option value="Excédent">Excédent (&gt; +10%)</option>
+            </select>
+          </div>
+        ) : (
+          <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
+            <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
+              <option value="">Toutes les écorégions</option>
+              <option value="spiny">Forêt Épineuse du Sud</option>
+              <option value="dry">Forêt Sèche du Sud-Ouest</option>
+              <option value="transition">Fourré de Transition</option>
+              <option value="mangrove">Mangrove</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Interactive Data Table */}
@@ -8021,9 +8259,10 @@ function TableauExplorer({
                 <th>Nom</th>
                 <th>District</th>
                 <th>Région</th>
+                <th>Année</th>
                 <th>Précip. Annuelle</th>
-                <th>Normale (1981–Présent)</th>
-                <th>Déficit 2020–22</th>
+                <th>Normale (1981–2025)</th>
+                <th>Déficit (%)</th>
                 <th>Écart (mm)</th>
                 <th>Statut Sécheresse</th>
               </tr>
@@ -8032,6 +8271,7 @@ function TableauExplorer({
                 <th>Nom</th>
                 <th>District</th>
                 <th>Région</th>
+                <th>Campagne</th>
                 <th>Écorégion</th>
                 <th>NDVI</th>
                 <th>VCI (%)</th>
@@ -8046,7 +8286,7 @@ function TableauExplorer({
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={datasetType === "precip" ? 8 : 11} style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+                <td colSpan={datasetType === "precip" ? 9 : 12} style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
                   Aucune ligne trouvée pour ces critères de recherche.
                 </td>
               </tr>
@@ -8056,14 +8296,19 @@ function TableauExplorer({
                   <td><strong>{row.name}</strong></td>
                   <td>{row.district}</td>
                   <td>{row.region}</td>
+                  <td>
+                    <span style={{ fontWeight: "700", color: "var(--primary)", background: "rgba(37, 99, 235, 0.08)", padding: "2px 6px", borderRadius: "4px", fontSize: "11.5px" }}>
+                      {row.year || selectedPrecipYear}
+                    </span>
+                  </td>
                   <td><strong style={{ color: "#2563eb" }}>{row.precip} mm</strong></td>
                   <td style={{ color: "var(--text-muted)" }}>{row.precipRef} mm</td>
                   <td>
-                    <span style={{ color: row.deficit < -20 ? "#ef4444" : row.deficit < -10 ? "#d97706" : "#059669", fontWeight: "750" }}>
+                    <span style={{ color: row.deficit < -20 ? "#ef4444" : row.deficit < -10 ? "#d97706" : row.deficit > 0 ? "#2563eb" : "#059669", fontWeight: "750" }}>
                       {row.deficit > 0 ? `+${row.deficit}` : row.deficit} %
                     </span>
                   </td>
-                  <td style={{ color: row.ecartMm < -50 ? "#ef4444" : "#64748b", fontWeight: "600" }}>
+                  <td style={{ color: row.ecartMm < -50 ? "#ef4444" : row.ecartMm > 0 ? "#2563eb" : "#64748b", fontWeight: "600" }}>
                     {row.ecartMm > 0 ? `+${row.ecartMm}` : row.ecartMm} mm
                   </td>
                   <td>
@@ -8079,6 +8324,11 @@ function TableauExplorer({
                   <td><strong>{row.name}</strong></td>
                   <td>{row.district}</td>
                   <td>{row.region}</td>
+                  <td>
+                    <span style={{ fontWeight: "700", color: "#059669", background: "rgba(16, 185, 129, 0.1)", padding: "2px 6px", borderRadius: "4px", fontSize: "11.5px" }}>
+                      {row.season || selectedVegSeason}
+                    </span>
+                  </td>
                   <td>
                     <span className={`td-badge-ecoregion ${String(row.ecoregion || "").includes("spiny") ? "spiny" : String(row.ecoregion || "").includes("dry") ? "dry" : String(row.ecoregion || "").includes("transition") ? "transition" : "mangrove"}`}>
                       {row.ecoregion === "spiny" ? "Épineuse" : row.ecoregion === "dry" ? "Forêt Sèche" : row.ecoregion === "transition" ? "Transition" : row.ecoregion === "mangrove" ? "Mangrove" : String(row.ecoregion || "Forêt").substring(0, 15)}
