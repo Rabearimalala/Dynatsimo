@@ -738448,5 +738448,1355 @@
     "year": 2026,
     "month": 7,
     "precip": 15.7
+  },
+  {
+    "code": "MG52513010",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.6
+  },
+  {
+    "code": "MG52513030",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.2
+  },
+  {
+    "code": "MG52513050",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.5
+  },
+  {
+    "code": "MG52513070",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.2
+  },
+  {
+    "code": "MG52513091",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.4
+  },
+  {
+    "code": "MG52513092",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.7
+  },
+  {
+    "code": "MG52514011",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.2
+  },
+  {
+    "code": "MG51504030",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.6
+  },
+  {
+    "code": "MG51504050",
+    "year": 2026,
+    "month": 8,
+    "precip": 1.3
+  },
+  {
+    "code": "MG52514012",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.5
+  },
+  {
+    "code": "MG51501001",
+    "year": 2026,
+    "month": 8,
+    "precip": null
+  },
+  {
+    "code": "MG51504070",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.2
+  },
+  {
+    "code": "MG51504090",
+    "year": 2026,
+    "month": 8,
+    "precip": 1.7
+  },
+  {
+    "code": "MG52514031",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG52516013",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.6
+  },
+  {
+    "code": "MG51504110",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.3
+  },
+  {
+    "code": "MG51505012",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.3
+  },
+  {
+    "code": "MG51505030",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.0
+  },
+  {
+    "code": "MG51505050",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.2
+  },
+  {
+    "code": "MG51505071",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.6
+  },
+  {
+    "code": "MG52514032",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.6
+  },
+  {
+    "code": "MG52514050",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG52516072",
+    "year": 2026,
+    "month": 8,
+    "precip": 18.6
+  },
+  {
+    "code": "MG52514071",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.3
+  },
+  {
+    "code": "MG52516011",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.0
+  },
+  {
+    "code": "MG52516012",
+    "year": 2026,
+    "month": 8,
+    "precip": 13.7
+  },
+  {
+    "code": "MG52516014",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.6
+  },
+  {
+    "code": "MG52516031",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.2
+  },
+  {
+    "code": "MG52516032",
+    "year": 2026,
+    "month": 8,
+    "precip": 14.5
+  },
+  {
+    "code": "MG52516033",
+    "year": 2026,
+    "month": 8,
+    "precip": 15.5
+  },
+  {
+    "code": "MG52516050",
+    "year": 2026,
+    "month": 8,
+    "precip": 12.2
+  },
+  {
+    "code": "MG52516071",
+    "year": 2026,
+    "month": 8,
+    "precip": 13.5
+  },
+  {
+    "code": "MG52516091",
+    "year": 2026,
+    "month": 8,
+    "precip": 13.8
+  },
+  {
+    "code": "MG52516092",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.3
+  },
+  {
+    "code": "MG52516111",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.4
+  },
+  {
+    "code": "MG52516112",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.7
+  },
+  {
+    "code": "MG52516130",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.4
+  },
+  {
+    "code": "MG52516151",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.0
+  },
+  {
+    "code": "MG52518032",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG52516152",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.9
+  },
+  {
+    "code": "MG52516170",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.7
+  },
+  {
+    "code": "MG52516190",
+    "year": 2026,
+    "month": 8,
+    "precip": 15.7
+  },
+  {
+    "code": "MG52518010",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.1
+  },
+  {
+    "code": "MG52518252",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.5
+  },
+  {
+    "code": "MG52518270",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.8
+  },
+  {
+    "code": "MG52518031",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG53515152",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.5
+  },
+  {
+    "code": "MG53515170",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.3
+  },
+  {
+    "code": "MG53515191",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.4
+  },
+  {
+    "code": "MG53515192",
+    "year": 2026,
+    "month": 8,
+    "precip": 15.7
+  },
+  {
+    "code": "MG53515210",
+    "year": 2026,
+    "month": 8,
+    "precip": 15.6
+  },
+  {
+    "code": "MG53515230",
+    "year": 2026,
+    "month": 8,
+    "precip": 39.7
+  },
+  {
+    "code": "MG53515251",
+    "year": 2026,
+    "month": 8,
+    "precip": 34.0
+  },
+  {
+    "code": "MG53515252",
+    "year": 2026,
+    "month": 8,
+    "precip": 58.8
+  },
+  {
+    "code": "MG53515253",
+    "year": 2026,
+    "month": 8,
+    "precip": 62.8
+  },
+  {
+    "code": "MG52518050",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG52518070",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.6
+  },
+  {
+    "code": "MG52518091",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.5
+  },
+  {
+    "code": "MG52518092",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.6
+  },
+  {
+    "code": "MG52518110",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.6
+  },
+  {
+    "code": "MG52518130",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.4
+  },
+  {
+    "code": "MG52518151",
+    "year": 2026,
+    "month": 8,
+    "precip": 9.8
+  },
+  {
+    "code": "MG52518152",
+    "year": 2026,
+    "month": 8,
+    "precip": 12.8
+  },
+  {
+    "code": "MG52518170",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.1
+  },
+  {
+    "code": "MG52518190",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.1
+  },
+  {
+    "code": "MG52518210",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.6
+  },
+  {
+    "code": "MG52518230",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.5
+  },
+  {
+    "code": "MG52518251",
+    "year": 2026,
+    "month": 8,
+    "precip": 9.4
+  },
+  {
+    "code": "MG52518290",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.0
+  },
+  {
+    "code": "MG53517170",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.5
+  },
+  {
+    "code": "MG53517250",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.4
+  },
+  {
+    "code": "MG53517291",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.9
+  },
+  {
+    "code": "MG53517350",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.9
+  },
+  {
+    "code": "MG53519010",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.7
+  },
+  {
+    "code": "MG53519030",
+    "year": 2026,
+    "month": 8,
+    "precip": 22.5
+  },
+  {
+    "code": "MG53519070",
+    "year": 2026,
+    "month": 8,
+    "precip": 13.8
+  },
+  {
+    "code": "MG53519090",
+    "year": 2026,
+    "month": 8,
+    "precip": 14.6
+  },
+  {
+    "code": "MG53519110",
+    "year": 2026,
+    "month": 8,
+    "precip": 29.7
+  },
+  {
+    "code": "MG53519150",
+    "year": 2026,
+    "month": 8,
+    "precip": 12.7
+  },
+  {
+    "code": "MG53519190",
+    "year": 2026,
+    "month": 8,
+    "precip": 25.0
+  },
+  {
+    "code": "MG53519230",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.3
+  },
+  {
+    "code": "MG53519250",
+    "year": 2026,
+    "month": 8,
+    "precip": 14.7
+  },
+  {
+    "code": "MG53519270",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.8
+  },
+  {
+    "code": "MG53519291",
+    "year": 2026,
+    "month": 8,
+    "precip": 18.8
+  },
+  {
+    "code": "MG53519292",
+    "year": 2026,
+    "month": 8,
+    "precip": 14.8
+  },
+  {
+    "code": "MG53515010",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.6
+  },
+  {
+    "code": "MG53515031",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG53515032",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.7
+  },
+  {
+    "code": "MG53515033",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG53515051",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.8
+  },
+  {
+    "code": "MG53515052",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.6
+  },
+  {
+    "code": "MG53515053",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.8
+  },
+  {
+    "code": "MG53515071",
+    "year": 2026,
+    "month": 8,
+    "precip": 13.0
+  },
+  {
+    "code": "MG53515072",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.5
+  },
+  {
+    "code": "MG53515090",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.5
+  },
+  {
+    "code": "MG53515111",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.6
+  },
+  {
+    "code": "MG53515112",
+    "year": 2026,
+    "month": 8,
+    "precip": 23.9
+  },
+  {
+    "code": "MG53515113",
+    "year": 2026,
+    "month": 8,
+    "precip": 15.3
+  },
+  {
+    "code": "MG53515114",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG53515115",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.7
+  },
+  {
+    "code": "MG53515131",
+    "year": 2026,
+    "month": 8,
+    "precip": 15.7
+  },
+  {
+    "code": "MG53515132",
+    "year": 2026,
+    "month": 8,
+    "precip": 13.4
+  },
+  {
+    "code": "MG53515151",
+    "year": 2026,
+    "month": 8,
+    "precip": 16.5
+  },
+  {
+    "code": "MG53517010",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.0
+  },
+  {
+    "code": "MG53517030",
+    "year": 2026,
+    "month": 8,
+    "precip": 9.3
+  },
+  {
+    "code": "MG53517050",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.2
+  },
+  {
+    "code": "MG53517070",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.7
+  },
+  {
+    "code": "MG53517332",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG53517090",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.0
+  },
+  {
+    "code": "MG53519050",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.6
+  },
+  {
+    "code": "MG53519130",
+    "year": 2026,
+    "month": 8,
+    "precip": 23.6
+  },
+  {
+    "code": "MG53519170",
+    "year": 2026,
+    "month": 8,
+    "precip": 37.6
+  },
+  {
+    "code": "MG53519210",
+    "year": 2026,
+    "month": 8,
+    "precip": 32.5
+  },
+  {
+    "code": "MG53517110",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG53517130",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.6
+  },
+  {
+    "code": "MG53517150",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.9
+  },
+  {
+    "code": "MG53517190",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.4
+  },
+  {
+    "code": "MG53517210",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.7
+  },
+  {
+    "code": "MG53517230",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.5
+  },
+  {
+    "code": "MG53517270",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG53517292",
+    "year": 2026,
+    "month": 8,
+    "precip": 9.3
+  },
+  {
+    "code": "MG53517293",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.2
+  },
+  {
+    "code": "MG53517310",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.3
+  },
+  {
+    "code": "MG53517331",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.0
+  },
+  {
+    "code": "MG51503091",
+    "year": 2026,
+    "month": 8,
+    "precip": 1.6
+  },
+  {
+    "code": "MG51503092",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.0
+  },
+  {
+    "code": "MG51503093",
+    "year": 2026,
+    "month": 8,
+    "precip": 1.3
+  },
+  {
+    "code": "MG51504130",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.1
+  },
+  {
+    "code": "MG51504150",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.9
+  },
+  {
+    "code": "MG51505011",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.1
+  },
+  {
+    "code": "MG51501002",
+    "year": 2026,
+    "month": 8,
+    "precip": null
+  },
+  {
+    "code": "MG51501006",
+    "year": 2026,
+    "month": 8,
+    "precip": 31.8
+  },
+  {
+    "code": "MG51501003",
+    "year": 2026,
+    "month": 8,
+    "precip": 32.5
+  },
+  {
+    "code": "MG51501004",
+    "year": 2026,
+    "month": 8,
+    "precip": null
+  },
+  {
+    "code": "MG51503011",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.5
+  },
+  {
+    "code": "MG51503012",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.2
+  },
+  {
+    "code": "MG51503030",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.5
+  },
+  {
+    "code": "MG51503050",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.9
+  },
+  {
+    "code": "MG51503070",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.0
+  },
+  {
+    "code": "MG51501005",
+    "year": 2026,
+    "month": 8,
+    "precip": null
+  },
+  {
+    "code": "MG51506210",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG51504010",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.0
+  },
+  {
+    "code": "MG51505072",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.9
+  },
+  {
+    "code": "MG51506011",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.7
+  },
+  {
+    "code": "MG51506012",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.6
+  },
+  {
+    "code": "MG51506013",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG51506014",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.8
+  },
+  {
+    "code": "MG51506015",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.0
+  },
+  {
+    "code": "MG51506030",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG51506230",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.2
+  },
+  {
+    "code": "MG51506050",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.0
+  },
+  {
+    "code": "MG51506070",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.0
+  },
+  {
+    "code": "MG51506150",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.6
+  },
+  {
+    "code": "MG51506090",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.7
+  },
+  {
+    "code": "MG51506111",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.6
+  },
+  {
+    "code": "MG51506112",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.1
+  },
+  {
+    "code": "MG51506252",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG51506113",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.1
+  },
+  {
+    "code": "MG51506270",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.5
+  },
+  {
+    "code": "MG51506130",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.0
+  },
+  {
+    "code": "MG51506290",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.1
+  },
+  {
+    "code": "MG51506170",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.6
+  },
+  {
+    "code": "MG51512012",
+    "year": 2026,
+    "month": 8,
+    "precip": 1.8
+  },
+  {
+    "code": "MG51506191",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.7
+  },
+  {
+    "code": "MG51507030",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG51507050",
+    "year": 2026,
+    "month": 8,
+    "precip": 6.7
+  },
+  {
+    "code": "MG51507070",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.9
+  },
+  {
+    "code": "MG51506192",
+    "year": 2026,
+    "month": 8,
+    "precip": 1.9
+  },
+  {
+    "code": "MG51506251",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG51506311",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.8
+  },
+  {
+    "code": "MG51506312",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.8
+  },
+  {
+    "code": "MG51520230",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.5
+  },
+  {
+    "code": "MG51520250",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG51506313",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.3
+  },
+  {
+    "code": "MG51506330",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.3
+  },
+  {
+    "code": "MG51507010",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.0
+  },
+  {
+    "code": "MG51507090",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.1
+  },
+  {
+    "code": "MG51507110",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG51507130",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.3
+  },
+  {
+    "code": "MG51507150",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.7
+  },
+  {
+    "code": "MG51507170",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.4
+  },
+  {
+    "code": "MG51520270",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.2
+  },
+  {
+    "code": "MG51507190",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.3
+  },
+  {
+    "code": "MG51507210",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG51507230",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.8
+  },
+  {
+    "code": "MG51507250",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.8
+  },
+  {
+    "code": "MG51507270",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.7
+  },
+  {
+    "code": "MG51507290",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.2
+  },
+  {
+    "code": "MG51507310",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.6
+  },
+  {
+    "code": "MG51512011",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.5
+  },
+  {
+    "code": "MG51512030",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.0
+  },
+  {
+    "code": "MG51512050",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.1
+  },
+  {
+    "code": "MG51512070",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.7
+  },
+  {
+    "code": "MG51512090",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.3
+  },
+  {
+    "code": "MG51512111",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.4
+  },
+  {
+    "code": "MG51512112",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.6
+  },
+  {
+    "code": "MG51512130",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.3
+  },
+  {
+    "code": "MG51512150",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.4
+  },
+  {
+    "code": "MG51512171",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.0
+  },
+  {
+    "code": "MG51520132",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.9
+  },
+  {
+    "code": "MG51520133",
+    "year": 2026,
+    "month": 8,
+    "precip": 7.6
+  },
+  {
+    "code": "MG51512172",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.3
+  },
+  {
+    "code": "MG51520010",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.9
+  },
+  {
+    "code": "MG51520150",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.5
+  },
+  {
+    "code": "MG51520030",
+    "year": 2026,
+    "month": 8,
+    "precip": 12.3
+  },
+  {
+    "code": "MG51520170",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.7
+  },
+  {
+    "code": "MG51520050",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.1
+  },
+  {
+    "code": "MG51520071",
+    "year": 2026,
+    "month": 8,
+    "precip": null
+  },
+  {
+    "code": "MG51520072",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.7
+  },
+  {
+    "code": "MG51520090",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.8
+  },
+  {
+    "code": "MG51520111",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.0
+  },
+  {
+    "code": "MG51520290",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.4
+  },
+  {
+    "code": "MG51520112",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.8
+  },
+  {
+    "code": "MG51520191",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.2
+  },
+  {
+    "code": "MG51520131",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.1
+  },
+  {
+    "code": "MG51520192",
+    "year": 2026,
+    "month": 8,
+    "precip": 4.0
+  },
+  {
+    "code": "MG51520210",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.6
+  },
+  {
+    "code": "MG51520310",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.4
+  },
+  {
+    "code": "MG51520330",
+    "year": 2026,
+    "month": 8,
+    "precip": 3.6
+  },
+  {
+    "code": "MG51520358",
+    "year": 2026,
+    "month": 8,
+    "precip": 5.2
+  },
+  {
+    "code": "MG51521010",
+    "year": 2026,
+    "month": 8,
+    "precip": 8.2
+  },
+  {
+    "code": "MG51521031",
+    "year": 2026,
+    "month": 8,
+    "precip": 10.7
+  },
+  {
+    "code": "MG51521032",
+    "year": 2026,
+    "month": 8,
+    "precip": 11.0
+  },
+  {
+    "code": "MG51521050",
+    "year": 2026,
+    "month": 8,
+    "precip": 2.9
+  },
+  {
+    "code": "MG52514072",
+    "year": 2026,
+    "month": 8,
+    "precip": 12.9
   }
 ]

@@ -4,6 +4,7 @@
 # ============================================================
 
 import os
+import sys
 import time
 import math
 import shutil
@@ -11,6 +12,9 @@ import requests
 import ee
 import geopandas as gpd
 import rasterio
+
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 from rasterio.merge import merge
 from rasterio.warp import calculate_default_transform, reproject, Resampling
@@ -35,27 +39,22 @@ START_YEAR = 2000
 EE_PROJECT = "eehanitriniala"
 
 
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
 # ============================================================
 # SHAPEFILE AOI
 # ============================================================
 
-AOI_SHP = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Desktop\Regions 3"
-    r"\3_region.shp"
-)
+AOI_SHP = str(ROOT_DIR / "Regions 3" / "3_region.shp")
 
 
 # ============================================================
 # DOSSIER DE SORTIE
 # ============================================================
 
-OUTPUT_DIR = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Documents\Projet_test"
-    r"\dynatsimo-react"
-    r"\NDVI_LANDSAT"
-)
+OUTPUT_DIR = str(ROOT_DIR / "NDVI_LANDSAT")
 
 
 # ============================================================

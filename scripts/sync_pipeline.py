@@ -104,7 +104,18 @@ def run_export_isohyetes() -> bool:
 
 
 def run_sync_ndvi() -> bool:
-    print_step_header(4, "Synchronisation et classification NDVI MODIS 6-classes")
+    print_step_header(4, "Téléchargement & Classification NDVI MODIS 6-classes")
+    
+    # 1. Téléchargement des nouveaux rasters MODIS depuis Earth Engine
+    download_script = SCRIPTS_DIR / "download_ndvi_modis_monthly_VF.py"
+    if download_script.exists():
+        try:
+            print("→ Recherche de nouveaux rasters MODIS sur Google Earth Engine...")
+            subprocess.run([sys.executable, str(download_script)], check=False)
+        except Exception as e:
+            print(f"⚠ Téléchargement MODIS ignoré ou en erreur : {e}")
+
+    # 2. Classification et génération des tuiles PNG Web
     script_path = SCRIPTS_DIR / "export_ndvi_6classes.py"
     if not script_path.exists():
         print("ℹ Pas de script NDVI trouvé, étape ignorée.")

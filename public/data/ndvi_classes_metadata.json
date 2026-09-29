@@ -3442,6 +3442,106 @@
       ]
     },
     {
+      "key": "2013_12",
+      "year": 2013,
+      "month": 12,
+      "label": "Décembre 2013",
+      "shortLabel": "Déc 2013",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2013/ndvi_class_2013_12.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    {
+      "key": "2014_01",
+      "year": 2014,
+      "month": 1,
+      "label": "Janvier 2014",
+      "shortLabel": "Jan 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_01.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    {
+      "key": "2014_02",
+      "year": 2014,
+      "month": 2,
+      "label": "Février 2014",
+      "shortLabel": "Fév 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_02.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    {
+      "key": "2014_03",
+      "year": 2014,
+      "month": 3,
+      "label": "Mars 2014",
+      "shortLabel": "Mar 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_03.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    {
+      "key": "2014_04",
+      "year": 2014,
+      "month": 4,
+      "label": "Avril 2014",
+      "shortLabel": "Avr 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_04.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    {
       "key": "2014_05",
       "year": 2014,
       "month": 5,
@@ -6368,6 +6468,26 @@
       "label": "Juillet 2026",
       "shortLabel": "Juil 2026",
       "pngUrl": "/data/raster/ndvi_modis_6classes/2026/ndvi_class_2026_07.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    {
+      "key": "2026_08",
+      "year": 2026,
+      "month": 8,
+      "label": "Août 2026",
+      "shortLabel": "Aoû 2026",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2026/ndvi_class_2026_08.png",
       "width": 1888,
       "height": 2092,
       "bounds": [
@@ -9703,6 +9823,106 @@
         ]
       ]
     },
+    "2013_12": {
+      "key": "2013_12",
+      "year": 2013,
+      "month": 12,
+      "label": "Décembre 2013",
+      "shortLabel": "Déc 2013",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2013/ndvi_class_2013_12.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    "2014_01": {
+      "key": "2014_01",
+      "year": 2014,
+      "month": 1,
+      "label": "Janvier 2014",
+      "shortLabel": "Jan 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_01.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    "2014_02": {
+      "key": "2014_02",
+      "year": 2014,
+      "month": 2,
+      "label": "Février 2014",
+      "shortLabel": "Fév 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_02.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    "2014_03": {
+      "key": "2014_03",
+      "year": 2014,
+      "month": 3,
+      "label": "Mars 2014",
+      "shortLabel": "Mar 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_03.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
+    "2014_04": {
+      "key": "2014_04",
+      "year": 2014,
+      "month": 4,
+      "label": "Avril 2014",
+      "shortLabel": "Avr 2014",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2014/ndvi_class_2014_04.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
+    },
     "2014_05": {
       "key": "2014_05",
       "year": 2014,
@@ -12642,10 +12862,30 @@
           47.415326484038644
         ]
       ]
+    },
+    "2026_08": {
+      "key": "2026_08",
+      "year": 2026,
+      "month": 8,
+      "label": "Août 2026",
+      "shortLabel": "Aoû 2026",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2026/ndvi_class_2026_08.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
     }
   },
-  "totalRasters": 313,
+  "totalRasters": 319,
   "startPeriod": "2000_02",
-  "endPeriod": "2026_07",
-  "generatedAt": "2026-09-28 15:13:30"
+  "endPeriod": "2026_08",
+  "generatedAt": "2026-09-29 08:36:06"
 }

@@ -1377,7 +1377,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 214
+    "precip": 247
   },
   {
     "code_commune": "MG51501004",
@@ -2757,7 +2757,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Mar",
-    "precip": 149
+    "precip": 180
   },
   {
     "code_commune": "MG51503011",
@@ -3217,7 +3217,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 797
+    "precip": 799
   },
   {
     "code_commune": "MG51503012",
@@ -3677,7 +3677,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 697
+    "precip": 700
   },
   {
     "code_commune": "MG51503030",
@@ -4137,7 +4137,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 618
+    "precip": 622
   },
   {
     "code_commune": "MG51503050",
@@ -4597,7 +4597,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 604
+    "precip": 608
   },
   {
     "code_commune": "MG51503070",
@@ -5057,7 +5057,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 745
+    "precip": 747
   },
   {
     "code_commune": "MG51503091",
@@ -5517,7 +5517,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 962
+    "precip": 964
   },
   {
     "code_commune": "MG51503092",
@@ -5977,7 +5977,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 894
+    "precip": 896
   },
   {
     "code_commune": "MG51503093",
@@ -6437,7 +6437,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 1014
+    "precip": 1015
   },
   {
     "code_commune": "MG51504010",
@@ -6897,7 +6897,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 282
+    "precip": 284
   },
   {
     "code_commune": "MG51504030",
@@ -7357,7 +7357,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 238
+    "precip": 243
   },
   {
     "code_commune": "MG51504050",
@@ -7817,7 +7817,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 331
+    "precip": 332
   },
   {
     "code_commune": "MG51504070",
@@ -8277,7 +8277,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 194
+    "precip": 197
   },
   {
     "code_commune": "MG51504090",
@@ -8737,7 +8737,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 492
+    "precip": 494
   },
   {
     "code_commune": "MG51504110",
@@ -9197,7 +9197,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 505
+    "precip": 508
   },
   {
     "code_commune": "MG51504130",
@@ -9657,7 +9657,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 533
+    "precip": 536
   },
   {
     "code_commune": "MG51504150",
@@ -10117,7 +10117,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 414
+    "precip": 417
   },
   {
     "code_commune": "MG51505011",
@@ -10577,7 +10577,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 487
+    "precip": 490
   },
   {
     "code_commune": "MG51505012",
@@ -11037,7 +11037,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 500
+    "precip": 502
   },
   {
     "code_commune": "MG51505030",
@@ -11497,7 +11497,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 552
+    "precip": 554
   },
   {
     "code_commune": "MG51505050",
@@ -11957,7 +11957,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 526
+    "precip": 528
   },
   {
     "code_commune": "MG51505071",
@@ -12417,7 +12417,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 568
+    "precip": 570
   },
   {
     "code_commune": "MG51505072",
@@ -12877,7 +12877,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 567
+    "precip": 570
   },
   {
     "code_commune": "MG51506011",
@@ -13337,7 +13337,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 458
+    "precip": 465
   },
   {
     "code_commune": "MG51506012",
@@ -13797,7 +13797,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 476
+    "precip": 482
   },
   {
     "code_commune": "MG51506013",
@@ -14257,7 +14257,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 429
+    "precip": 435
   },
   {
     "code_commune": "MG51506014",
@@ -14717,7 +14717,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 374
+    "precip": 378
   },
   {
     "code_commune": "MG51506015",
@@ -15177,7 +15177,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 344
+    "precip": 347
   },
   {
     "code_commune": "MG51506030",
@@ -15637,7 +15637,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 412
+    "precip": 416
   },
   {
     "code_commune": "MG51506050",
@@ -16097,7 +16097,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 425
+    "precip": 430
   },
   {
     "code_commune": "MG51506070",
@@ -16557,7 +16557,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 482
+    "precip": 486
   },
   {
     "code_commune": "MG51506090",
@@ -17017,7 +17017,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 451
+    "precip": 455
   },
   {
     "code_commune": "MG51506111",
@@ -17477,7 +17477,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 443
+    "precip": 446
   },
   {
     "code_commune": "MG51506112",
@@ -17937,7 +17937,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 488
+    "precip": 491
   },
   {
     "code_commune": "MG51506113",
@@ -18397,7 +18397,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 452
+    "precip": 455
   },
   {
     "code_commune": "MG51506130",
@@ -18857,7 +18857,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 493
+    "precip": 497
   },
   {
     "code_commune": "MG51506150",
@@ -19317,7 +19317,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 487
+    "precip": 491
   },
   {
     "code_commune": "MG51506170",
@@ -19777,7 +19777,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 533
+    "precip": 536
   },
   {
     "code_commune": "MG51506191",
@@ -20237,7 +20237,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 513
+    "precip": 515
   },
   {
     "code_commune": "MG51506192",
@@ -20697,7 +20697,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 527
+    "precip": 529
   },
   {
     "code_commune": "MG51506210",
@@ -21157,7 +21157,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 510
+    "precip": 514
   },
   {
     "code_commune": "MG51506230",
@@ -21617,7 +21617,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 517
+    "precip": 520
   },
   {
     "code_commune": "MG51506251",
@@ -22077,7 +22077,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 532
+    "precip": 538
   },
   {
     "code_commune": "MG51506252",
@@ -22537,7 +22537,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 515
+    "precip": 519
   },
   {
     "code_commune": "MG51506270",
@@ -22997,7 +22997,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 542
+    "precip": 544
   },
   {
     "code_commune": "MG51506290",
@@ -23457,7 +23457,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 513
+    "precip": 516
   },
   {
     "code_commune": "MG51506311",
@@ -23917,7 +23917,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 493
+    "precip": 497
   },
   {
     "code_commune": "MG51506312",
@@ -24377,7 +24377,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 505
+    "precip": 507
   },
   {
     "code_commune": "MG51506313",
@@ -24837,7 +24837,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 514
+    "precip": 516
   },
   {
     "code_commune": "MG51506330",
@@ -25297,7 +25297,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 530
+    "precip": 538
   },
   {
     "code_commune": "MG51507010",
@@ -25757,7 +25757,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 421
+    "precip": 428
   },
   {
     "code_commune": "MG51507030",
@@ -26217,7 +26217,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 460
+    "precip": 465
   },
   {
     "code_commune": "MG51507050",
@@ -26677,7 +26677,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 484
+    "precip": 491
   },
   {
     "code_commune": "MG51507070",
@@ -27137,7 +27137,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 491
+    "precip": 495
   },
   {
     "code_commune": "MG51507090",
@@ -27597,7 +27597,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 523
+    "precip": 528
   },
   {
     "code_commune": "MG51507110",
@@ -28057,7 +28057,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 515
+    "precip": 519
   },
   {
     "code_commune": "MG51507130",
@@ -28517,7 +28517,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 541
+    "precip": 546
   },
   {
     "code_commune": "MG51507150",
@@ -28977,7 +28977,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 417
+    "precip": 422
   },
   {
     "code_commune": "MG51507170",
@@ -29437,7 +29437,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 456
+    "precip": 460
   },
   {
     "code_commune": "MG51507190",
@@ -29897,7 +29897,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 388
+    "precip": 391
   },
   {
     "code_commune": "MG51507210",
@@ -30357,7 +30357,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 491
+    "precip": 495
   },
   {
     "code_commune": "MG51507230",
@@ -30817,7 +30817,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 322
+    "precip": 328
   },
   {
     "code_commune": "MG51507250",
@@ -31277,7 +31277,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 451
+    "precip": 456
   },
   {
     "code_commune": "MG51507270",
@@ -31737,7 +31737,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 478
+    "precip": 484
   },
   {
     "code_commune": "MG51507290",
@@ -32197,7 +32197,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 555
+    "precip": 560
   },
   {
     "code_commune": "MG51507310",
@@ -32657,7 +32657,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 301
+    "precip": 306
   },
   {
     "code_commune": "MG51512011",
@@ -33117,7 +33117,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 543
+    "precip": 546
   },
   {
     "code_commune": "MG51512012",
@@ -33577,7 +33577,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 560
+    "precip": 562
   },
   {
     "code_commune": "MG51512030",
@@ -34037,7 +34037,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 522
+    "precip": 525
   },
   {
     "code_commune": "MG51512050",
@@ -34497,7 +34497,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 568
+    "precip": 571
   },
   {
     "code_commune": "MG51512070",
@@ -34957,7 +34957,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 548
+    "precip": 550
   },
   {
     "code_commune": "MG51512090",
@@ -35417,7 +35417,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 516
+    "precip": 518
   },
   {
     "code_commune": "MG51512111",
@@ -35877,7 +35877,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 515
+    "precip": 517
   },
   {
     "code_commune": "MG51512112",
@@ -36337,7 +36337,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 568
+    "precip": 570
   },
   {
     "code_commune": "MG51512130",
@@ -36797,7 +36797,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 530
+    "precip": 532
   },
   {
     "code_commune": "MG51512150",
@@ -37257,7 +37257,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 578
+    "precip": 581
   },
   {
     "code_commune": "MG51512171",
@@ -37717,7 +37717,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 592
+    "precip": 595
   },
   {
     "code_commune": "MG51512172",
@@ -38177,7 +38177,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 567
+    "precip": 570
   },
   {
     "code_commune": "MG51520010",
@@ -38637,7 +38637,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 214
+    "precip": 220
   },
   {
     "code_commune": "MG51520030",
@@ -39097,7 +39097,7 @@
     "fin": "Mar",
     "duree": 3.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 234
+    "precip": 246
   },
   {
     "code_commune": "MG51520050",
@@ -39557,7 +39557,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 258
+    "precip": 263
   },
   {
     "code_commune": "MG51520071",
@@ -40477,7 +40477,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 427
+    "precip": 431
   },
   {
     "code_commune": "MG51520090",
@@ -40937,7 +40937,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 387
+    "precip": 390
   },
   {
     "code_commune": "MG51520111",
@@ -41397,7 +41397,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 346
+    "precip": 350
   },
   {
     "code_commune": "MG51520112",
@@ -41857,7 +41857,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 349
+    "precip": 353
   },
   {
     "code_commune": "MG51520131",
@@ -42317,7 +42317,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 263
+    "precip": 273
   },
   {
     "code_commune": "MG51520132",
@@ -42777,7 +42777,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 211
+    "precip": 216
   },
   {
     "code_commune": "MG51520133",
@@ -43237,7 +43237,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 245
+    "precip": 253
   },
   {
     "code_commune": "MG51520150",
@@ -43697,7 +43697,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 284
+    "precip": 289
   },
   {
     "code_commune": "MG51520170",
@@ -44157,7 +44157,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 291
+    "precip": 295
   },
   {
     "code_commune": "MG51520191",
@@ -44617,7 +44617,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 349
+    "precip": 353
   },
   {
     "code_commune": "MG51520192",
@@ -45077,7 +45077,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 301
+    "precip": 306
   },
   {
     "code_commune": "MG51520210",
@@ -45537,7 +45537,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 250
+    "precip": 253
   },
   {
     "code_commune": "MG51520230",
@@ -45997,7 +45997,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 371
+    "precip": 375
   },
   {
     "code_commune": "MG51520250",
@@ -46457,7 +46457,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 228
+    "precip": 233
   },
   {
     "code_commune": "MG51520270",
@@ -46917,7 +46917,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 463
+    "precip": 466
   },
   {
     "code_commune": "MG51520290",
@@ -47377,7 +47377,7 @@
     "fin": "Mar",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 320
+    "precip": 323
   },
   {
     "code_commune": "MG51520310",
@@ -47837,7 +47837,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 440
+    "precip": 443
   },
   {
     "code_commune": "MG51520330",
@@ -48297,7 +48297,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 421
+    "precip": 424
   },
   {
     "code_commune": "MG51520358",
@@ -48757,7 +48757,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 273
+    "precip": 279
   },
   {
     "code_commune": "MG51521010",
@@ -49217,7 +49217,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 566
+    "precip": 574
   },
   {
     "code_commune": "MG51521031",
@@ -49677,7 +49677,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 508
+    "precip": 519
   },
   {
     "code_commune": "MG51521032",
@@ -50137,7 +50137,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 527
+    "precip": 538
   },
   {
     "code_commune": "MG51521050",
@@ -50597,7 +50597,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 557
+    "precip": 560
   },
   {
     "code_commune": "MG52513010",
@@ -51057,7 +51057,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 407
+    "precip": 415
   },
   {
     "code_commune": "MG52513030",
@@ -51517,7 +51517,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 358
+    "precip": 364
   },
   {
     "code_commune": "MG52513050",
@@ -51977,7 +51977,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 412
+    "precip": 420
   },
   {
     "code_commune": "MG52513070",
@@ -52437,7 +52437,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Dec",
-    "precip": 347
+    "precip": 354
   },
   {
     "code_commune": "MG52513091",
@@ -52897,7 +52897,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 463
+    "precip": 471
   },
   {
     "code_commune": "MG52513092",
@@ -53357,7 +53357,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 434
+    "precip": 441
   },
   {
     "code_commune": "MG52514011",
@@ -53817,7 +53817,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 404
+    "precip": 414
   },
   {
     "code_commune": "MG52514012",
@@ -54277,7 +54277,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 376
+    "precip": 381
   },
   {
     "code_commune": "MG52514031",
@@ -54737,7 +54737,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 352
+    "precip": 356
   },
   {
     "code_commune": "MG52514032",
@@ -55197,7 +55197,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 360
+    "precip": 366
   },
   {
     "code_commune": "MG52514050",
@@ -55657,7 +55657,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 368
+    "precip": 373
   },
   {
     "code_commune": "MG52514071",
@@ -56117,7 +56117,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 366
+    "precip": 374
   },
   {
     "code_commune": "MG52514072",
@@ -56577,7 +56577,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 380
+    "precip": 393
   },
   {
     "code_commune": "MG52516011",
@@ -57037,7 +57037,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 441
+    "precip": 457
   },
   {
     "code_commune": "MG52516012",
@@ -57497,7 +57497,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 454
+    "precip": 468
   },
   {
     "code_commune": "MG52516013",
@@ -57957,7 +57957,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 412
+    "precip": 422
   },
   {
     "code_commune": "MG52516014",
@@ -58417,7 +58417,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 383
+    "precip": 395
   },
   {
     "code_commune": "MG52516031",
@@ -58877,7 +58877,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 479
+    "precip": 495
   },
   {
     "code_commune": "MG52516032",
@@ -59337,7 +59337,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 449
+    "precip": 463
   },
   {
     "code_commune": "MG52516033",
@@ -59797,7 +59797,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 451
+    "precip": 466
   },
   {
     "code_commune": "MG52516050",
@@ -60257,7 +60257,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 439
+    "precip": 451
   },
   {
     "code_commune": "MG52516071",
@@ -60717,7 +60717,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 413
+    "precip": 427
   },
   {
     "code_commune": "MG52516072",
@@ -61177,7 +61177,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 376
+    "precip": 394
   },
   {
     "code_commune": "MG52516091",
@@ -61637,7 +61637,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 412
+    "precip": 426
   },
   {
     "code_commune": "MG52516092",
@@ -62097,7 +62097,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 376
+    "precip": 384
   },
   {
     "code_commune": "MG52516111",
@@ -62557,7 +62557,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 411
+    "precip": 422
   },
   {
     "code_commune": "MG52516112",
@@ -63017,7 +63017,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 393
+    "precip": 404
   },
   {
     "code_commune": "MG52516130",
@@ -63477,7 +63477,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 468
+    "precip": 479
   },
   {
     "code_commune": "MG52516151",
@@ -63937,7 +63937,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 470
+    "precip": 477
   },
   {
     "code_commune": "MG52516152",
@@ -64397,7 +64397,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 518
+    "precip": 524
   },
   {
     "code_commune": "MG52516170",
@@ -64857,7 +64857,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 413
+    "precip": 421
   },
   {
     "code_commune": "MG52516190",
@@ -65317,7 +65317,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 592
+    "precip": 608
   },
   {
     "code_commune": "MG52518010",
@@ -65777,7 +65777,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 574
+    "precip": 579
   },
   {
     "code_commune": "MG52518031",
@@ -66237,7 +66237,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 573
+    "precip": 578
   },
   {
     "code_commune": "MG52518032",
@@ -66697,7 +66697,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 576
+    "precip": 582
   },
   {
     "code_commune": "MG52518050",
@@ -67157,7 +67157,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 561
+    "precip": 566
   },
   {
     "code_commune": "MG52518070",
@@ -67617,7 +67617,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 557
+    "precip": 561
   },
   {
     "code_commune": "MG52518091",
@@ -68077,7 +68077,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 595
+    "precip": 606
   },
   {
     "code_commune": "MG52518092",
@@ -68537,7 +68537,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 583
+    "precip": 591
   },
   {
     "code_commune": "MG52518110",
@@ -68997,7 +68997,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 556
+    "precip": 561
   },
   {
     "code_commune": "MG52518130",
@@ -69457,7 +69457,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 570
+    "precip": 577
   },
   {
     "code_commune": "MG52518151",
@@ -69917,7 +69917,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 587
+    "precip": 597
   },
   {
     "code_commune": "MG52518152",
@@ -70377,7 +70377,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 546
+    "precip": 559
   },
   {
     "code_commune": "MG52518170",
@@ -70837,7 +70837,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 535
+    "precip": 543
   },
   {
     "code_commune": "MG52518190",
@@ -71297,7 +71297,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 550
+    "precip": 555
   },
   {
     "code_commune": "MG52518210",
@@ -71757,7 +71757,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 557
+    "precip": 566
   },
   {
     "code_commune": "MG52518230",
@@ -72217,7 +72217,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 510
+    "precip": 516
   },
   {
     "code_commune": "MG52518251",
@@ -72677,7 +72677,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 613
+    "precip": 623
   },
   {
     "code_commune": "MG52518252",
@@ -73137,7 +73137,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 603
+    "precip": 614
   },
   {
     "code_commune": "MG52518270",
@@ -73597,7 +73597,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 476
+    "precip": 483
   },
   {
     "code_commune": "MG52518290",
@@ -74057,7 +74057,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 560
+    "precip": 567
   },
   {
     "code_commune": "MG53515010",
@@ -74517,7 +74517,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 659
+    "precip": 662
   },
   {
     "code_commune": "MG53515031",
@@ -74977,7 +74977,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 754
+    "precip": 760
   },
   {
     "code_commune": "MG53515032",
@@ -75437,7 +75437,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 733
+    "precip": 739
   },
   {
     "code_commune": "MG53515033",
@@ -75897,7 +75897,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 692
+    "precip": 698
   },
   {
     "code_commune": "MG53515051",
@@ -76357,7 +76357,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 776
+    "precip": 786
   },
   {
     "code_commune": "MG53515052",
@@ -76817,7 +76817,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 779
+    "precip": 796
   },
   {
     "code_commune": "MG53515053",
@@ -77277,7 +77277,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 718
+    "precip": 735
   },
   {
     "code_commune": "MG53515071",
@@ -77737,7 +77737,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 655
+    "precip": 668
   },
   {
     "code_commune": "MG53515072",
@@ -78197,7 +78197,7 @@
     "fin": "Fev",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 620
+    "precip": 628
   },
   {
     "code_commune": "MG53515090",
@@ -78657,7 +78657,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 633
+    "precip": 645
   },
   {
     "code_commune": "MG53515111",
@@ -79117,7 +79117,7 @@
     "fin": "Mar",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 539
+    "precip": 547
   },
   {
     "code_commune": "MG53515112",
@@ -79577,7 +79577,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 633
+    "precip": 657
   },
   {
     "code_commune": "MG53515113",
@@ -80037,7 +80037,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 531
+    "precip": 546
   },
   {
     "code_commune": "MG53515114",
@@ -80497,7 +80497,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 463
+    "precip": 468
   },
   {
     "code_commune": "MG53515115",
@@ -80957,7 +80957,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 407
+    "precip": 414
   },
   {
     "code_commune": "MG53515131",
@@ -81417,7 +81417,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 846
+    "precip": 862
   },
   {
     "code_commune": "MG53515132",
@@ -81877,7 +81877,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 806
+    "precip": 820
   },
   {
     "code_commune": "MG53515151",
@@ -82337,7 +82337,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 753
+    "precip": 769
   },
   {
     "code_commune": "MG53515152",
@@ -82797,7 +82797,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 878
+    "precip": 895
   },
   {
     "code_commune": "MG53515170",
@@ -83257,7 +83257,7 @@
     "fin": "Avr",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 853
+    "precip": 869
   },
   {
     "code_commune": "MG53515191",
@@ -83717,7 +83717,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 905
+    "precip": 921
   },
   {
     "code_commune": "MG53515192",
@@ -84177,7 +84177,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 977
+    "precip": 992
   },
   {
     "code_commune": "MG53515210",
@@ -84637,7 +84637,7 @@
     "fin": "Avr",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 975
+    "precip": 991
   },
   {
     "code_commune": "MG53515230",
@@ -85097,7 +85097,7 @@
     "fin": "Mai",
     "duree": 7.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 1028
+    "precip": 1068
   },
   {
     "code_commune": "MG53515251",
@@ -85557,7 +85557,7 @@
     "fin": "Mai",
     "duree": 7.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 1025
+    "precip": 1059
   },
   {
     "code_commune": "MG53515252",
@@ -86017,7 +86017,7 @@
     "fin": "Mai",
     "duree": 7.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 1142
+    "precip": 1201
   },
   {
     "code_commune": "MG53515253",
@@ -86477,7 +86477,7 @@
     "fin": "Mai",
     "duree": 7.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 1301
+    "precip": 1364
   },
   {
     "code_commune": "MG53517010",
@@ -86937,7 +86937,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 664
+    "precip": 670
   },
   {
     "code_commune": "MG53517030",
@@ -87397,7 +87397,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 739
+    "precip": 748
   },
   {
     "code_commune": "MG53517050",
@@ -87857,7 +87857,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 656
+    "precip": 663
   },
   {
     "code_commune": "MG53517070",
@@ -88317,7 +88317,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 691
+    "precip": 697
   },
   {
     "code_commune": "MG53517090",
@@ -88777,7 +88777,7 @@
     "fin": "Avr",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 755
+    "precip": 762
   },
   {
     "code_commune": "MG53517110",
@@ -89237,7 +89237,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 591
+    "precip": 596
   },
   {
     "code_commune": "MG53517130",
@@ -89697,7 +89697,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 656
+    "precip": 660
   },
   {
     "code_commune": "MG53517150",
@@ -90157,7 +90157,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 662
+    "precip": 667
   },
   {
     "code_commune": "MG53517170",
@@ -90617,7 +90617,7 @@
     "fin": "Avr",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 781
+    "precip": 789
   },
   {
     "code_commune": "MG53517190",
@@ -91077,7 +91077,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 589
+    "precip": 594
   },
   {
     "code_commune": "MG53517210",
@@ -91537,7 +91537,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 656
+    "precip": 659
   },
   {
     "code_commune": "MG53517230",
@@ -91997,7 +91997,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 567
+    "precip": 573
   },
   {
     "code_commune": "MG53517250",
@@ -92457,7 +92457,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 678
+    "precip": 686
   },
   {
     "code_commune": "MG53517270",
@@ -92917,7 +92917,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 578
+    "precip": 583
   },
   {
     "code_commune": "MG53517291",
@@ -93377,7 +93377,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 634
+    "precip": 643
   },
   {
     "code_commune": "MG53517292",
@@ -93837,7 +93837,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 539
+    "precip": 549
   },
   {
     "code_commune": "MG53517293",
@@ -94297,7 +94297,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 594
+    "precip": 601
   },
   {
     "code_commune": "MG53517310",
@@ -94757,7 +94757,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 570
+    "precip": 578
   },
   {
     "code_commune": "MG53517331",
@@ -95217,7 +95217,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 628
+    "precip": 631
   },
   {
     "code_commune": "MG53517332",
@@ -95677,7 +95677,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 582
+    "precip": 587
   },
   {
     "code_commune": "MG53517350",
@@ -96137,7 +96137,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 569
+    "precip": 581
   },
   {
     "code_commune": "MG53519010",
@@ -96597,7 +96597,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 370
+    "precip": 377
   },
   {
     "code_commune": "MG53519030",
@@ -97057,7 +97057,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 435
+    "precip": 457
   },
   {
     "code_commune": "MG53519050",
@@ -97517,7 +97517,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 364
+    "precip": 376
   },
   {
     "code_commune": "MG53519070",
@@ -97977,7 +97977,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 344
+    "precip": 357
   },
   {
     "code_commune": "MG53519090",
@@ -98437,7 +98437,7 @@
     "fin": "Fev",
     "duree": 4.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 498
+    "precip": 513
   },
   {
     "code_commune": "MG53519110",
@@ -98897,7 +98897,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 622
+    "precip": 652
   },
   {
     "code_commune": "MG53519130",
@@ -99357,7 +99357,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 715
+    "precip": 739
   },
   {
     "code_commune": "MG53519150",
@@ -99817,7 +99817,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 766
+    "precip": 779
   },
   {
     "code_commune": "MG53519170",
@@ -100277,7 +100277,7 @@
     "fin": "Avr",
     "duree": 6.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 807
+    "precip": 844
   },
   {
     "code_commune": "MG53519190",
@@ -100737,7 +100737,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 772
+    "precip": 797
   },
   {
     "code_commune": "MG53519210",
@@ -101197,7 +101197,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 826
+    "precip": 859
   },
   {
     "code_commune": "MG53519230",
@@ -101657,7 +101657,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 724
+    "precip": 733
   },
   {
     "code_commune": "MG53519250",
@@ -102117,7 +102117,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 691
+    "precip": 706
   },
   {
     "code_commune": "MG53519270",
@@ -102577,7 +102577,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 714
+    "precip": 726
   },
   {
     "code_commune": "MG53519291",
@@ -103037,7 +103037,7 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 566
+    "precip": 585
   },
   {
     "code_commune": "MG53519292",
@@ -103497,6 +103497,6 @@
     "fin": "Mar",
     "duree": 5.0,
     "mois_plus_pluvieux": "Jan",
-    "precip": 625
+    "precip": 640
   }
 ]

@@ -1,7 +1,11 @@
 import os
+import sys
 import time
 import shutil
 import requests
+
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 import ee
 import geopandas as gpd
@@ -28,26 +32,21 @@ START_YEAR = 2015
 # Projet Google Earth Engine
 EE_PROJECT = "eehanitriniala"
 
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
 # ------------------------------------------------------------
 # SHAPEFILE AOI
 # ------------------------------------------------------------
 
-AOI_SHP = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Desktop\Regions 3"
-    r"\3_region.shp"
-)
+AOI_SHP = str(ROOT_DIR / "Regions 3" / "3_region.shp")
 
 # ------------------------------------------------------------
 # DOSSIER FINAL
 # ------------------------------------------------------------
 
-OUTPUT_DIR = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Documents\Projet_test"
-    r"\dynatsimo-react"
-    r"\NDVI_SENTINEL"
-)
+OUTPUT_DIR = str(ROOT_DIR / "NDVI_SENTINEL")
 
 # ------------------------------------------------------------
 # DOSSIER TEMPORAIRE

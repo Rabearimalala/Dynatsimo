@@ -8375,6 +8375,18 @@
         20
       ]
     },
+    "isohyete_2026_08": {
+      "key": "isohyete_2026_08",
+      "label": "Août 2026",
+      "pngUrl": "/data/raster/isohyetes/isohyete_2026_08.png",
+      "geojsonUrl": "/data/isohyetes/isohyete_2026_08.json",
+      "minPrecip": 0.8,
+      "maxPrecip": 87.9,
+      "meanPrecip": 7.7,
+      "levels": [
+        50
+      ]
+    },
     "isohyete_1981_annual": {
       "key": "isohyete_1981_annual",
       "label": "Année 1981 (Cumul annuel)",
@@ -10511,9 +10523,9 @@
       "label": "Année 2026 (Cumul annuel)",
       "pngUrl": "/data/raster/isohyetes/isohyete_2026_annual.png",
       "geojsonUrl": "/data/isohyetes/isohyete_2026_annual.json",
-      "minPrecip": 90.7,
-      "maxPrecip": 1085.2,
-      "meanPrecip": 359.5,
+      "minPrecip": 96.5,
+      "maxPrecip": 1169.4,
+      "meanPrecip": 367.3,
       "levels": [
         100,
         150,
@@ -10534,7 +10546,9 @@
         900,
         950,
         1000,
-        1050
+        1050,
+        1100,
+        1150
       ]
     },
     "isohyete_decade_1981_1989": {
@@ -10726,9 +10740,9 @@
       "label": "Décennie 2020–2026 (Moyenne annuelle)",
       "pngUrl": "/data/raster/isohyetes/isohyete_decade_2020_2026.png",
       "geojsonUrl": "/data/isohyetes/isohyete_decade_2020_2026.json",
-      "minPrecip": 270.8,
-      "maxPrecip": 2023.9,
-      "meanPrecip": 703.2,
+      "minPrecip": 267.8,
+      "maxPrecip": 2011.2,
+      "meanPrecip": 695.6,
       "levels": [
         300,
         350,

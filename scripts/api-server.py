@@ -105,6 +105,14 @@ class ApiHandler(BaseHTTPRequestHandler):
             if path in ("/api/ndvi-classes", "/api/ndvi-classes/sync"):
                 meta_path = ROOT_DIR / "public" / "data" / "ndvi_classes_metadata.json"
                 if path == "/api/ndvi-classes/sync" or not meta_path.exists():
+                    if path == "/api/ndvi-classes/sync":
+                        modis_script = ROOT_DIR / "scripts" / "download_ndvi_modis_monthly_VF.py"
+                        if modis_script.exists():
+                            try:
+                                subprocess.run([sys.executable, str(modis_script)], check=False)
+                            except Exception as e:
+                                print(f"Erreur download MODIS : {e}")
+
                     ndvi_mod = load_ndvi_module()
                     if ndvi_mod and hasattr(ndvi_mod, "sync_all_ndvi_rasters"):
                         meta = ndvi_mod.sync_all_ndvi_rasters()

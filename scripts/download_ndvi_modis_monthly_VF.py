@@ -1,9 +1,16 @@
 import os
+import sys
 import time
 import requests
 import ee
 import geopandas as gpd
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
 
 # ============================================================
 # 1. PARAMÈTRES
@@ -24,22 +31,14 @@ EE_PROJECT = "eehanitriniala"
 # CHEMIN DU SHAPEFILE
 # ============================================================
 
-AOI_SHP = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Desktop\Regions 3"
-    r"\3_region.shp"
-)
+AOI_SHP = str(ROOT_DIR / "Regions 3" / "3_region.shp")
 
 
 # ============================================================
 # DOSSIER DE SORTIE
 # ============================================================
 
-OUTPUT_DIR = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Documents\Projet_test"
-    r"\dynatsimo-react\NDVI_MODIS"
-)
+OUTPUT_DIR = str(ROOT_DIR / "NDVI_MODIS")
 
 
 # ============================================================
