@@ -874,7 +874,6 @@ function App() {
                       {[
                         { id: "precip", label: "🌧️ Précipitations" },
                         { id: "vegetation", label: "🌿 Suivi Végétation" },
-                        { id: "saison", label: "🗓️ Début et fin de pluie" },
                       ].map((sub) => (
                         <button
                           key={sub.id}
@@ -1199,14 +1198,11 @@ function UnifiedSinglePage({
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-stats-veg")}>
             <span className="pill-num">04</span> Végétation NDVI 🌿
           </button>
-          <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-stats-saison")}>
-            <span className="pill-num">05</span> Début et fin de pluie 🗓️
-          </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-data")}>
-            <span className="pill-num">06</span> Base de Données 📋
+            <span className="pill-num">05</span> Base de Données 📋
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-guide")}>
-            <span className="pill-num">07</span> Guide & Capteurs 📖
+            <span className="pill-num">06</span> Guide & Capteurs 📖
           </button>
         </div>
       </div>
@@ -1259,7 +1255,7 @@ function UnifiedSinglePage({
           <div className="section-index-badge">03</div>
           <div>
             <h2 className="section-title">Statistiques & Climatologie Pluviométrique</h2>
-            <p className="section-subtitle">Climatologie 45 ans, bilan hydrique annuel, anomalies interannuelles et déficits mensuels</p>
+            <p className="section-subtitle">Début et fin de pluie, climatologie 45 ans, bilan hydrique annuel, anomalies interannuelles et histogrammes</p>
           </div>
         </div>
         <Statistiques
@@ -1305,33 +1301,10 @@ function UnifiedSinglePage({
         />
       </section>
 
-      {/* 05. CALENDRIER DE DÉBUT ET FIN DE PLUIE */}
-      <section id="sec-stats-saison" className="section-anchor" style={{ marginTop: "32px" }}>
-        <div className="section-header-banner">
-          <div className="section-index-badge">05</div>
-          <div>
-            <h2 className="section-title">Calendrier, Début & Fin de Pluie</h2>
-            <p className="section-subtitle">Dates de début et fin de pluie, durées utiles (jours) et régimes pluviométriques communaux</p>
-          </div>
-        </div>
-        <Saison
-          communes={data?.communes || []}
-          regions={regionsList || []}
-          selectedRegion={selectedRegion}
-          setSelectedRegion={setSelectedRegion}
-          seasonData={data?.seasonData || []}
-          selectedCommune={selectedCommune}
-          setSelectedCommune={setSelectedCommune}
-          selectedCommuneName={selectedCommuneName}
-          statsCategory="saison"
-          setStatsCategory={setStatsCategory}
-        />
-      </section>
-
-      {/* 06. BASE DE DONNÉES COMMUNALES */}
+      {/* 05. BASE DE DONNÉES COMMUNALES */}
       <section id="sec-data" className="section-anchor" style={{ marginTop: "32px" }}>
         <div className="section-header-banner">
-          <div className="section-index-badge">06</div>
+          <div className="section-index-badge">05</div>
           <div>
             <h2 className="section-title">Base de Données des 225 Communes</h2>
             <p className="section-subtitle">Explorateur tabulaire interactif avec recherche, tri multi-colonnes et export CSV</p>
@@ -1349,10 +1322,10 @@ function UnifiedSinglePage({
         />
       </section>
 
-      {/* 07. GUIDE MÉTHODOLOGIQUE & PHYSIQUE DES CAPTEURS */}
+      {/* 06. GUIDE MÉTHODOLOGIQUE & PHYSIQUE DES CAPTEURS */}
       <section id="sec-guide" className="section-anchor" style={{ marginTop: "32px" }}>
         <div className="section-header-banner">
-          <div className="section-index-badge">07</div>
+          <div className="section-index-badge">06</div>
           <div>
             <h2 className="section-title">Guide Méthodologique & Physique des Capteurs</h2>
             <p className="section-subtitle">Documentation des équations mathématiques, capteurs (CHIRPS, MODIS, Landsat, Sentinel-2) et indices hydro-climatiques et chlorophylliens</p>
@@ -1513,7 +1486,7 @@ function Overview({ annualData, communes, overview, vegData }) {
             <strong style={{ color: "var(--accent)" }}>{Number(data?.meanNdvi).toFixed(3)}</strong>
           </div>
           <div className="recharts-custom-tooltip-item">
-            <span>Normale Pluriannuelle (Référence) :</span>
+            <span>Moyenne Pluriannuelle (Référence) :</span>
             <strong style={{ color: "var(--text-light)" }}>{Number(data?.meanBaseline).toFixed(3)}</strong>
           </div>
           <div className="recharts-custom-tooltip-item">
@@ -1596,7 +1569,7 @@ function Overview({ annualData, communes, overview, vegData }) {
               <ResponsiveContainer>
                 <ComposedChart
                   data={computedPrecipTrendData}
-                  margin={{ top: 15, right: 15, bottom: 20, left: 0 }}
+                  margin={{ top: 15, right: 15, bottom: 25, left: 15 }}
                 >
                   <defs>
                     <linearGradient id="colorPrecipOverview" x1="0" y1="0" x2="0" y2="1">
@@ -1605,8 +1578,35 @@ function Overview({ annualData, communes, overview, vegData }) {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="year" stroke="var(--text-muted)" fontSize={11} interval="preserveStartEnd" />
-                  <YAxis orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" />
+                  <XAxis
+                    dataKey="year"
+                    stroke="var(--text-muted)"
+                    fontSize={11}
+                    interval="preserveStartEnd"
+                    label={{
+                      value: "Année",
+                      position: "insideBottom",
+                      offset: -10,
+                      fontSize: 11,
+                      fill: "var(--text-muted)",
+                      fontWeight: 500,
+                    }}
+                  />
+                  <YAxis
+                    orientation="left"
+                    stroke="#2563eb"
+                    fontSize={11}
+                    unit=" mm"
+                    label={{
+                      value: "Précipitations (mm)",
+                      angle: -90,
+                      position: "insideLeft",
+                      fontSize: 11,
+                      fill: "#2563eb",
+                      style: { textAnchor: "middle" },
+                      offset: 10,
+                    }}
+                  />
                   <RechartsTooltip content={<CustomPrecipTooltip />} />
                   <Legend verticalAlign="top" height={32} />
                   <Bar
@@ -1640,15 +1640,45 @@ function Overview({ annualData, communes, overview, vegData }) {
               <ResponsiveContainer>
                 <ComposedChart
                   data={computedVegTrendData}
-                  margin={{ top: 15, right: 25, bottom: 20, left: 10 }}
+                  margin={{ top: 15, right: 30, bottom: 30, left: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} interval="preserveStartEnd" angle={-25} textAnchor="end" height={40} />
-                  <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainVeg} />
+                  <XAxis
+                    dataKey="season"
+                    stroke="var(--text-muted)"
+                    fontSize={10}
+                    interval="preserveStartEnd"
+                    angle={-25}
+                    textAnchor="end"
+                    height={45}
+                    label={{
+                      value: "Campagne / Saison",
+                      position: "insideBottom",
+                      offset: -5,
+                      fontSize: 11,
+                      fill: "var(--text-muted)",
+                      fontWeight: 500,
+                    }}
+                  />
+                  <YAxis
+                    orientation="right"
+                    stroke="#059669"
+                    fontSize={11}
+                    domain={yDomainVeg}
+                    label={{
+                      value: "Indice NDVI Moyen",
+                      angle: 90,
+                      position: "insideRight",
+                      fontSize: 11,
+                      fill: "#059669",
+                      style: { textAnchor: "middle" },
+                      offset: 10,
+                    }}
+                  />
                   <RechartsTooltip content={<CustomVegTooltip />} />
                   <Legend verticalAlign="top" height={32} />
                   <Line
-                    name="Normale Pluriannuelle (Référence)"
+                    name="Moyenne Pluriannuelle (Référence)"
                     type="monotone"
                     dataKey="meanBaseline"
                     stroke="var(--text-light)"
@@ -1835,8 +1865,6 @@ function SuiviVegetation({
       const validAnom = anomaliesArr.filter((v) => v !== null && !isNaN(v));
       const meanAnomaly = validAnom.length > 0 ? validAnom.reduce((a, b) => a + b, 0) / validAnom.length : (meanNdvi - meanBaseline);
 
-      const integratedProd = toFiniteNumber(s.integratedProductivity, meanNdvi * 12);
-      const baselineProd = validBaseline.length > 0 ? validBaseline.reduce((a, b) => a + b, 0) : (meanBaseline * 12);
       const anomPct = meanBaseline > 0 ? ((meanNdvi - meanBaseline) / meanBaseline) * 100 : 0;
 
       return {
@@ -1844,8 +1872,8 @@ function SuiviVegetation({
         year: s.startYear || (1999 + idx),
         meanNdvi: Number(meanNdvi.toFixed(3)),
         meanBaseline: Number(meanBaseline.toFixed(3)),
-        integratedProductivity: Number(integratedProd.toFixed(2)),
-        baselineProductivity: Number(baselineProd.toFixed(2)),
+        integratedProductivity: Number(meanNdvi.toFixed(3)),
+        baselineProductivity: Number(meanBaseline.toFixed(3)),
         anomaly: Number(meanAnomaly.toFixed(3)),
         anomalyPercent: Number(anomPct.toFixed(1)),
       };
@@ -2241,13 +2269,43 @@ function SuiviVegetation({
             </div>
             <div style={{ width: "100%", flex: 1, minHeight: 280, position: "relative" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
+                <ComposedChart data={annualChartData} margin={{ top: 10, right: 30, bottom: 25, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} interval="preserveStartEnd" angle={-25} textAnchor="end" height={45} />
-                  <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviAnnual} />
+                  <XAxis
+                    dataKey="season"
+                    stroke="var(--text-muted)"
+                    fontSize={10}
+                    interval="preserveStartEnd"
+                    angle={-25}
+                    textAnchor="end"
+                    height={45}
+                    label={{
+                      value: "Campagne / Saison",
+                      position: "insideBottom",
+                      offset: -5,
+                      fontSize: 11,
+                      fill: "var(--text-muted)",
+                      fontWeight: 500,
+                    }}
+                  />
+                  <YAxis
+                    orientation="right"
+                    stroke="#059669"
+                    fontSize={11}
+                    domain={yDomainNdviAnnual}
+                    label={{
+                      value: "Indice NDVI",
+                      angle: 90,
+                      position: "insideRight",
+                      fontSize: 11,
+                      fill: "#059669",
+                      style: { textAnchor: "middle" },
+                      offset: 10,
+                    }}
+                  />
                   <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(3), name]} />
                   <Legend verticalAlign="top" height={36} />
-                  <Line name="Normale Pluriannuelle (Référence)" type="monotone" dataKey="meanBaseline" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
+                  <Line name="Moyenne Pluriannuelle (Référence)" type="monotone" dataKey="meanBaseline" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="4 4" />
                   <Area name="NDVI Moyen Annuel (Observé)" type="monotone" dataKey="meanNdvi" fill="rgba(16, 185, 129, 0.15)" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)" }} />
                   <Line name={`Tendance Polynomiale (Ordre ${polyOrder})`} type="monotone" dataKey="trend" stroke="#ef4444" strokeWidth={2.5} dot={false} />
                 </ComposedChart>
@@ -2259,15 +2317,41 @@ function SuiviVegetation({
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
                 <h2><Icons.Stats /> Profil Phénologique & Végétation Mensuelle — {activeCommuneObj?.nom} (Saison {activeSeasonData?.season ?? activeSeason})</h2>
-                <span>Comparaison mensuelle : Végétation observée (NDVI) et normale de référence historique</span>
+                <span>Comparaison mensuelle : Végétation observée (NDVI) et moyenne de référence historique</span>
               </div>
             </div>
             <div style={{ width: "100%", flex: 1, minHeight: 280, position: "relative" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 25, bottom: 25, left: 10 }}>
+                <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 30, bottom: 30, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
-                  <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
+                  <XAxis
+                    dataKey="month"
+                    stroke="var(--text-muted)"
+                    fontSize={12}
+                    label={{
+                      value: "Mois de la saison",
+                      position: "insideBottom",
+                      offset: -10,
+                      fontSize: 11,
+                      fill: "var(--text-muted)",
+                      fontWeight: 500,
+                    }}
+                  />
+                  <YAxis
+                    orientation="right"
+                    stroke="#059669"
+                    fontSize={11}
+                    domain={yDomainNdviMonthly}
+                    label={{
+                      value: "Indice NDVI",
+                      angle: 90,
+                      position: "insideRight",
+                      fontSize: 11,
+                      fill: "#059669",
+                      style: { textAnchor: "middle" },
+                      offset: 10,
+                    }}
+                  />
                   <RechartsTooltip
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
@@ -2294,7 +2378,7 @@ function SuiviVegetation({
                               <strong style={{ color: "#047857" }}>{data.ndvi}</strong>
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
-                              <span style={{ color: "#64748b" }}>Normale Historique :</span>
+                              <span style={{ color: "#64748b" }}>Moyenne Historique :</span>
                               <strong style={{ color: "#475569" }}>{data.baseline}</strong>
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", margin: "4px 0 0 0", paddingTop: "3px", borderTop: "1px dashed var(--border-color, #e2e8f0)" }}>
@@ -2322,7 +2406,7 @@ function SuiviVegetation({
                         color: "#10b981",
                       },
                       {
-                        value: "Normale Végétale (Moyenne Historique)",
+                        value: "Moyenne Végétale Historique",
                         type: "line",
                         id: "baseline",
                         color: "#64748b",
@@ -2336,7 +2420,7 @@ function SuiviVegetation({
                     radius={[4, 4, 0, 0]}
                   />
                   <Line
-                    name="Normale Végétale (Moyenne Historique)"
+                    name="Moyenne Végétale Historique"
                     type="monotone"
                     dataKey="baseline"
                     stroke="#64748b"
@@ -2357,19 +2441,48 @@ function SuiviVegetation({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Production Chlorophilienne Annuelle (Σ NDVI / Campagne) — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Indice de végétation totale cumulée produite chaque année (somme des 12 mois)</span>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Production d'Activité Chlorophyllienne Annuelle — {activeCommuneObj?.nom}</h3>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Activité chlorophyllienne moyenne annuelle (moyenne des 12 mois de la campagne)</span>
           </div>
           <div style={{ width: "100%", height: 220 }}>
             <ResponsiveContainer>
-              <ComposedChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
+              <ComposedChart data={annualChartData} margin={{ top: 10, right: 30, bottom: 25, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} angle={-25} textAnchor="end" height={40} />
-                <YAxis orientation="right" stroke="#059669" fontSize={11} />
-                <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(2), name]} />
+                <XAxis
+                  dataKey="season"
+                  stroke="var(--text-muted)"
+                  fontSize={10}
+                  angle={-25}
+                  textAnchor="end"
+                  height={40}
+                  label={{
+                    value: "Campagne / Saison",
+                    position: "insideBottom",
+                    offset: -5,
+                    fontSize: 10,
+                    fill: "var(--text-muted)",
+                    fontWeight: 500,
+                  }}
+                />
+                <YAxis
+                  orientation="right"
+                  stroke="#059669"
+                  fontSize={11}
+                  domain={[0, "auto"]}
+                  label={{
+                    value: "Activité Chlorophyllienne (NDVI)",
+                    angle: 90,
+                    position: "insideRight",
+                    fontSize: 10,
+                    fill: "#059669",
+                    style: { textAnchor: "middle" },
+                    offset: 10,
+                  }}
+                />
+                <RechartsTooltip formatter={(val, name) => [Number(val).toFixed(3), name]} />
                 <Legend verticalAlign="top" height={32} />
-                <Bar name="Végétation Totale (Σ NDVI)" dataKey="integratedProductivity" fill="var(--primary)" radius={[3, 3, 0, 0]} />
-                <Line name="Référence Végétation (Moyenne)" type="monotone" dataKey="baselineProductivity" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
+                <Bar name="Activité Chlorophyllienne (NDVI Moyen)" dataKey="meanNdvi" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+                <Line name="Moyenne de Référence (NDVI)" type="monotone" dataKey="meanBaseline" stroke="var(--text-light)" strokeWidth={2} dot={false} strokeDasharray="3 3" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -2382,13 +2495,42 @@ function SuiviVegetation({
           </div>
           <div style={{ width: "100%", height: 220 }}>
             <ResponsiveContainer>
-              <RechartsBarChart data={annualChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
+              <RechartsBarChart data={annualChartData} margin={{ top: 10, right: 30, bottom: 25, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                <XAxis dataKey="season" stroke="var(--text-muted)" fontSize={10} angle={-25} textAnchor="end" height={40} />
-                <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainAnomAnnual} />
+                <XAxis
+                  dataKey="season"
+                  stroke="var(--text-muted)"
+                  fontSize={10}
+                  angle={-25}
+                  textAnchor="end"
+                  height={40}
+                  label={{
+                    value: "Campagne / Saison",
+                    position: "insideBottom",
+                    offset: -5,
+                    fontSize: 10,
+                    fill: "var(--text-muted)",
+                    fontWeight: 500,
+                  }}
+                />
+                <YAxis
+                  orientation="right"
+                  stroke="#059669"
+                  fontSize={11}
+                  domain={yDomainAnomAnnual}
+                  label={{
+                    value: "Écart NDVI (Anomalie)",
+                    angle: 90,
+                    position: "insideRight",
+                    fontSize: 10,
+                    fill: "#059669",
+                    style: { textAnchor: "middle" },
+                    offset: 10,
+                  }}
+                />
                 <RechartsTooltip formatter={(val, name, item) => [
                   `${val >= 0 ? "+" : ""}${Number(val).toFixed(3)} (${item?.payload?.anomalyPercent >= 0 ? "+" : ""}${item?.payload?.anomalyPercent}%)`,
-                  "Écart annuel à la normale"
+                  "Écart annuel à la moyenne"
                 ]} />
                 <Bar name="Anomalie Annuelle" dataKey="anomaly">
                   {annualChartData.map((entry, index) => (
@@ -2408,15 +2550,58 @@ function SuiviVegetation({
         <div className="panel">
           <div className="panel-heading">
             <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Corrélation Pluie (CHIRPS) & Végétation (NDVI) — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Barres bleues = Pluie (mm) | Courbe verte = NDVI observé | Courbe grise = Normale historique</span>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Barres bleues = Pluie (mm) | Courbe verte = NDVI observé | Courbe grise = Moyenne historique</span>
           </div>
           <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
-              <ComposedChart data={monthlyChartData} margin={{ top: 10, right: 20, bottom: 10, left: 5 }}>
+              <ComposedChart data={monthlyChartData} margin={{ top: 10, right: 30, bottom: 25, left: 15 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis yAxisId="left" orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" domain={yDomainPrecipMonthly} />
-                <YAxis yAxisId="right" orientation="right" stroke="#059669" fontSize={11} domain={yDomainNdviMonthly} />
+                <XAxis
+                  dataKey="month"
+                  stroke="var(--text-muted)"
+                  fontSize={11}
+                  label={{
+                    value: "Mois",
+                    position: "insideBottom",
+                    offset: -10,
+                    fontSize: 10,
+                    fill: "var(--text-muted)",
+                    fontWeight: 500,
+                  }}
+                />
+                <YAxis
+                  yAxisId="left"
+                  orientation="left"
+                  stroke="#2563eb"
+                  fontSize={11}
+                  unit=" mm"
+                  domain={yDomainPrecipMonthly}
+                  label={{
+                    value: "Pluie (mm)",
+                    angle: -90,
+                    position: "insideLeft",
+                    fontSize: 10,
+                    fill: "#2563eb",
+                    style: { textAnchor: "middle" },
+                    offset: 10,
+                  }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="#059669"
+                  fontSize={11}
+                  domain={yDomainNdviMonthly}
+                  label={{
+                    value: "Indice NDVI",
+                    angle: 90,
+                    position: "insideRight",
+                    fontSize: 10,
+                    fill: "#059669",
+                    style: { textAnchor: "middle" },
+                    offset: 10,
+                  }}
+                />
                 <RechartsTooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
@@ -2446,7 +2631,7 @@ function SuiviVegetation({
                             <strong>{data.ndvi}</strong>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
-                            <span style={{ color: "#94a3b8" }}>— Normale NDVI :</span>
+                            <span style={{ color: "#94a3b8" }}>— Moyenne NDVI :</span>
                             <strong>{data.baseline}</strong>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", margin: "4px 0 0 0", paddingTop: "3px", borderTop: "1px dashed var(--border-color, #e2e8f0)" }}>
@@ -2466,7 +2651,7 @@ function SuiviVegetation({
                 <Legend verticalAlign="top" height={32} />
                 <Bar yAxisId="left" name="Pluie (mm)" dataKey="precip" fill="#3b82f6" radius={[3, 3, 0, 0]} />
                 <Line yAxisId="right" name="Végétation (NDVI)" type="monotone" dataKey="ndvi" stroke="#059669" strokeWidth={2.5} dot={{ r: 3.5, fill: "#059669" }} />
-                <Line yAxisId="right" name="Normale NDVI" type="monotone" dataKey="baseline" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+                <Line yAxisId="right" name="Moyenne NDVI" type="monotone" dataKey="baseline" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -2474,15 +2659,41 @@ function SuiviVegetation({
 
         <div className="panel">
           <div className="panel-heading">
-            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Écart NDVI mensuel à la normale (Ligne Verte − Ligne Grise) — {activeCommuneObj?.nom}</h3>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Reflet direct : Vert = Végétation observée supérieure à la normale, Rouge = Déficit / Stress hydrique</span>
+            <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Écart NDVI mensuel à la moyenne (Ligne Verte − Ligne Grise) — {activeCommuneObj?.nom}</h3>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Reflet direct : Vert = Végétation observée supérieure à la moyenne, Rouge = Déficit / Stress hydrique</span>
           </div>
           <div style={{ width: "100%", height: 230 }}>
             <ResponsiveContainer>
-              <RechartsBarChart data={monthlyChartData} margin={{ top: 10, right: 25, bottom: 10, left: 10 }}>
+              <RechartsBarChart data={monthlyChartData} margin={{ top: 10, right: 30, bottom: 25, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis orientation="right" stroke="#059669" fontSize={11} domain={yDomainAnomMonthly} />
+                <XAxis
+                  dataKey="month"
+                  stroke="var(--text-muted)"
+                  fontSize={11}
+                  label={{
+                    value: "Mois",
+                    position: "insideBottom",
+                    offset: -10,
+                    fontSize: 10,
+                    fill: "var(--text-muted)",
+                    fontWeight: 500,
+                  }}
+                />
+                <YAxis
+                  orientation="right"
+                  stroke="#059669"
+                  fontSize={11}
+                  domain={yDomainAnomMonthly}
+                  label={{
+                    value: "Écart NDVI (Δ)",
+                    angle: 90,
+                    position: "insideRight",
+                    fontSize: 10,
+                    fill: "#059669",
+                    style: { textAnchor: "middle" },
+                    offset: 10,
+                  }}
+                />
                 <ReferenceLine y={0} stroke="#94a3b8" strokeWidth={1.5} />
                 <RechartsTooltip
                   content={({ active, payload, label }) => {
@@ -2509,7 +2720,7 @@ function SuiviVegetation({
                             <strong>{data.ndvi}</strong>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", margin: "2px 0" }}>
-                            <span style={{ color: "#94a3b8" }}>— Normale Référence :</span>
+                            <span style={{ color: "#94a3b8" }}>— Moyenne Référence :</span>
                             <strong>{data.baseline}</strong>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", margin: "4px 0 0 0", paddingTop: "3px", borderTop: "1px dashed var(--border-color, #e2e8f0)" }}>
@@ -2554,15 +2765,15 @@ function SuiviVegetation({
             <span style={{ color: "var(--primary)" }}>📈 Analyse Pluriannuelle Continue</span>
           </div>
           <div className="formula-code">
-            NDVI_moyen,y = (1/12) Σ NDVI_y,m &nbsp;|&nbsp; Végétation_Totale_y = Σ NDVI_y,m
+            NDVI_moyen,y = (1/12) Σ (m=1..12) NDVI_y,m
           </div>
           <div className="formula-desc">
-            Agrège les 12 mois de chaque campagne pour dégager l'évolution pluriannuelle continue. Permet d'isoler les <strong>grandes crises de sécheresse</strong> (ex: effondrement du couvert végétal en 2020–2021 et 2021–2022) et les tendances écologiques à long terme (dégradation vs verdissement).
+            Agrège les 12 mois de chaque campagne en moyenne annuelle pour dégager l'évolution de l'activité chlorophyllienne. Permet d'isoler les <strong>grandes crises de sécheresse</strong> (ex: effondrement du couvert végétal en 2020–2021 et 2021–2022) et les tendances écologiques à long terme (dégradation vs verdissement).
           </div>
           <div className="formula-vars">
             <div className="formula-var-row">
               <span className="formula-var-name">NDVI_moyen,y :</span>
-              <span className="formula-var-desc">Indice NDVI moyen annuel sur les 12 mois de la campagne <em>y</em>.</span>
+              <span className="formula-var-desc">Activité chlorophyllienne moyenne annuelle sur les 12 mois de la campagne <em>y</em>.</span>
             </div>
             <div className="formula-var-row">
               <span className="formula-var-name">NDVI_y,m :</span>
@@ -2597,13 +2808,13 @@ function SuiviVegetation({
         <div className="formula-item">
           <div className="formula-item-title">
             <span>3. Diagnostic des Anomalies & Stress Hydrique</span>
-            <span style={{ color: "var(--warning)" }}>⚖️ Écart à la Normale</span>
+            <span style={{ color: "var(--warning)" }}>⚖️ Écart à la Moyenne</span>
           </div>
           <div className="formula-code">
             Anomalie = NDVI_observé - NDVI_référence
           </div>
           <div className="formula-desc">
-            Quantifie le déficit d'activité chlorophyllienne par rapport à la moyenne climatologique : des <strong>barres rouges</strong> signalent un retard pluviométrique ou un flétrissement anormal, tandis que des <strong>barres vertes</strong> traduisent une vigueur biophysique supérieure.
+            Quantifie le déficit d'activité chlorophyllienne par rapport à la moyenne de référence : des <strong>barres rouges</strong> signalent un retard pluviométrique ou un flétrissement anormal, tandis que des <strong>barres vertes</strong> traduisent une vigueur biophysique supérieure.
           </div>
           <div className="formula-vars">
             <div className="formula-var-row">
@@ -2612,7 +2823,7 @@ function SuiviVegetation({
             </div>
             <div className="formula-var-row">
               <span className="formula-var-name">NDVI_référence :</span>
-              <span className="formula-var-desc">Normale historique calculée sur la série temporelle 1999–2026.</span>
+              <span className="formula-var-desc">Moyenne historique calculée sur la série temporelle 1999–2026.</span>
             </div>
           </div>
         </div>
@@ -2626,7 +2837,7 @@ function SuiviVegetation({
             Saison Déficitaire ⟺ Anomalie_% &lt; -5 %
           </div>
           <div className="formula-desc">
-            Une campagne est déclarée en <strong>déficit de végétation</strong> lorsque son NDVI moyen chute de plus de 5% sous sa normale historique (1999–2026), traduisant un stress hydrique impactant la couverture végétale.
+            Une campagne est déclarée en <strong>déficit de végétation</strong> lorsque son NDVI moyen chute de plus de 5% sous sa moyenne historique (1999–2026), traduisant un stress hydrique impactant la couverture végétale.
           </div>
           <div className="formula-vars">
             <div className="formula-var-row">
@@ -2665,7 +2876,7 @@ function SuiviVegetation({
         </div>
 
         <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: 0, lineHeight: "1.5" }}>
-          <strong>Comment a-t-on obtenu ces {annualStats.deficitYearsCount} saisons ?</strong> Sur l'ensemble des {annualData.length} campagnes MODIS analysées ({annualData[0]?.season || "2000-2001"} à {annualData[annualData.length - 1]?.season || "2021-2022"}), l'indice NDVI moyen annuel de la commune a subi un déficit significatif supérieur à 5% par rapport à sa normale pluriannuelle ({annualStats.mean.toFixed(3)}) au cours des saisons suivantes :
+          <strong>Comment a-t-on obtenu ces {annualStats.deficitYearsCount} saisons ?</strong> Sur l'ensemble des {annualData.length} campagnes MODIS analysées ({annualData[0]?.season || "2000-2001"} à {annualData[annualData.length - 1]?.season || "2021-2022"}), l'indice NDVI moyen annuel de la commune a subi un déficit significatif supérieur à 5% par rapport à sa moyenne pluriannuelle ({annualStats.mean.toFixed(3)}) au cours des saisons suivantes :
         </p>
 
         {annualStats.deficitSeasonsList.length > 0 ? (
@@ -2691,7 +2902,7 @@ function SuiviVegetation({
                 </div>
                 <div style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "flex", justifyContent: "space-between", marginTop: "2px" }}>
                   <span>NDVI obs : <strong>{item.meanNdvi}</strong></span>
-                  <span>Normale : <strong>{item.meanBaseline}</strong></span>
+                  <span>Moyenne : <strong>{item.meanBaseline}</strong></span>
                 </div>
               </div>
             ))}
@@ -3094,7 +3305,7 @@ function Saison({
               {subTab === "start_end" && (
                 <div style={{ width: "100%", height: 360, marginTop: "12px" }}>
                   <ResponsiveContainer>
-                    <ComposedChart data={startEndChartData} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
+                    <ComposedChart data={startEndChartData} margin={{ top: 20, right: 20, bottom: 35, left: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                       <XAxis
                         dataKey="saison"
@@ -3104,6 +3315,14 @@ function Saison({
                         textAnchor="end"
                         height={50}
                         tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
+                        label={{
+                          value: "Saison hydropluviométrique",
+                          position: "insideBottom",
+                          offset: -8,
+                          fontSize: 11,
+                          fill: "var(--text-muted)",
+                          fontWeight: 500,
+                        }}
                       />
                       <YAxis
                         domain={[10, 17]}
@@ -3114,6 +3333,15 @@ function Saison({
                         }}
                         stroke="var(--text-muted)"
                         fontSize={11}
+                        label={{
+                          value: "Mois du calendrier",
+                          angle: -90,
+                          position: "insideLeft",
+                          fontSize: 11,
+                          fill: "var(--text-muted)",
+                          style: { textAnchor: "middle" },
+                          offset: 10,
+                        }}
                       />
                       <RechartsTooltip content={<CustomStartEndTooltip />} />
                       <Legend verticalAlign="top" height={36} />
@@ -3127,7 +3355,7 @@ function Saison({
               {subTab === "max_month" && (
                 <div style={{ width: "100%", height: 360, marginTop: "12px" }}>
                   <ResponsiveContainer>
-                    <RechartsBarChart data={filteredSeasonRows} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
+                    <RechartsBarChart data={filteredSeasonRows} margin={{ top: 20, right: 20, bottom: 35, left: 20 }}>
                       <defs>
                         <linearGradient id="colorMaxMonthPrecip" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="var(--primary, #2563eb)" stopOpacity={0.85} />
@@ -3143,8 +3371,30 @@ function Saison({
                         textAnchor="end"
                         height={50}
                         tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
+                        label={{
+                          value: "Saison hydropluviométrique",
+                          position: "insideBottom",
+                          offset: -8,
+                          fontSize: 11,
+                          fill: "var(--text-muted)",
+                          fontWeight: 500,
+                        }}
                       />
-                      <YAxis orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" />
+                      <YAxis
+                        orientation="left"
+                        stroke="#2563eb"
+                        fontSize={11}
+                        unit=" mm"
+                        label={{
+                          value: "Précipitation max (mm)",
+                          angle: -90,
+                          position: "insideLeft",
+                          fontSize: 11,
+                          fill: "#2563eb",
+                          style: { textAnchor: "middle" },
+                          offset: 10,
+                        }}
+                      />
                       <RechartsTooltip content={<CustomMaxMonthTooltip />} />
                       <Bar
                         name="Précipitation Mois Max"
@@ -3491,9 +3741,9 @@ function Statistiques({
   const [modeCommune, setModeCommune] = React.useState("Choisir une commune");
   const [selectedDistrict, setSelectedDistrict] = React.useState("");
   const [selectedCommune, setSelectedCommune] = React.useState(appSelectedCommune || communes[0]?.code || "");
-  const [typeGraph, setTypeGraph] = React.useState("Climatologie mensuelle");
+  const [typeGraph, setTypeGraph] = React.useState("Début et fin de pluie");
+  const [seasonSubTab, setSeasonSubTab] = React.useState("start_end"); // 'start_end', 'max_month', 'timeline'
   const [ordrePoly, setOrdrePoly] = React.useState(4);
-  const [monthlyMode, setMonthlyMode] = React.useState("specific_year"); // 'specific_year' (Année Spécifique) | 'climatology' (Normale Climatologique)
   const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2026);
 
   // Sync selectedCommune with appSelectedCommune
@@ -3701,7 +3951,7 @@ function Statistiques({
 
           return {
             month: m,
-            p: Math.round(monthlyMode === "specific_year" ? pObs : meanRef),
+            p: Math.round(pObs),
             pObs: Math.round(pObs * 10) / 10,
             pRef: Math.round(meanRef * 10) / 10,
             deficit: Math.round(deficit * 10) / 10,
@@ -3732,7 +3982,7 @@ function Statistiques({
       const p = Math.round(meanAnn * w);
       return { month: m, p, pObs: p, pRef: p, deficit: 0, deficitPct: 0, isDeficit: false };
     });
-  }, [modeCommune, selectedCommune, precipRecords, monthlyClimatology, communeAnnualSeries, selectedYearForMonth, monthlyMode]);
+  }, [modeCommune, selectedCommune, precipRecords, monthlyClimatology, communeAnnualSeries, selectedYearForMonth]);
 
   // Summary KPIs for selected year vs climatology
   const monthlyStatsSummary = React.useMemo(() => {
@@ -3822,6 +4072,231 @@ function Statistiques({
     return bins;
   }, [communeAnnualSeries]);
 
+  const hydroMonths = ["Oct", "Nov", "Dec", "Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep"];
+  const monthOrderMap = { Oct: 10, Nov: 11, Dec: 12, Jan: 1, Fev: 2, Mar: 3, Avr: 4, Mai: 5, Jun: 6, Jul: 7, Aou: 8, Sep: 9 };
+  const monthToVal = { Oct: 10, Nov: 11, Dec: 12, Jan: 13, Fev: 14, Mar: 15, Avr: 16, Mai: 17, Jun: 18 };
+  const monthNamesFrMap = {
+    Jan: "Janvier",
+    Fev: "Février",
+    Mar: "Mars",
+    Avr: "Avril",
+    Mai: "Mai",
+    Jun: "Juin",
+    Jul: "Juillet",
+    Aou: "Août",
+    Sep: "Septembre",
+    Oct: "Octobre",
+    Nov: "Novembre",
+    Dec: "Décembre",
+  };
+
+  const availableSeasons = React.useMemo(() => {
+    if (!seasonData || seasonData.length === 0) return [1980, 2026];
+    const list = seasonData.map((s) => Number(s.saison)).filter((s) => Number.isFinite(s));
+    return list.length ? [Math.min(...list), Math.max(...list)] : [1980, 2026];
+  }, [seasonData]);
+
+  const [seasonRange, setSeasonRange] = React.useState([1980, 2026]);
+
+  React.useEffect(() => {
+    if (availableSeasons && availableSeasons.length === 2) {
+      setSeasonRange(availableSeasons);
+    }
+  }, [availableSeasons]);
+
+  const filteredSeasonRows = React.useMemo(() => {
+    const targetCode = String(selectedCommune || "").trim().toUpperCase();
+    const targetObj = selectedCommuneObj;
+    const targetName = String(targetObj?.nom || selectedCommuneName || "").trim().toLowerCase();
+
+    return seasonData.filter((row) => {
+      if (!row) return false;
+      if (modeCommune === "Toutes les communes") {
+        const yr = Number(row.saison);
+        return !isNaN(yr) && yr >= seasonRange[0] && yr <= seasonRange[1];
+      }
+      const rCode = String(row.code_commune || row.code || "").trim().toUpperCase();
+      const rNom = String(row.commune || row.nom || "").trim().toLowerCase();
+
+      const isMatch =
+        (targetCode && (rCode === targetCode || targetCode.includes(rCode) || rCode.includes(targetCode))) ||
+        (targetName && (rNom === targetName || targetName.includes(rNom) || rNom.includes(targetName)));
+
+      if (!isMatch) return false;
+
+      const yr = Number(row.saison);
+      return !isNaN(yr) && yr >= seasonRange[0] && yr <= seasonRange[1];
+    });
+  }, [seasonData, selectedCommune, selectedCommuneName, selectedCommuneObj, modeCommune, seasonRange]);
+
+  const startEndChartData = React.useMemo(() => {
+    if (modeCommune === "Toutes les communes") {
+      const bySeason = {};
+      filteredSeasonRows.forEach((r) => {
+        if (!r.saison) return;
+        if (!bySeason[r.saison]) bySeason[r.saison] = { debuts: [], fins: [], durees: [] };
+        const dVal = monthToVal[r.debut];
+        let fVal = monthToVal[r.fin];
+        if (dVal && fVal) {
+          if (fVal < dVal) fVal += 12;
+          bySeason[r.saison].debuts.push(dVal);
+          bySeason[r.saison].fins.push(fVal);
+          bySeason[r.saison].durees.push(r.duree || (fVal - dVal + 1));
+        }
+      });
+      const valToMonth = { 10: "Oct", 11: "Nov", 12: "Déc", 13: "Jan", 14: "Fév", 15: "Mar", 16: "Avr", 17: "Mai", 18: "Jun" };
+      return Object.keys(bySeason).map(Number).sort((a, b) => a - b).map((s) => {
+        const item = bySeason[s];
+        const avgD = item.debuts.length ? item.debuts.reduce((a, b) => a + b, 0) / item.debuts.length : 10;
+        const avgF = item.fins.length ? item.fins.reduce((a, b) => a + b, 0) / item.fins.length : 15;
+        const avgDur = item.durees.length ? Math.round(item.durees.reduce((a, b) => a + b, 0) / item.durees.length) : 0;
+        const roundD = Math.round(avgD);
+        const roundF = Math.round(avgF);
+        return {
+          saison: s,
+          debut: Number(avgD.toFixed(1)),
+          fin: Number(avgF.toFixed(1)),
+          debutLabel: valToMonth[roundD] || "Nov",
+          finLabel: valToMonth[roundF] || "Mar",
+          duree: avgDur,
+        };
+      });
+    }
+
+    return filteredSeasonRows
+      .filter((r) => r.debut || r.fin)
+      .map((r) => {
+        const debutVal = monthToVal[r.debut] || 10;
+        let finVal = monthToVal[r.fin] || 15;
+        if (finVal < debutVal) finVal += 12;
+        return {
+          saison: r.saison,
+          debut: r.debut ? debutVal : null,
+          fin: r.fin ? finVal : null,
+          debutLabel: r.debut || "—",
+          finLabel: r.fin || "—",
+          duree: r.duree || (r.debut && r.fin ? finVal - debutVal + 1 : 0),
+        };
+      });
+  }, [filteredSeasonRows, modeCommune]);
+
+  const chronogramRows = React.useMemo(() => {
+    if (modeCommune === "Toutes les communes") {
+      const bySeason = {};
+      filteredSeasonRows.forEach((r) => {
+        if (!r.saison) return;
+        if (!bySeason[r.saison]) bySeason[r.saison] = { debuts: [], fins: [], durees: [], maxMonths: [], maxPrecip: [] };
+        const dVal = monthToVal[r.debut];
+        let fVal = monthToVal[r.fin];
+        if (dVal && fVal) {
+          if (fVal < dVal) fVal += 12;
+          bySeason[r.saison].debuts.push(dVal);
+          bySeason[r.saison].fins.push(fVal);
+          bySeason[r.saison].durees.push(r.duree || (fVal - dVal + 1));
+          if (r.mois_plus_pluvieux) bySeason[r.saison].maxMonths.push(r.mois_plus_pluvieux);
+          if (r.precip) bySeason[r.saison].maxPrecip.push(Number(r.precip));
+        }
+      });
+      const valToMonth = { 10: "Oct", 11: "Nov", 12: "Dec", 13: "Jan", 14: "Fev", 15: "Mar", 16: "Avr", 17: "Mai", 18: "Jun" };
+      return Object.keys(bySeason).map(Number).sort((a, b) => b - a).map((s) => {
+        const item = bySeason[s];
+        const avgD = item.debuts.length ? item.debuts.reduce((a, b) => a + b, 0) / item.debuts.length : 10;
+        const avgF = item.fins.length ? item.fins.reduce((a, b) => a + b, 0) / item.fins.length : 15;
+        const avgDur = item.durees.length ? Math.round(item.durees.reduce((a, b) => a + b, 0) / item.durees.length) : 0;
+        const roundD = Math.round(avgD);
+        const roundF = Math.round(avgF);
+        const avgP = item.maxPrecip.length ? Math.round(item.maxPrecip.reduce((a, b) => a + b, 0) / item.maxPrecip.length) : null;
+        const modeMonth = item.maxMonths.length ? [...item.maxMonths].sort((a, b) => item.maxMonths.filter((v) => v === a).length - item.maxMonths.filter((v) => v === b).length).pop() : "Jan";
+        return {
+          code_commune: "ALL",
+          saison: s,
+          debut: valToMonth[roundD] || "Nov",
+          fin: valToMonth[roundF] || "Mar",
+          duree: avgDur,
+          mois_plus_pluvieux: modeMonth,
+          precip: avgP,
+        };
+      });
+    }
+    return [...filteredSeasonRows].sort((a, b) => Number(b.saison) - Number(a.saison));
+  }, [filteredSeasonRows, modeCommune]);
+
+  const maxMonthChartData = React.useMemo(() => {
+    if (modeCommune === "Toutes les communes") {
+      const bySeason = {};
+      filteredSeasonRows.forEach((r) => {
+        if (!r.saison) return;
+        if (!bySeason[r.saison]) bySeason[r.saison] = { precips: [], maxMonths: [] };
+        if (r.precip) bySeason[r.saison].precips.push(Number(r.precip));
+        if (r.mois_plus_pluvieux) bySeason[r.saison].maxMonths.push(r.mois_plus_pluvieux);
+      });
+      return Object.keys(bySeason).map(Number).sort((a, b) => a - b).map((s) => {
+        const item = bySeason[s];
+        const avgP = item.precips.length ? Math.round(item.precips.reduce((a, b) => a + b, 0) / item.precips.length) : 0;
+        const modeMonth = item.maxMonths.length ? [...item.maxMonths].sort((a, b) => item.maxMonths.filter((v) => v === a).length - item.maxMonths.filter((v) => v === b).length).pop() : "Jan";
+        return {
+          saison: s,
+          precip: avgP,
+          mois_plus_pluvieux: modeMonth,
+        };
+      });
+    }
+    return filteredSeasonRows;
+  }, [filteredSeasonRows, modeCommune]);
+
+  const CustomStartEndTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const s = data.saison;
+      const debutName = monthNamesFrMap[data.debutLabel] || data.debutLabel || "—";
+      const finName = monthNamesFrMap[data.finLabel] || data.finLabel || "—";
+
+      return (
+        <div className="recharts-custom-tooltip">
+          <p className="recharts-custom-tooltip-title" style={{ fontSize: "12px", fontWeight: "800", color: "#0f172a" }}>
+            Saison {s}–{Number(s) + 1}
+          </p>
+          <div className="recharts-custom-tooltip-item">
+            <span style={{ color: "#2563eb", fontWeight: "600" }}>🔵 Mois de Début :</span>
+            <strong style={{ color: "#1d4ed8" }}>{debutName}</strong>
+          </div>
+          <div className="recharts-custom-tooltip-item">
+            <span style={{ color: "#059669", fontWeight: "600" }}>🟢 Mois de Fin :</span>
+            <strong style={{ color: "#047857" }}>{finName}</strong>
+          </div>
+          <div className="recharts-custom-tooltip-item" style={{ borderTop: "1px solid #e2e8f0", paddingTop: "5px", marginTop: "5px" }}>
+            <span style={{ color: "#64748b" }}>⏳ Durée utile :</span>
+            <strong style={{ color: "#0f172a" }}>{data.duree} mois</strong>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomMaxMonthTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const monthCode = data.mois_plus_pluvieux || "";
+      const monthFull = monthNamesFrMap[monthCode] || monthCode || "Mois le plus pluvieux";
+      const precipVal = payload[0].value ?? data.precip ?? 0;
+      const s = data.saison;
+
+      return (
+        <div className="recharts-custom-tooltip">
+          <p className="recharts-custom-tooltip-title" style={{ fontSize: "12px", fontWeight: "800", color: "#0f172a" }}>
+            Saison {s}–{Number(s) + 1} • {monthFull}
+          </p>
+          <div className="recharts-custom-tooltip-item">
+            <span style={{ color: "#64748b" }}>Précipitation maximale :</span>
+            <strong style={{ color: "var(--primary)" }}>{Number(precipVal).toLocaleString("fr-FR")} mm</strong>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {statsCategory === "vegetation" && (
@@ -3835,21 +4310,6 @@ function Statistiques({
           selectedCommuneName={selectedCommuneName}
           vegData={vegData}
           precipRecords={precipRecords}
-          statsCategory={statsCategory}
-          setStatsCategory={setStatsCategory}
-        />
-      )}
-
-      {statsCategory === "saison" && (
-        <Saison
-          communes={communes}
-          regions={regions}
-          selectedRegion={selectedRegion}
-          setSelectedRegion={setSelectedRegion}
-          seasonData={seasonData}
-          selectedCommune={appSelectedCommune}
-          selectedCommuneName={selectedCommuneName}
-          setSelectedCommune={appSetSelectedCommune}
           statsCategory={statsCategory}
           setStatsCategory={setStatsCategory}
         />
@@ -3870,7 +4330,7 @@ function Statistiques({
               <div className="metric-icon-wrap" style={{ color: "var(--accent)" }}><Icons.Stats /></div>
               <div className="metric-info">
                 <strong>{meanClim} mm/an</strong>
-                <span>Normale Pluriannuelle (1981–2010)</span>
+                <span>Moyenne de Précipitation (1981–2010)</span>
               </div>
             </article>
             <article className="metric-card">
@@ -3974,6 +4434,7 @@ function Statistiques({
                 <label style={{ fontWeight: "700" }}>Type d'analyse :</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
                   {[
+                    { id: "Début et fin de pluie", label: "🗓️ Début et fin de pluie" },
                     { id: "Climatologie mensuelle", label: "☀️ Climatologie & Pluie mensuelle" },
                     { id: "Histogramme", label: "📊 Histogramme des pluies" },
                     { id: "Tendance", label: "📈 Tendance polynomiale" },
@@ -3991,16 +4452,53 @@ function Statistiques({
                 </div>
               </div>
 
+              {typeGraph === "Début et fin de pluie" && (
+                <div className="filter-group" style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "10px" }}>
+                  <label style={{ fontWeight: "700" }}>Filtrer les campagnes :</label>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--primary)", fontWeight: "700", marginTop: "4px" }}>
+                    <span>{seasonRange[0]}–{Number(seasonRange[0]) + 1}</span>
+                    <span>{seasonRange[1]}–{Number(seasonRange[1]) + 1}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", minWidth: "24px" }}>De :</span>
+                      <select
+                        value={seasonRange[0]}
+                        onChange={(e) => setSeasonRange([Number(e.target.value), Math.max(Number(e.target.value), seasonRange[1])])}
+                        style={{ flex: 1, padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "11.5px" }}
+                      >
+                        {Array.from({ length: Math.max(1, availableSeasons[1] - availableSeasons[0] + 1) }, (_, i) => availableSeasons[0] + i).map((s) => (
+                          <option key={s} value={s} disabled={s > seasonRange[1]}>
+                            Campagne {s}–{s + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", minWidth: "24px" }}>À :</span>
+                      <select
+                        value={seasonRange[1]}
+                        onChange={(e) => setSeasonRange([Math.min(seasonRange[0], Number(e.target.value)), Number(e.target.value)])}
+                        style={{ flex: 1, padding: "4px 6px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", fontSize: "11.5px" }}
+                      >
+                        {Array.from({ length: Math.max(1, availableSeasons[1] - availableSeasons[0] + 1) }, (_, i) => availableSeasons[0] + i).map((s) => (
+                          <option key={s} value={s} disabled={s < seasonRange[0]}>
+                            Campagne {s}–{s + 1}{s === availableSeasons[1] ? " (En cours)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {typeGraph === "Climatologie mensuelle" && (
                 <div className="filter-group" style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "10px" }}>
                   <label htmlFor="month-year-select" style={{ fontWeight: "700" }}>Année observée :</label>
                   <select
                     id="month-year-select"
                     value={selectedYearForMonth}
-                    onChange={(e) => {
-                      setSelectedYearForMonth(Number(e.target.value));
-                      setMonthlyMode("specific_year");
-                    }}
+                    onChange={(e) => setSelectedYearForMonth(Number(e.target.value))}
                     style={{ marginTop: "4px" }}
                   >
                     {availableYears.map((yr) => (
@@ -4016,36 +4514,45 @@ function Statistiques({
             <div className="panel">
               <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                 <div>
-                  <h2><Icons.Stats /> {typeGraph === "Climatologie mensuelle" ? (monthlyMode === "specific_year" ? `Précipitations Mensuelles (Année ${selectedYearForMonth}) vs Normale` : `Climatologie Mensuelle Normale (1981–Présent)`) : typeGraph} — {titreStats}</h2>
+                  <h2>
+                    {typeGraph === "Début et fin de pluie" ? <Icons.Rain /> : <Icons.Stats />}{" "}
+                    {typeGraph === "Début et fin de pluie"
+                      ? `Début et fin de pluie — ${titreStats}`
+                      : typeGraph === "Climatologie mensuelle"
+                      ? `Précipitations Mensuelles (Année ${selectedYearForMonth}) vs Moyenne de Précipitation — ${titreStats}`
+                      : `${typeGraph} — ${titreStats}`}
+                  </h2>
                   <span>
-                    {typeGraph === "Tendance"
+                    {typeGraph === "Début et fin de pluie"
+                      ? `Début, durée et mois le plus pluvieux (${seasonRange[0]}–${Number(seasonRange[0]) + 1} à ${seasonRange[1]}–${Number(seasonRange[1]) + 1})`
+                      : typeGraph === "Tendance"
                       ? `Régression polynomiale d'ordre ${ordrePoly} sur la série temporelle`
                       : typeGraph === "Climatologie mensuelle"
-                      ? `Comparaison mois par mois de la pluie observée face à la climatologie de référence (1981–Présent)`
+                      ? `Comparaison mois par mois de la pluie observée face à la moyenne des précipitations de référence (1981–Présent)`
                       : "Visualisation statistique temporelle et distribution"}
                   </span>
                 </div>
 
-                {typeGraph === "Climatologie mensuelle" && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <div style={{ display: "inline-flex", gap: "4px" }}>
-                      <button
-                        type="button"
-                        className={`scale-tab-btn ${monthlyMode === "specific_year" ? "active" : ""}`}
-                        onClick={() => setMonthlyMode("specific_year")}
-                        style={{ padding: "4px 10px", fontSize: "12px", fontWeight: monthlyMode === "specific_year" ? "700" : "500" }}
-                      >
-                        📅 Année {selectedYearForMonth}
-                      </button>
-                      <button
-                        type="button"
-                        className={`scale-tab-btn ${monthlyMode === "climatology" ? "active" : ""}`}
-                        onClick={() => setMonthlyMode("climatology")}
-                        style={{ padding: "4px 10px", fontSize: "12px", fontWeight: monthlyMode === "climatology" ? "700" : "500" }}
-                      >
-                        📊 Normale 1981–Présent
-                      </button>
-                    </div>
+                {typeGraph === "Début et fin de pluie" && (
+                  <div className="scale-tabs">
+                    <button
+                      className={`scale-tab-btn ${seasonSubTab === "start_end" ? "active" : ""}`}
+                      onClick={() => setSeasonSubTab("start_end")}
+                    >
+                      Début et fin
+                    </button>
+                    <button
+                      className={`scale-tab-btn ${seasonSubTab === "max_month" ? "active" : ""}`}
+                      onClick={() => setSeasonSubTab("max_month")}
+                    >
+                      Mois pluvieux
+                    </button>
+                    <button
+                      className={`scale-tab-btn ${seasonSubTab === "timeline" ? "active" : ""}`}
+                      onClick={() => setSeasonSubTab("timeline")}
+                    >
+                      Chronogramme
+                    </button>
                   </div>
                 )}
 
@@ -4078,22 +4585,222 @@ function Statistiques({
                 )}
               </div>
 
+              {typeGraph === "Début et fin de pluie" && (
+                <>
+                  {filteredSeasonRows.length === 0 ? (
+                    <div className="placeholder" style={{ marginTop: "12px" }}>
+                      <Icons.Info />
+                      <strong>Aucune donnée</strong>
+                      <p>Aucune donnée saisonnière disponible pour les filtres sélectionnés.</p>
+                    </div>
+                  ) : (
+                    <>
+                      {seasonSubTab === "start_end" && (
+                        <div style={{ width: "100%", height: 360, marginTop: "12px" }}>
+                          <ResponsiveContainer>
+                            <ComposedChart data={startEndChartData} margin={{ top: 20, right: 20, bottom: 35, left: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                              <XAxis
+                                dataKey="saison"
+                                stroke="var(--text-muted)"
+                                fontSize={11}
+                                angle={-45}
+                                textAnchor="end"
+                                height={50}
+                                tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
+                                label={{
+                                  value: "Saison hydropluviométrique",
+                                  position: "insideBottom",
+                                  offset: -8,
+                                  fontSize: 11,
+                                  fill: "var(--text-muted)",
+                                  fontWeight: 500,
+                                }}
+                              />
+                              <YAxis
+                                domain={[10, 17]}
+                                ticks={[10, 11, 12, 13, 14, 15, 16, 17]}
+                                tickFormatter={(val) => {
+                                  const labels = { 10: "Oct", 11: "Nov", 12: "Déc", 13: "Jan", 14: "Fév", 15: "Mar", 16: "Avr", 17: "Mai" };
+                                  return labels[val] || val;
+                                }}
+                                stroke="var(--text-muted)"
+                                fontSize={11}
+                                label={{
+                                  value: "Mois du calendrier",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                  fontSize: 11,
+                                  fill: "var(--text-muted)",
+                                  style: { textAnchor: "middle" },
+                                  offset: 10,
+                                }}
+                              />
+                              <RechartsTooltip content={<CustomStartEndTooltip />} />
+                              <Legend verticalAlign="top" height={36} />
+                              <Line name="Mois de Début (Bleu)" type="monotone" dataKey="debut" stroke="#1f78b4" strokeWidth={2} dot={{ r: 4, fill: "#1f78b4" }} />
+                              <Line name="Mois de Fin (Vert)" type="monotone" dataKey="fin" stroke="#33a02c" strokeWidth={2} dot={{ r: 4, fill: "#33a02c" }} />
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+
+                      {seasonSubTab === "max_month" && (
+                        <div style={{ width: "100%", height: 360, marginTop: "12px" }}>
+                          <ResponsiveContainer>
+                            <RechartsBarChart data={maxMonthChartData} margin={{ top: 20, right: 20, bottom: 35, left: 20 }}>
+                              <defs>
+                                <linearGradient id="colorMaxMonthPrecipStat" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="var(--primary, #2563eb)" stopOpacity={0.85} />
+                                  <stop offset="95%" stopColor="var(--primary, #2563eb)" stopOpacity={0.35} />
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                              <XAxis
+                                dataKey="saison"
+                                stroke="var(--text-muted)"
+                                fontSize={11}
+                                angle={-45}
+                                textAnchor="end"
+                                height={50}
+                                tickFormatter={(s) => `${s}-${(Number(s) + 1).toString().slice(-2)}`}
+                                label={{
+                                  value: "Saison hydropluviométrique",
+                                  position: "insideBottom",
+                                  offset: -8,
+                                  fontSize: 11,
+                                  fill: "var(--text-muted)",
+                                  fontWeight: 500,
+                                }}
+                              />
+                              <YAxis
+                                orientation="left"
+                                stroke="#2563eb"
+                                fontSize={11}
+                                unit=" mm"
+                                label={{
+                                  value: "Précipitation max (mm)",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                  fontSize: 11,
+                                  fill: "#2563eb",
+                                  style: { textAnchor: "middle" },
+                                  offset: 10,
+                                }}
+                              />
+                              <RechartsTooltip content={<CustomMaxMonthTooltip />} />
+                              <Bar
+                                name="Précipitation Mois Max"
+                                dataKey="precip"
+                                fill="url(#colorMaxMonthPrecipStat)"
+                                stroke="var(--primary, #2563eb)"
+                                strokeWidth={1}
+                                radius={[4, 4, 0, 0]}
+                              />
+                            </RechartsBarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+
+                      {seasonSubTab === "timeline" && (
+                        <div className="timeline-container" style={{ marginTop: "12px" }}>
+                          {/* Clean Month Header */}
+                          <div className="timeline-header-row">
+                            <span className="timeline-col-season">Saison</span>
+                            <div className="timeline-col-months">
+                              {hydroMonths.map((m) => (
+                                <span key={m}>{m}</span>
+                              ))}
+                            </div>
+                            <span className="timeline-col-info">Durée & Pic</span>
+                          </div>
+
+                          <div className="timeline-rows-list">
+                            {chronogramRows.map((row) => {
+                              const startIdx = hydroMonths.indexOf(row.debut);
+                              const endIdx = hydroMonths.indexOf(row.fin);
+
+                              const isValidRange = startIdx !== -1 && endIdx !== -1;
+                              const cellWidth = 100 / hydroMonths.length;
+
+                              let leftPercent = 0;
+                              let widthPercent = 100;
+                              if (isValidRange) {
+                                leftPercent = startIdx * cellWidth;
+                                widthPercent = (endIdx - startIdx + 1) * cellWidth;
+                                if (endIdx < startIdx) {
+                                  widthPercent = (hydroMonths.length - startIdx + endIdx + 1) * cellWidth;
+                                }
+                              }
+
+                              const debutName = monthNamesFrMap[row.debut] || row.debut;
+                              const finName = monthNamesFrMap[row.fin] || row.fin;
+
+                              return (
+                                <div className="timeline-row" key={`${row.code_commune}-${row.saison}`}>
+                                  <span className="timeline-row-season">
+                                    Saison {row.saison}–{Number(row.saison) + 1}
+                                  </span>
+
+                                  <div className="timeline-track-container">
+                                    <div className="timeline-track-bg"></div>
+                                    <div
+                                      className="timeline-track-fill"
+                                      style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, minWidth: "12px" }}
+                                      title={`Saison ${row.saison}-${Number(row.saison) + 1} : Du ${debutName} au ${finName} (${row.duree} mois)`}
+                                    ></div>
+                                  </div>
+
+                                  <div className="timeline-duration">
+                                    <strong>{row.duree} mois</strong>
+                                    <div style={{ fontSize: "11px", color: "var(--text-light)", fontWeight: "500", marginTop: "2px" }}>
+                                      Max : {row.mois_plus_pluvieux || "—"} ({row.precip ? `${row.precip} mm` : "—"})
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+
               {typeGraph === "Climatologie mensuelle" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "12px" }}>
                   <div style={{ width: "100%", height: 320 }}>
                     <ResponsiveContainer>
-                      <ComposedChart data={climatologyData} margin={{ top: 20, right: 20, bottom: 25, left: 10 }}>
+                      <ComposedChart data={climatologyData} margin={{ top: 20, right: 20, bottom: 30, left: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                         <XAxis
                           dataKey="month"
                           stroke="var(--text-muted)"
                           fontSize={12}
+                          label={{
+                            value: "Mois de l'année",
+                            position: "insideBottom",
+                            offset: -10,
+                            fontSize: 11,
+                            fill: "var(--text-muted)",
+                            fontWeight: 500,
+                          }}
                         />
                         <YAxis
                           orientation="left"
                           stroke="#2563eb"
                           fontSize={11}
                           unit=" mm"
+                          label={{
+                            value: "Précipitations (mm)",
+                            angle: -90,
+                            position: "insideLeft",
+                            fontSize: 11,
+                            fill: "#2563eb",
+                            style: { textAnchor: "middle" },
+                            offset: 10,
+                          }}
                         />
                         <RechartsTooltip
                           formatter={(val, name, item) => {
@@ -4114,36 +4821,27 @@ function Statistiques({
                           height={36}
                           payload={[
                             {
-                              value: monthlyMode === "specific_year" ? `Pluie Observée en ${selectedYearForMonth} (mm)` : "Pluie Moyenne Historique (mm)",
+                              value: `Pluie Observée en ${selectedYearForMonth} (mm)`,
                               type: "rect",
                               id: "pObs",
-                              color: monthlyMode === "specific_year" ? "#2563eb" : "#10b981",
+                              color: "#2563eb",
                             },
                             {
-                              value: "Normale Climatologique (Moyenne 1981–Présent)",
+                              value: "Moyenne de Précipitation (1981–Présent)",
                               type: "line",
                               id: "pRef",
                               color: "#64748b",
                             },
                           ]}
                         />
-                        {monthlyMode === "specific_year" ? (
-                          <Bar
-                            name={`Pluie Observée en ${selectedYearForMonth} (mm)`}
-                            dataKey="pObs"
-                            fill="#2563eb"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        ) : (
-                          <Bar
-                            name="Pluie Moyenne Historique (mm)"
-                            dataKey="pRef"
-                            fill="#10b981"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        )}
+                        <Bar
+                          name={`Pluie Observée en ${selectedYearForMonth} (mm)`}
+                          dataKey="pObs"
+                          fill="#2563eb"
+                          radius={[4, 4, 0, 0]}
+                        />
                         <Line
-                          name="Normale Climatologique (Moyenne 1981–Présent)"
+                          name="Moyenne de Précipitation (1981–Présent)"
                           type="monotone"
                           dataKey="pRef"
                           stroke="#64748b"
@@ -4155,70 +4853,94 @@ function Statistiques({
                     </ResponsiveContainer>
                   </div>
 
-                  {monthlyMode === "specific_year" && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                      <div className="panel" style={{ background: "var(--bg-panel-secondary)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                        <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
-                          ⚡ Déficits & Excédents Mensuels en {selectedYearForMonth}
-                        </h4>
-                        <div style={{ width: "100%", height: 180 }}>
-                          <ResponsiveContainer>
-                            <RechartsBarChart data={climatologyData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                              <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} />
-                              <YAxis orientation="left" stroke="#2563eb" fontSize={11} unit=" mm" />
-                              <RechartsTooltip formatter={(val, name, item) => [`${val >= 0 ? "+" : ""}${val} mm (${item?.payload?.deficitPct >= 0 ? "+" : ""}${item?.payload?.deficitPct}%)`, "Écart à la normale"]} />
-                              <Bar name="Déficit / Excédent" dataKey="deficit">
-                                {climatologyData.map((entry, index) => (
-                                  <Cell
-                                    key={`cell-${index}`}
-                                    fill={entry.deficit >= 0 ? "var(--accent)" : "var(--danger)"}
-                                  />
-                                ))}
-                              </Bar>
-                            </RechartsBarChart>
-                          </ResponsiveContainer>
-                        </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                    <div className="panel" style={{ background: "var(--bg-panel-secondary)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                      <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
+                        ⚡ Déficits & Excédents Mensuels en {selectedYearForMonth}
+                      </h4>
+                      <div style={{ width: "100%", height: 180 }}>
+                        <ResponsiveContainer>
+                          <RechartsBarChart data={climatologyData} margin={{ top: 10, right: 10, bottom: 25, left: 15 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                            <XAxis
+                              dataKey="month"
+                              stroke="var(--text-muted)"
+                              fontSize={11}
+                              label={{
+                                value: "Mois",
+                                position: "insideBottom",
+                                offset: -8,
+                                fontSize: 10,
+                                fill: "var(--text-muted)",
+                                fontWeight: 500,
+                              }}
+                            />
+                            <YAxis
+                              orientation="left"
+                              stroke="#2563eb"
+                              fontSize={11}
+                              unit=" mm"
+                              label={{
+                                value: "Écart (mm)",
+                                angle: -90,
+                                position: "insideLeft",
+                                fontSize: 10,
+                                fill: "#2563eb",
+                                style: { textAnchor: "middle" },
+                                offset: 10,
+                              }}
+                            />
+                            <RechartsTooltip formatter={(val, name, item) => [`${val >= 0 ? "+" : ""}${val} mm (${item?.payload?.deficitPct >= 0 ? "+" : ""}${item?.payload?.deficitPct}%)`, "Écart à la moyenne"]} />
+                            <Bar name="Déficit / Excédent" dataKey="deficit">
+                              {climatologyData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={entry.deficit >= 0 ? "var(--accent)" : "var(--danger)"}
+                                />
+                              ))}
+                            </Bar>
+                          </RechartsBarChart>
+                        </ResponsiveContainer>
                       </div>
+                    </div>
 
-                      <div className="panel" style={{ background: "var(--bg-panel-secondary)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                        <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
-                          📋 Bilan Pluviométrique de l'Année {selectedYearForMonth}
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "12px" }}>
-                          <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
-                            <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Cumul Annuel Observé</span>
-                            <strong style={{ fontSize: "15px" }}>{monthlyStatsSummary.sumObs} mm</strong>
-                            <span style={{ fontSize: "11px", color: "var(--text-light)", display: "block" }}>Normale : {monthlyStatsSummary.sumRef} mm</span>
-                          </div>
-                          <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
-                            <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Bilan Annuel Global</span>
-                            <strong style={{ fontSize: "15px", color: monthlyStatsSummary.annualDeficit >= 0 ? "var(--accent)" : "var(--danger)" }}>
-                              {monthlyStatsSummary.annualDeficit >= 0 ? "+" : ""}{monthlyStatsSummary.annualDeficit} mm ({monthlyStatsSummary.annualDeficitPct}%)
-                            </strong>
-                            <span style={{ fontSize: "11px", color: monthlyStatsSummary.annualDeficit >= 0 ? "var(--accent)" : "var(--danger)", display: "block" }}>
-                              {monthlyStatsSummary.annualDeficit >= 0 ? "Excédentaire" : "Année en Déficit"}
-                            </span>
-                          </div>
-                          <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
-                            <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Mois le plus pluvieux</span>
-                            <strong>{monthlyStatsSummary.maxMonth}</strong>
-                          </div>
-                          <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
-                            <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Mois le plus sec</span>
-                            <strong>{monthlyStatsSummary.minMonth}</strong>
-                          </div>
+                    <div className="panel" style={{ background: "var(--bg-panel-secondary)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
+                        📋 Bilan Pluviométrique de l'Année {selectedYearForMonth}
+                      </h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "12px" }}>
+                        <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
+                          <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Cumul Annuel Observé</span>
+                          <strong style={{ fontSize: "15px" }}>{monthlyStatsSummary.sumObs} mm</strong>
+                          <span style={{ fontSize: "11px", color: "var(--text-light)", display: "block" }}>Moyenne : {monthlyStatsSummary.sumRef} mm</span>
+                        </div>
+                        <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
+                          <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Bilan Annuel Global</span>
+                          <strong style={{ fontSize: "15px", color: monthlyStatsSummary.annualDeficit >= 0 ? "var(--accent)" : "var(--danger)" }}>
+                            {monthlyStatsSummary.annualDeficit >= 0 ? "+" : ""}{monthlyStatsSummary.annualDeficit} mm ({monthlyStatsSummary.annualDeficitPct}%)
+                          </strong>
+                          <span style={{ fontSize: "11px", color: monthlyStatsSummary.annualDeficit >= 0 ? "var(--accent)" : "var(--danger)", display: "block" }}>
+                            {monthlyStatsSummary.annualDeficit >= 0 ? "Excédentaire" : "Année en Déficit"}
+                          </span>
+                        </div>
+                        <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
+                          <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Mois le plus pluvieux</span>
+                          <strong>{monthlyStatsSummary.maxMonth}</strong>
+                        </div>
+                        <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
+                          <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Mois le plus sec</span>
+                          <strong>{monthlyStatsSummary.minMonth}</strong>
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 
               {typeGraph === "Histogramme" && (
                 <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
                   <ResponsiveContainer>
-                    <RechartsBarChart data={histogramData} margin={{ top: 20, right: 20, bottom: 35, left: 15 }}>
+                    <RechartsBarChart data={histogramData} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                       <XAxis
                         dataKey="label"
@@ -4246,7 +4968,8 @@ function Statistiques({
                           position: "insideLeft",
                           fontSize: 12,
                           fill: "var(--text-main)",
-                          offset: 5,
+                          style: { textAnchor: "middle" },
+                          offset: 10,
                         }}
                       />
                       <RechartsTooltip
@@ -4268,7 +4991,7 @@ function Statistiques({
               {typeGraph === "Tendance" && (
                 <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
                   <ResponsiveContainer>
-                    <ComposedChart data={trendData} margin={{ top: 20, right: 20, bottom: 30, left: 15 }}>
+                    <ComposedChart data={trendData} margin={{ top: 20, right: 20, bottom: 30, left: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                       <XAxis
                         dataKey="year"
@@ -4281,7 +5004,15 @@ function Statistiques({
                         stroke="#2563eb"
                         fontSize={11}
                         unit=" mm"
-                        label={{ value: "Précipitation annuelle (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#2563eb", offset: 5 }}
+                        label={{
+                          value: "Précipitation annuelle (mm)",
+                          angle: -90,
+                          position: "insideLeft",
+                          fontSize: 11,
+                          fill: "#2563eb",
+                          style: { textAnchor: "middle" },
+                          offset: 10,
+                        }}
                       />
                       <RechartsTooltip
                         formatter={(val, name) => [`${Math.round(val)} mm`, name]}
@@ -4298,7 +5029,7 @@ function Statistiques({
               {typeGraph === "Anomalies" && (
                 <div style={{ width: "100%", height: 390, marginTop: "12px" }}>
                   <ResponsiveContainer>
-                    <RechartsBarChart data={anomalyData} margin={{ top: 20, right: 20, bottom: 30, left: 15 }}>
+                    <RechartsBarChart data={anomalyData} margin={{ top: 20, right: 20, bottom: 30, left: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                       <XAxis
                         dataKey="year"
@@ -4311,7 +5042,15 @@ function Statistiques({
                         stroke="#2563eb"
                         fontSize={11}
                         unit=" mm"
-                        label={{ value: "Anomalie pluviométrique (mm)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#2563eb", offset: 5 }}
+                        label={{
+                          value: "Anomalie pluviométrique (mm)",
+                          angle: -90,
+                          position: "insideLeft",
+                          fontSize: 11,
+                          fill: "#2563eb",
+                          style: { textAnchor: "middle" },
+                          offset: 10,
+                        }}
                       />
                       <RechartsTooltip
                         formatter={(val) => [`${val > 0 ? "+" : ""}${Math.round(val)} mm`, "Anomalie"]}
@@ -4333,6 +5072,245 @@ function Statistiques({
             </div>
           </section>
 
+          {/* Méthodologie Début & Fin de Pluie */}
+          {typeGraph === "Début et fin de pluie" && filteredSeasonRows.length > 0 && seasonSubTab === "start_end" && (
+            <div className="formula-card" style={{ marginTop: "0px" }}>
+              <div className="formula-card-header">
+                <Icons.Info />
+                <span>Formules de Calcul du Début, de la Fin et de la Durée de Saison</span>
+              </div>
+              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>1. Mois de Début (M_début)</span>
+                    <span style={{ color: "#1f78b4" }}>🔵 Bleu</span>
+                  </div>
+                  <div className="formula-code">
+                    M_début = Premier mois m ∈ &#123;Nov, Déc, Jan, Oct&#125; avec P_m ≥ 25 mm
+                  </div>
+                  <div className="formula-desc">
+                    Identifie l'arrivée des premières pluies effectives. Référence standard Grand Sud : <strong>Novembre</strong> (ou Décembre/Janvier en cas de retard sévère).
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">M_début :</span>
+                      <span className="formula-var-desc">Mois de démarrage de la saison des pluies.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_m :</span>
+                      <span className="formula-var-desc">Précipitation totale cumulée du mois <em>m</em> (en mm).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">≥ 25 mm :</span>
+                      <span className="formula-var-desc">Seuil pluviométrique d'humectation des sols propice à l'activité chlorophyllienne.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>2. Mois de Fin (M_fin)</span>
+                    <span style={{ color: "#33a02c" }}>🟢 Vert</span>
+                  </div>
+                  <div className="formula-code">
+                    M_fin = Dernier mois m ∈ &#123;Fév, Mars, Avr, Mai&#125; avant tarissement (&lt; 25 mm)
+                  </div>
+                  <div className="formula-desc">
+                    Marque la fin de la période pluvieuse avant l'entrée en saison sèche. Référence standard Grand Sud : <strong>Mars</strong> (ou Avril dans l'Anosy et zones humides).
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">M_fin :</span>
+                      <span className="formula-var-desc">Mois de clôture de la période pluvieuse active.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">&lt; 25 mm :</span>
+                      <span className="formula-var-desc">Seuil de tarissement marquant le début de la saison sèche.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>3. Durée de la Saison (D)</span>
+                    <span style={{ color: "#10b981" }}>⏳ Durée</span>
+                  </div>
+                  <div className="formula-code">
+                    D = (12 - M_début + 1) + M_fin  (en mois)
+                  </div>
+                  <div className="formula-desc">
+                    Nombre total de mois de la fenêtre pluvieuse active (généralement <strong>4 à 5 mois</strong> dans le Grand Sud, suivis de 7 à 8 mois de saison sèche).
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">D :</span>
+                      <span className="formula-var-desc">Durée totale de la saison des pluies (en mois).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">12 :</span>
+                      <span className="formula-var-desc">Nombre de mois sur l'année hydrologique (Octobre à Septembre).</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="formula-note">
+                📌 <strong>Références Régionales :</strong> Androy (Novembre → Mars), Anosy (Novembre/Octobre → Mars/Avril), Atsimo-Andrefana (Novembre → Mars).
+              </div>
+            </div>
+          )}
+
+          {typeGraph === "Début et fin de pluie" && filteredSeasonRows.length > 0 && seasonSubTab === "max_month" && (
+            <div className="formula-card" style={{ marginTop: "0px" }}>
+              <div className="formula-card-header">
+                <Icons.Rain />
+                <span>Formules du Mois le Plus Pluvieux & Précipitations Maximales</span>
+              </div>
+              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>1. Mois le Plus Pluvieux (M_max)</span>
+                    <span style={{ color: "var(--primary)" }}>🌧️ Pic</span>
+                  </div>
+                  <div className="formula-code">
+                    M_max = argmax_(m ∈ [M_début ... M_fin]) ( P_m )
+                  </div>
+                  <div className="formula-desc">
+                    Mois au cours duquel le cumul mensuel atteint son maximum absolu sur la saison des pluies.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">M_max :</span>
+                      <span className="formula-var-desc">Mois de pointe enregistrant le plus gros volume pluviométrique.</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_m :</span>
+                      <span className="formula-var-desc">Cumul de précipitations pour le mois <em>m</em> (en mm).</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>2. Précipitation Maximale (P_max)</span>
+                    <span style={{ color: "var(--primary)" }}>📊 Hauteur</span>
+                  </div>
+                  <div className="formula-code">
+                    P_max = max_(m ∈ [M_début ... M_fin]) ( P_m )  (en mm)
+                  </div>
+                  <div className="formula-desc">
+                    Hauteur maximale de pluie enregistrée pendant le mois le plus arrosé de l'année.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_max :</span>
+                      <span className="formula-var-desc">Volume d'eau record atteint lors du mois le plus humide (en mm).</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>3. Contribution au Bilan Annuel</span>
+                    <span style={{ color: "#f59e0b" }}>💧 % Annuel</span>
+                  </div>
+                  <div className="formula-code">
+                    Part_max = (P_max / P_annuel) × 100 %
+                  </div>
+                  <div className="formula-desc">
+                    Dans le Grand Sud, ce mois de pic (généralement <strong>Janvier</strong> ou <strong>Février</strong>) apporte à lui seul entre <strong>35% et 50%</strong> de toute la pluie annuelle.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">Part_max :</span>
+                      <span className="formula-var-desc">Poids relatif du mois de pic dans le cumul annuel global (en %).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">P_annuel :</span>
+                      <span className="formula-var-desc">Précipitation cumulée totale sur les 12 mois de la campagne.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="formula-note">
+                📌 <strong>Dynamique Climatique :</strong> Le pic pluviométrique de janvier/février correspond au passage de la ZCIT (Zone de Convergence Intertropicale) et aux dépressions tropicales.
+              </div>
+            </div>
+          )}
+
+          {typeGraph === "Début et fin de pluie" && filteredSeasonRows.length > 0 && seasonSubTab === "timeline" && (
+            <div className="formula-card" style={{ marginTop: "0px" }}>
+              <div className="formula-card-header">
+                <Icons.Stats />
+                <span>Méthodologie du Chronogramme & Étalement Temporel des Campagnes</span>
+              </div>
+              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>1. Fenêtre Pluvieuse Active</span>
+                    <span style={{ color: "var(--primary)" }}>🗓️ Période</span>
+                  </div>
+                  <div className="formula-code">
+                    Saison = [ M_début → M_fin ]  sur cycle hydrologique (Oct à Sep)
+                  </div>
+                  <div className="formula-desc">
+                    Représente graphiquement la continuité des mois pluvieux utiles, du démarrage des précipitations jusqu'au tarissement.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">M_début, M_fin :</span>
+                      <span className="formula-var-desc">Bornes de début et fin de la période pluvieuse.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>2. Positionnement sur l'Axe</span>
+                    <span style={{ color: "#10b981" }}>📐 Échelle</span>
+                  </div>
+                  <div className="formula-code">
+                    Départ = (Index_début / 12) × 100%,  Largeur = (D / 12) × 100%
+                  </div>
+                  <div className="formula-desc">
+                    Positionne la barre colorée proportionnellement sur les 12 mois du calendrier hydrologique (d'Octobre = 0% à Septembre = 100%).
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">D :</span>
+                      <span className="formula-var-desc">Durée de la saison pluvieuse active (en mois).</span>
+                    </div>
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">12 :</span>
+                      <span className="formula-var-desc">Nombre total de mois de l'année hydrologique.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="formula-item">
+                  <div className="formula-item-title">
+                    <span>3. Bilan Saisonnier & Aridité</span>
+                    <span style={{ color: "#f59e0b" }}>☀️ Climat</span>
+                  </div>
+                  <div className="formula-code">
+                    Durée Saison Sèche = 12 - D  (7 à 8 mois secs)
+                  </div>
+                  <div className="formula-desc">
+                    Met en évidence la brièveté de la période pluvieuse (4 à 5 mois) face à la longue saison sèche (Avril à Octobre) caractéristique de l'aridité du Grand Sud.
+                  </div>
+                  <div className="formula-vars">
+                    <div className="formula-var-row">
+                      <span className="formula-var-name">12 - D :</span>
+                      <span className="formula-var-desc">Nombre de mois secs sans pluies significatives (7 à 8 mois).</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="formula-note">
+                📌 <strong>Lecture Hydro-Pluviométrique :</strong> Un décalage de la barre vers la droite (ex: début en Janvier) traduit un retard des pluies d'installation ou une sécheresse précoce.
+              </div>
+            </div>
+          )}
+
           {/* Méthodologie Climatologique affichée en bas de l'ensemble (Paramètres + Figures) sur 3 colonnes */}
           {typeGraph === "Anomalies" && (
             <div className="formula-card" style={{ marginTop: "0px", borderLeftColor: "#2563eb" }}>
@@ -4343,19 +5321,19 @@ function Statistiques({
               <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
                 <div className="formula-item">
                   <div className="formula-item-title">
-                    <span>1. Normale & Écart-Type (Zone Grisée)</span>
+                    <span>1. Moyenne & Écart-Type (Zone Grisée)</span>
                     <span style={{ color: "#64748b" }}>±1 SD (Écart-Type)</span>
                   </div>
                   <div className="formula-code">
                     Bande Grisée = [ -1 σ ; +1 σ ] = [ -{sdClim} mm ; +{sdClim} mm ]
                   </div>
                   <div className="formula-desc">
-                    La zone en arrière-plan gris sur le graphique d'anomalie correspond à <strong>±1 écart-type (±{sdClim} mm)</strong> par rapport à la moyenne climatologique de la période de référence 1981–2010 (<strong>{meanClim} mm/an</strong>).
+                    La zone en arrière-plan gris sur le graphique d'anomalie correspond à <strong>±1 écart-type (±{sdClim} mm)</strong> par rapport à la moyenne de précipitation de la période de référence 1981–2010 (<strong>{meanClim} mm/an</strong>).
                   </div>
                   <div className="formula-vars">
                     <div className="formula-var-row">
                       <span className="formula-var-name">Moyenne Réf. :</span>
-                      <span className="formula-var-desc">Normale 1981–2010 ({meanClim} mm/an).</span>
+                      <span className="formula-var-desc">Moyenne 1981–2010 ({meanClim} mm/an).</span>
                     </div>
                     <div className="formula-var-row">
                       <span className="formula-var-name">±1 SD (σ) :</span>
@@ -4373,7 +5351,7 @@ function Statistiques({
                     Anomalie_y = P_y - P_ref,clim
                   </div>
                   <div className="formula-desc">
-                    Écart arithmétique entre la pluie totale enregistrée pour l'année <em>y</em> et la normale séculaire de référence.
+                    Écart arithmétique entre la pluie totale enregistrée pour l'année <em>y</em> et la moyenne de précipitation de référence.
                   </div>
                   <div className="formula-vars">
                     <div className="formula-var-row">
@@ -4423,7 +5401,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Pluviométrie de Référence</span>
-                    <span style={{ color: "var(--primary)" }}>Normale Climatologique</span>
+                    <span style={{ color: "var(--primary)" }}>Moyenne de Précipitation</span>
                   </div>
                   <div className="formula-code">
                     P_ref,m = (1 / N) Σ P_y,m
@@ -4434,7 +5412,7 @@ function Statistiques({
                   <div className="formula-vars">
                     <div className="formula-var-row">
                       <span className="formula-var-name">P_ref,m :</span>
-                      <span className="formula-var-desc">Normale climatologique moyenne du mois <em>m</em> sur 1981–2026 (en mm).</span>
+                      <span className="formula-var-desc">Moyenne des précipitations du mois <em>m</em> sur 1981–2026 (en mm).</span>
                     </div>
                     <div className="formula-var-row">
                       <span className="formula-var-name">P_y,m :</span>
@@ -4483,7 +5461,7 @@ function Statistiques({
                     D_m = P_obs,m - P_ref,m &nbsp;|&nbsp; D% = (D_m / P_ref,m) × 100
                   </div>
                   <div className="formula-desc">
-                    Une valeur négative (barre rouge) traduit un déficit hydrique par rapport à la normale du mois.
+                    Une valeur négative (barre rouge) traduit un déficit hydrique par rapport à la moyenne du mois.
                   </div>
                   <div className="formula-vars">
                     <div className="formula-var-row">
@@ -4496,7 +5474,7 @@ function Statistiques({
                     </div>
                     <div className="formula-var-row">
                       <span className="formula-var-name">P_ref,m :</span>
-                      <span className="formula-var-desc">Pluie normale de référence pour le mois <em>m</em>.</span>
+                      <span className="formula-var-desc">Précipitation moyenne de référence pour le mois <em>m</em>.</span>
                     </div>
                   </div>
                 </div>
@@ -5297,7 +6275,7 @@ function Carte({
         else if (deficit <= -20) fillColor = "#cb181d";  // Déficit fort (-20% à -30%)
         else if (deficit <= -10) fillColor = "#ef3b2c";  // Déficit modéré (-10% à -20%)
         else if (deficit < 0) fillColor = "#fc9272";     // Déficit faible (0% à -10%)
-        else if (deficit === 0) fillColor = "#f8fafc";   // Équilibre / Normale (0%)
+        else if (deficit === 0) fillColor = "#f8fafc";   // Équilibre / Moyenne (0%)
         else if (deficit <= 10) fillColor = "#9ecae1";   // Excédent faible (0% à +10%)
         else if (deficit <= 20) fillColor = "#6baed6";   // Excédent modéré (+10% à +20%)
         else if (deficit <= 30) fillColor = "#3182bd";   // Excédent fort (+20% à +30%)
@@ -6072,7 +7050,7 @@ function Carte({
               >
                 <strong style={{ color: "var(--danger)" }}>Épisode de Sécheresse Triennale (2020–2022) :</strong>
                 <br />
-                Moyenne des précipitations observées sur 3 années consécutives de sécheresse historique par rapport à la normale CHIRPS (1981–2026).
+                Moyenne des précipitations observées sur 3 années consécutives de sécheresse historique par rapport à la moyenne de précipitation CHIRPS (1981–2026).
               </div>
             ) : (
               <div className="filter-group">
@@ -6651,7 +7629,7 @@ function Carte({
         <div className="formula-grid">
           <div className="formula-item">
             <div className="formula-item-title">
-              <span>1. Normale Climatologique de Référence (P_ref)</span>
+              <span>1. Moyenne de Précipitation de Référence (P_ref)</span>
               <span style={{ color: "#2563eb" }}>📊 Réf. 1981–2026</span>
             </div>
             <div className="formula-code" style={{ color: "#2563eb" }}>
@@ -6663,7 +7641,7 @@ function Carte({
             <div className="formula-vars">
               <div className="formula-var-row">
                 <span className="formula-var-name">P_ref,m(c) :</span>
-                <span className="formula-var-desc">Normale climatologique (pluie de référence) du mois <em>m</em> pour la commune <em>c</em> (en mm).</span>
+                <span className="formula-var-desc">Moyenne de précipitation (pluie de référence) du mois <em>m</em> pour la commune <em>c</em> (en mm).</span>
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">P_y,m(c) :</span>
@@ -6689,7 +7667,7 @@ function Carte({
               D_abs(c, t) = P_obs(c, t) - P_ref(c, t)  (en mm)
             </div>
             <div className="formula-desc">
-              Écart absolu en millimètres entre la pluie observée et la normale climatique de référence. Une valeur négative indique un manque d'eau.
+              Écart absolu en millimètres entre la pluie observée et la moyenne de précipitation de référence. Une valeur négative indique un manque d'eau.
             </div>
             <div className="formula-vars">
               <div className="formula-var-row">
@@ -6702,7 +7680,7 @@ function Carte({
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">P_ref(c, t) :</span>
-                <span className="formula-var-desc">Précipitation de référence normale attendue pour la commune <em>c</em> sur la période <em>t</em>.</span>
+                <span className="formula-var-desc">Précipitation moyenne de référence attendue pour la commune <em>c</em> sur la période <em>t</em>.</span>
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">t :</span>
@@ -6720,20 +7698,20 @@ function Carte({
               Anomalie_% = [(P_obs(c, t) - P_ref(c, t)) / P_ref(c, t)] × 100 %
             </div>
             <div className="formula-desc">
-              Écart relatif à la normale séculaire : les valeurs négatives (&lt; 0%) traduisent un <strong>déficit pluviométrique (en rouge)</strong>, tandis que les valeurs positives (&gt; 0%) traduisent un <strong>excédent pluviométrique (en bleu)</strong>.
+              Écart relatif à la moyenne de référence : les valeurs négatives (&lt; 0%) traduisent un <strong>déficit pluviométrique (en rouge)</strong>, tandis que les valeurs positives (&gt; 0%) traduisent un <strong>excédent pluviométrique (en bleu)</strong>.
             </div>
             <div className="formula-vars">
               <div className="formula-var-row">
                 <span className="formula-var-name">Anomalie_% :</span>
-                <span className="formula-var-desc">Pourcentage d'écart relatif par rapport à la normale historique de référence.</span>
+                <span className="formula-var-desc">Pourcentage d'écart relatif par rapport à la moyenne historique de référence.</span>
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">&lt; 0% (Rouge) :</span>
-                <span className="formula-var-desc" style={{ color: "#ef4444", fontWeight: "600" }}>Déficit pluviométrique (manque d'eau par rapport à la normale).</span>
+                <span className="formula-var-desc" style={{ color: "#ef4444", fontWeight: "600" }}>Déficit pluviométrique (manque d'eau par rapport à la moyenne).</span>
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">&gt; 0% (Bleu) :</span>
-                <span className="formula-var-desc" style={{ color: "#2563eb", fontWeight: "600" }}>Excédent pluviométrique (surplus de pluie par rapport à la normale).</span>
+                <span className="formula-var-desc" style={{ color: "#2563eb", fontWeight: "600" }}>Excédent pluviométrique (surplus de pluie par rapport à la moyenne).</span>
               </div>
             </div>
           </div>
@@ -6756,7 +7734,7 @@ function Carte({
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">Déficit_% (y) :</span>
-                <span className="formula-var-desc">Déficit relatif calculé pour l'année <em>y</em> par rapport à la normale séculaire.</span>
+                <span className="formula-var-desc">Déficit relatif calculé pour l'année <em>y</em> par rapport à la moyenne de référence.</span>
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">y :</span>
@@ -6812,7 +7790,7 @@ function Carte({
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">P_ref(c, t) :</span>
-                <span className="formula-var-desc">Normale climatologique de référence historique (1981–2026) de la commune <strong>c</strong> pour la même période <strong>t</strong> (en mm).</span>
+                <span className="formula-var-desc">Moyenne de précipitation de référence historique (1981–2026) de la commune <strong>c</strong> pour la même période <strong>t</strong> (en mm).</span>
               </div>
               <div className="formula-var-row">
                 <span className="formula-var-name">Déficit_{`%, t`}(c) :</span>
@@ -7782,7 +8760,7 @@ function getCommuneMetrics(p) {
   const alertStr = p.alert || (defVal < -18 || vciVal < 32 ? "Alerte Rouge" : defVal < -10 || vciVal < 45 ? "Vigilance" : "Stable");
 
   // Drought severity status (for precip mode)
-  const droughtStatus = defVal < -20 ? "Sécheresse Sévère" : defVal < -10 ? "Déficit Modéré" : "Proche Normale";
+  const droughtStatus = defVal < -20 ? "Sécheresse Sévère" : defVal < -10 ? "Déficit Modéré" : "Proche Moyenne";
 
   return {
     name: nom || code || "Commune",
@@ -7901,7 +8879,7 @@ function TableauExplorer({
       const defVal = precipRef > 0 ? Number((((precipVal - precipRef) / precipRef) * 100).toFixed(1)) : 0;
       const ecartMm = Math.round(precipVal - precipRef);
       const droughtStatus =
-        defVal < -20 ? "Sécheresse Sévère" : defVal < -10 ? "Déficit Modéré" : defVal > 10 ? "Excédent" : "Proche Normale";
+        defVal < -20 ? "Sécheresse Sévère" : defVal < -10 ? "Déficit Modéré" : defVal > 10 ? "Excédent" : "Proche Moyenne";
 
       // Vegetation (MODIS)
       const communeVegArr = vegData?.timeSeries?.modis?.[code];
@@ -7993,7 +8971,7 @@ function TableauExplorer({
         const vhiAvg = Math.round(d.vhiList.reduce((a, b) => a + b, 0) / n);
         const coverAvg = Number((d.vegCoverList.reduce((a, b) => a + b, 0) / n).toFixed(1));
 
-        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Normale";
+        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Moyenne";
         const alertStr = defAvg < -18 || vciAvg < 32 ? "Alerte Rouge" : defAvg < -10 || vciAvg < 45 ? "Vigilance" : "Stable";
 
         return {
@@ -8070,7 +9048,7 @@ function TableauExplorer({
         const vhiAvg = Math.round(r.vhiList.reduce((a, b) => a + b, 0) / n);
         const coverAvg = Number((r.vegCoverList.reduce((a, b) => a + b, 0) / n).toFixed(1));
 
-        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Normale";
+        const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Moyenne";
         const alertStr = defAvg < -18 || vciAvg < 32 ? "Alerte Rouge" : defAvg < -10 || vciAvg < 45 ? "Vigilance" : "Stable";
 
         return {
@@ -8128,7 +9106,7 @@ function TableauExplorer({
 
     if (datasetType === "precip") {
       headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Annee", "Precipitation Annuelle (mm)", "Normale Ref 1981–2025 (mm)", "Deficit (%)", "Ecart (mm)", "Statut Secheresse"
+        "Echelle", "Code", "Nom", "District", "Region", "Annee", "Precipitation Annuelle (mm)", "Moyenne Ref 1981–2025 (mm)", "Deficit (%)", "Ecart (mm)", "Statut Secheresse"
       ];
       rows = filteredData.map((r) => [
         scale.toUpperCase(), r.code, r.name, r.district, r.region, r.year || selectedPrecipYear, r.precip, r.precipRef, r.deficit, r.ecartMm, r.droughtStatus
@@ -8233,7 +9211,7 @@ function TableauExplorer({
               <option value="">Tous les statuts</option>
               <option value="Sécheresse Sévère">Sécheresse Sévère (&gt; 20%)</option>
               <option value="Déficit Modéré">Déficit Modéré (10% à 20%)</option>
-              <option value="Proche Normale">Proche Normale (&lt; 10%)</option>
+              <option value="Proche Moyenne">Proche Moyenne (&lt; 10%)</option>
               <option value="Excédent">Excédent (&gt; +10%)</option>
             </select>
           </div>
@@ -8261,7 +9239,7 @@ function TableauExplorer({
                 <th>Région</th>
                 <th>Année</th>
                 <th>Précip. Annuelle</th>
-                <th>Normale (1981–2025)</th>
+                <th>Moyenne (1981–2025)</th>
                 <th>Déficit (%)</th>
                 <th>Écart (mm)</th>
                 <th>Statut Sécheresse</th>
@@ -8411,17 +9389,17 @@ function GuideMethodologie({
           </div>
 
           <div className="guide-cards-grid">
-            {/* Card 1: Normale de Référence */}
+            {/* Card 1: Moyenne de Précipitation de Référence */}
             <div className="guide-card">
               <div className="guide-card-header">
-                <span className="guide-card-title">1. Normale Climatologique de Référence</span>
+                <span className="guide-card-title">1. Moyenne de Précipitation de Référence</span>
                 <span className="guide-card-badge">P_ref (1981–Présent)</span>
               </div>
               <div className="guide-formula-box">
                 P_ref,m = (1 / N) × Σ (y=1981 à aujourd'hui) P_y,m
               </div>
               <p className="guide-desc-text">
-                Moyenne arithmétique mensuelle calculée sur la série continue historique. Elle constitue le référentiel climatologique pour chaque commune.
+                Moyenne arithmétique mensuelle calculée sur la série continue historique. Elle constitue le référentiel de précipitation pour chaque commune.
               </p>
               <div className="guide-param-list">
                 <div className="guide-param-row">
@@ -8445,7 +9423,7 @@ function GuideMethodologie({
                 D_abs = P_obs - P_ref  (en mm)
               </div>
               <p className="guide-desc-text">
-                Différence volumétrique nette en millimètres d'eau par rapport à la moyenne climatologique trentenaire/quarantenaire.
+                Différence volumétrique nette en millimètres d'eau par rapport à la moyenne des précipitations de référence.
               </p>
               <div className="guide-param-list">
                 <div className="guide-param-row">
@@ -8469,7 +9447,7 @@ function GuideMethodologie({
                 Déficit_% = ((P_obs - P_ref) / P_ref) × 100 %
               </div>
               <p className="guide-desc-text">
-                Indicateur de sévérité normalisé exprimant la proportion de manque d'eau par rapport aux besoins historiques normaux.
+                Indicateur de sévérité normalisé exprimant la proportion de manque d'eau par rapport aux moyennes de précipitation de référence.
               </p>
               <div className="guide-param-list">
                 <div className="guide-param-row">
@@ -8482,7 +9460,7 @@ function GuideMethodologie({
                 </div>
                 <div className="guide-param-row">
                   <span className="guide-param-name">&gt; -10% :</span>
-                  <span className="guide-param-desc" style={{ color: "#059669", fontWeight: "700" }}>Proche des Normales Climatiques.</span>
+                  <span className="guide-param-desc" style={{ color: "#059669", fontWeight: "700" }}>Proche des Moyennes de Précipitation.</span>
                 </div>
               </div>
             </div>
