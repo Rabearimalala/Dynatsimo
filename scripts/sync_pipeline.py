@@ -164,7 +164,32 @@ def run_export_react() -> bool:
         return False
 
 
-def run_full_pipeline(skip_download: bool = False, force_rebuild_db: bool = False, skip_ndvi: bool = False) -> bool:
+def run_geoserver_sync() -> bool:
+    print_step_header(6, "Publication des Rasters dans GeoServer")
+    script_path = SCRIPTS_DIR / "geoserver_publisher.py"
+    if not script_path.exists():
+        print(f"ℹ Script GeoServer non trouvé ({script_path}), étape ignorée.")
+        return True
+
+    spec = importlib.util.spec_from_file_location("dynatsimo_geoserver", script_path)
+    if not spec or not spec.loader:
+        print("❌ Impossible de charger geoserver_publisher.py")
+        return False
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    t0 = time.time()
+    try:
+        ok = module.sync_geoserver()
+        print(f"✓ Étape GeoServer terminée en {time.time() - t0:.1f}s.")
+        return ok
+    except Exception as e:
+        print(f"⚠ Avertissement GeoServer : {e}")
+        return False
+
+
+def run_full_pipeline(skip_download: bool = False, force_rebuild_db: bool = False, skip_ndvi: bool = False, skip_geoserver: bool = False) -> bool:
     print("\n" + "=" * 75)
     print("🚀 DYNATSIMO — DÉBUT DU PIPELINE GLOBAL DE SYNCHRONISATION")
     print("=" * 75)
@@ -199,6 +224,12 @@ def run_full_pipeline(skip_download: bool = False, force_rebuild_db: bool = Fals
         print("❌ Échec lors de l'export React.")
         return False
 
+    # 6. GeoServer Publish
+    if not skip_geoserver:
+        run_geoserver_sync()
+    else:
+        print("\nℹ Étape 6 : GeoServer ignoré (--skip-geoserver).")
+
     total_time = time.time() - total_t0
     print("\n" + "=" * 75)
     print(f"✨ PIPELINE DYNATSIMO TERMINÉ AVEC SUCCÈS EN {total_time:.1f} SECONDES !")
@@ -211,12 +242,14 @@ def main():
     parser.add_argument("--skip-download", action="store_true", help="Ne pas télécharger les rasters CHIRPS")
     parser.add_argument("--force-rebuild-db", action="store_true", help="Recalculer toute la base PostgreSQL depuis zéro")
     parser.add_argument("--skip-ndvi", action="store_true", help="Ignorer la synchronisation NDVI")
+    parser.add_argument("--skip-geoserver", action="store_true", help="Ignorer la publication GeoServer")
     args = parser.parse_args()
 
     success = run_full_pipeline(
         skip_download=args.skip_download,
         force_rebuild_db=args.force_rebuild_db,
         skip_ndvi=args.skip_ndvi,
+        skip_geoserver=args.skip_geoserver,
     )
     sys.exit(0 if success else 1)
 

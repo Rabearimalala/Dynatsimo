@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
-import { MapContainer, TileLayer, GeoJSON, useMap, Popup, ImageOverlay, Rectangle } from "react-leaflet";
+import { MapContainer, TileLayer, WMSTileLayer, GeoJSON, useMap, Popup, ImageOverlay, Rectangle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -5643,6 +5643,8 @@ function Carte({
   const [ndviYear, setNdviYear] = React.useState(2026);
   const [ndviMonth, setNdviMonth] = React.useState(8);
   const [ndviOpacity, setNdviOpacity] = React.useState(0.85);
+  const [useGeoServerWms, setUseGeoServerWms] = React.useState(true);
+  const geoserverUrl = "http://localhost:8080/geoserver";
   const [showCommunesLayer, setShowCommunesLayer] = React.useState(true);
   const [communeOverlayStyle, setCommuneOverlayStyle] = React.useState("borders_only"); // 'borders_only' | 'light_tint'
   const [isPlayingTimeline, setIsPlayingTimeline] = React.useState(false);
@@ -6533,6 +6535,21 @@ function Carte({
               </div>
             </div>
 
+            {/* Option Flux GeoServer WMS */}
+            <div className="layer-toggle-group" style={{ marginTop: "8px", padding: "8px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
+              <label className="layer-toggle-label" style={{ fontWeight: 600, fontSize: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Source : Flux GeoServer WMS</span>
+                <input
+                  type="checkbox"
+                  checked={useGeoServerWms}
+                  onChange={(e) => setUseGeoServerWms(e.target.checked)}
+                />
+              </label>
+              <div style={{ fontSize: "11px", color: useGeoServerWms ? "#16a34a" : "#64748b", marginTop: "2px" }}>
+                {useGeoServerWms ? "● Connecté à donnees_dynatsimo (WMS)" : "○ Mode tuiles PNG statiques"}
+              </div>
+            </div>
+
             {/* Superposition de la Couche Communes */}
             <div className="layer-toggle-group">
               <label className="layer-toggle-label">
@@ -7300,14 +7317,47 @@ function Carte({
                 resetTrigger={resetTrigger}
               />
 
-              {/* Raster NDVI 6-Classes Overlay */}
+              {/* Raster NDVI 6-Classes Overlay (GeoServer WMS avec fallback ImageOverlay) */}
               {mapSubItem === "ndvi_classes" && activePeriod && (
-                <ImageOverlay
-                  key={activePeriod.key}
-                  url={activePeriod.pngUrl}
-                  bounds={activePeriod.bounds || ndviBounds}
-                  opacity={ndviOpacity}
-                  zIndex={10}
+                useGeoServerWms ? (
+                  <WMSTileLayer
+                    key={`wms-ndvi-${activePeriod.year}-${activePeriod.month}`}
+                    url={`${geoserverUrl}/donnees_dynatsimo/wms`}
+                    params={{
+                      layers: `donnees_dynatsimo:ndvi_modis_${activePeriod.year}_${String(activePeriod.month).padStart(2, "0")}`,
+                      format: "image/png",
+                      transparent: true,
+                      version: "1.1.1",
+                      styles: "ndvi_6classes_style",
+                    }}
+                    opacity={ndviOpacity}
+                    zIndex={10}
+                  />
+                ) : (
+                  <ImageOverlay
+                    key={activePeriod.key}
+                    url={activePeriod.pngUrl}
+                    bounds={activePeriod.bounds || ndviBounds}
+                    opacity={ndviOpacity}
+                    zIndex={10}
+                  />
+                )
+              )}
+
+              {/* Raster CHIRPS Précipitations GeoServer WMS en mode Isohyètes */}
+              {mapSubItem === "precip" && typeCarte === "Isohyètes" && useGeoServerWms && selectedYear && (
+                <WMSTileLayer
+                  key={`wms-chirps-${selectedYear}-${selectedMonth || 1}`}
+                  url={`${geoserverUrl}/donnees_dynatsimo/wms`}
+                  params={{
+                    layers: `donnees_dynatsimo:chirps_${selectedYear}_${String(selectedMonth || 1).padStart(2, "0")}`,
+                    format: "image/png",
+                    transparent: true,
+                    version: "1.1.1",
+                    styles: "chirps_style",
+                  }}
+                  opacity={0.8}
+                  zIndex={8}
                 />
               )}
 

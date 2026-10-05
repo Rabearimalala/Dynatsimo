@@ -116,6 +116,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                     ndvi_mod = load_ndvi_module()
                     if ndvi_mod and hasattr(ndvi_mod, "sync_all_ndvi_rasters"):
                         meta = ndvi_mod.sync_all_ndvi_rasters()
+                        # Publication automatique dans GeoServer
+                        try:
+                            gs_script = ROOT_DIR / "scripts" / "geoserver_publisher.py"
+                            if gs_script.exists():
+                                subprocess.run([sys.executable, str(gs_script)], check=False)
+                        except Exception as e:
+                            print(f"Erreur publication GeoServer NDVI : {e}")
                         self.send_json(meta)
                         return
 
@@ -192,18 +199,51 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
 
-class DynatsimoServer(ThreadingHTTPServer):
-    def handle_error(self, request, client_address):
-        exc_type, exc_val, _ = sys.exc_info()
-        if exc_type in (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
-            return
-        super().handle_error(request, client_address)
+import threading
+
+
+def start_background_auto_sync():
+    """Lance un thread d'arrière-plan pour synchroniser automatiquement les données vers GeoServer périodiquement."""
+    auto_sync_enabled = os.getenv("DYNATSIMO_AUTO_SYNC", "true").lower() in ("true", "1", "yes")
+    if not auto_sync_enabled:
+        print("ℹ Synchronisation automatique en arrière-plan désactivée (DYNATSIMO_AUTO_SYNC=false).")
+        return
+
+    interval_hours = float(os.getenv("DYNATSIMO_SYNC_INTERVAL_HOURS", "12"))
+    interval_seconds = interval_hours * 3600
+
+    def background_worker():
+        print(f"🔄 Planificateur automatique activé : vérification CHIRPS/MODIS -> GeoServer toutes les {interval_hours}h.")
+        # Attente courte de 10s au démarrage pour laisser le serveur HTTP s'initialiser
+        time.sleep(10)
+
+        while True:
+            try:
+                print("\n" + "=" * 70)
+                print("⏰ DÉCLENCHEMENT DE LA SYNCHRONISATION AUTOMATIQUE EN ARRIÈRE-PLAN")
+                print("=" * 70)
+                pipe_mod = load_pipeline_module()
+                if pipe_mod and hasattr(pipe_mod, "run_full_pipeline"):
+                    pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=False)
+                    global data_module
+                    data_module = load_data_module()
+                    print("✓ Synchronisation automatique d'arrière-plan terminée avec succès.")
+            except Exception as e:
+                print(f"⚠ Erreur lors de la synchronisation automatique d'arrière-plan : {e}")
+
+            time.sleep(interval_seconds)
+
+    sync_thread = threading.Thread(target=background_worker, daemon=True, name="DynatsimoAutoSyncThread")
+    sync_thread.start()
 
 
 def main():
     host = os.getenv("DYNATSIMO_API_HOST", "127.0.0.1")
     port = int(os.getenv("DYNATSIMO_API_PORT", "8000"))
     server = DynatsimoServer((host, port), ApiHandler)
+
+    # Démarrage du thread de synchronisation automatique
+    start_background_auto_sync()
 
     print(f"API DYNATSIMO prete: http://{host}:{port}/api/data")
     print("Arrete le serveur avec Ctrl+C.")
