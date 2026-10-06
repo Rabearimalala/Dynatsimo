@@ -991,41 +991,6 @@ function App() {
           </div>
 
           <div className="navbar-right">
-            {syncStatusMsg && (
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: "600",
-                  color: isGlobalSyncing ? "var(--primary)" : "var(--success, #16a34a)",
-                  background: "var(--bg-secondary)",
-                  padding: "4px 8px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--border-color)",
-                }}
-              >
-                {syncStatusMsg}
-              </span>
-            )}
-
-            <button
-              type="button"
-              className="timeline-btn"
-              onClick={handleGlobalSync}
-              disabled={isGlobalSyncing}
-              style={{
-                fontSize: "11px",
-                padding: "6px 12px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                fontWeight: "600",
-                cursor: isGlobalSyncing ? "not-allowed" : "pointer",
-                background: "var(--bg-surface)",
-              }}
-              title="Vérifier les nouvelles données satellites, calculer les statistiques et actualiser PostgreSQL"
-            >
-              {isGlobalSyncing ? "⏳ Sync..." : "🔄 Actualiser"}
-            </button>
 
             <button
               onClick={toggleTheme}
@@ -6405,25 +6370,13 @@ function Carte({
         {/* Options pour NDVI 6 Classes */}
         {mapSubItem === "ndvi_classes" && (
           <div className="ndvi-controls-box">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
-              <div>
-                <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>
-                  Contrôles NDVI MODIS
-                </h3>
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
-                  {periods.length} rasters disponibles ({availableNdviYears[0]}–{availableNdviYears[availableNdviYears.length - 1]})
-                </span>
-              </div>
-              <button
-                type="button"
-                className="timeline-btn"
-                onClick={handleSyncNdvi}
-                disabled={isSyncing}
-                style={{ fontSize: "10px", padding: "4px 8px", whiteSpace: "nowrap" }}
-                title="Scanner les dossiers et actualiser les nouvelles données"
-              >
-                {isSyncing ? "⏳ Scan..." : "🔄 Actualiser"}
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>
+                Contrôles NDVI MODIS
+              </h3>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
+                {periods.length} rasters disponibles ({availableNdviYears[0]}–{availableNdviYears[availableNdviYears.length - 1]})
+              </span>
             </div>
 
             <div className="filter-group">
@@ -6595,25 +6548,13 @@ function Carte({
         {mapSubItem === "precip" && (
           <>
             <div className="ndvi-controls-box" style={{ marginBottom: "14px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
-                <div>
-                  <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>
-                    Contrôles Précipitations CHIRPS
-                  </h3>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
-                    {syncPrecipMsg || "Série 1981–2026 • Base PostgreSQL"}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="timeline-btn"
-                  onClick={handleSyncPrecip}
-                  disabled={isSyncingPrecip}
-                  style={{ fontSize: "10px", padding: "4px 8px", whiteSpace: "nowrap" }}
-                  title="Télécharger les nouveaux rasters CHIRPS, calculer les statistiques communales et actualiser PostgreSQL"
-                >
-                  {isSyncingPrecip ? "⏳ Sync..." : "🔄 Actualiser"}
-                </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>
+                  Contrôles Précipitations CHIRPS
+                </h3>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
+                  Série 1981–2026 • Base PostgreSQL
+                </span>
               </div>
             </div>
 
