@@ -5784,6 +5784,65 @@ function Carte({
     Jul: 7, Aou: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12,
   }), []);
 
+  const getAvailableMonthsForPrecipYear = React.useCallback(
+    (y) => {
+      const yearNum = Number(y);
+      const monthsSet = new Set();
+
+      if (precipRecords && precipRecords.length > 0) {
+        precipRecords.forEach((r) => {
+          if (Number(r.year) === yearNum && r.month != null) {
+            monthsSet.add(Number(r.month));
+          }
+        });
+      }
+
+      if (localIsohyetesMeta?.items) {
+        Object.keys(localIsohyetesMeta.items).forEach((k) => {
+          const match = k.match(new RegExp(`^isohyete_${yearNum}_(\\d{2})$`));
+          if (match) {
+            monthsSet.add(parseInt(match[1], 10));
+          }
+        });
+      }
+
+      const allMonths = [
+        { code: "Jan", num: 1, name: "Janvier" },
+        { code: "Fev", num: 2, name: "Février" },
+        { code: "Mar", num: 3, name: "Mars" },
+        { code: "Avr", num: 4, name: "Avril" },
+        { code: "Mai", num: 5, name: "Mai" },
+        { code: "Jun", num: 6, name: "Juin" },
+        { code: "Jul", num: 7, name: "Juillet" },
+        { code: "Aou", num: 8, name: "Août" },
+        { code: "Sep", num: 9, name: "Septembre" },
+        { code: "Oct", num: 10, name: "Octobre" },
+        { code: "Nov", num: 11, name: "Novembre" },
+        { code: "Dec", num: 12, name: "Décembre" },
+      ];
+
+      if (monthsSet.size === 0) {
+        return allMonths;
+      }
+
+      return allMonths.filter((m) => monthsSet.has(m.num));
+    },
+    [precipRecords, localIsohyetesMeta]
+  );
+
+  const availablePrecipMonthsForSelectedYear = React.useMemo(() => {
+    return getAvailableMonthsForPrecipYear(selectedYears[0] || availableYears[0] || 2026);
+  }, [getAvailableMonthsForPrecipYear, selectedYears, availableYears]);
+
+  React.useEffect(() => {
+    if (typePeriode === "Mensuel" && availablePrecipMonthsForSelectedYear.length > 0) {
+      const isCurrentMonthValid = availablePrecipMonthsForSelectedYear.some((m) => m.code === selectedMonth);
+      if (!isCurrentMonthValid) {
+        setSelectedMonth(availablePrecipMonthsForSelectedYear[availablePrecipMonthsForSelectedYear.length - 1].code);
+      }
+    }
+  }, [availablePrecipMonthsForSelectedYear, selectedMonth, typePeriode]);
+
   const precipTimelineList = React.useMemo(() => {
     if (typePeriode === "Crise 2020–2022") {
       return [
@@ -5814,16 +5873,15 @@ function Carte({
     }
     if (typePeriode === "Mensuel") {
       const list = [];
-      const mCodes = ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"];
-      const mNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
       availableYears.forEach((y) => {
-        mCodes.forEach((mCode, idx) => {
+        const monthsForYear = getAvailableMonthsForPrecipYear(y);
+        monthsForYear.forEach((m) => {
           list.push({
-            key: `ym_${y}_${mCode}`,
-            label: `${mNames[idx]} ${y}`,
+            key: `ym_${y}_${m.code}`,
+            label: `${m.name} ${y}`,
             type: "month_year",
             year: y,
-            month: mCode,
+            month: m.code,
           });
         });
       });
@@ -5836,7 +5894,7 @@ function Carte({
       type: "year",
       year: y,
     }));
-  }, [typePeriode, availableYears, localIsohyetesMeta]);
+  }, [typePeriode, availableYears, localIsohyetesMeta, getAvailableMonthsForPrecipYear]);
 
   const currentPrecipTimelineIndex = React.useMemo(() => {
     if (typePeriode === "Crise 2020–2022") {
@@ -6744,20 +6802,7 @@ function Carte({
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
                   >
-                    {[
-                      { code: "Jan", name: "Janvier" },
-                      { code: "Fev", name: "Février" },
-                      { code: "Mar", name: "Mars" },
-                      { code: "Avr", name: "Avril" },
-                      { code: "Mai", name: "Mai" },
-                      { code: "Jun", name: "Juin" },
-                      { code: "Jul", name: "Juillet" },
-                      { code: "Aou", name: "Août" },
-                      { code: "Sep", name: "Septembre" },
-                      { code: "Oct", name: "Octobre" },
-                      { code: "Nov", name: "Novembre" },
-                      { code: "Dec", name: "Décembre" },
-                    ].map((m) => (
+                    {availablePrecipMonthsForSelectedYear.map((m) => (
                       <option key={m.code} value={m.code}>
                         {m.name}
                       </option>
@@ -6958,20 +7003,7 @@ function Carte({
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
                   >
-                    {[
-                      { code: "Jan", name: "Janvier" },
-                      { code: "Fev", name: "Février" },
-                      { code: "Mar", name: "Mars" },
-                      { code: "Avr", name: "Avril" },
-                      { code: "Mai", name: "Mai" },
-                      { code: "Jun", name: "Juin" },
-                      { code: "Jul", name: "Juillet" },
-                      { code: "Aou", name: "Août" },
-                      { code: "Sep", name: "Septembre" },
-                      { code: "Oct", name: "Octobre" },
-                      { code: "Nov", name: "Novembre" },
-                      { code: "Dec", name: "Décembre" },
-                    ].map((m) => (
+                    {availablePrecipMonthsForSelectedYear.map((m) => (
                       <option key={m.code} value={m.code}>
                         {m.name}
                       </option>
