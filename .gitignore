@@ -3,6 +3,7 @@ dist/
 *.png
 *.tif
 *.tiff
-.pycache/
+__pycache__/
+*.pyc
 .xml
 .gz

@@ -220,6 +220,14 @@ def read_communes_metadata(engine: Engine) -> pd.DataFrame:
             engine,
         )
 
+    col_map = {str(c).upper(): c for c in communes.columns}
+    if "ADM3_PCODE" in col_map and "ADM3_PCODE" not in communes.columns:
+        communes["ADM3_PCODE"] = communes[col_map["ADM3_PCODE"]]
+    if "ADM3_EN" in col_map and "ADM3_EN" not in communes.columns:
+        communes["ADM3_EN"] = communes[col_map["ADM3_EN"]]
+    if "ADM1_EN" in col_map and "ADM1_EN" not in communes.columns:
+        communes["ADM1_EN"] = communes[col_map["ADM1_EN"]]
+
     if "ADM3_PCODE" not in communes.columns:
         raise RuntimeError(f"La table {communes_table} doit contenir la colonne ADM3_PCODE.")
 
@@ -244,6 +252,14 @@ def read_communes(engine: Engine):
     communes = gpd.read_postgis(query, engine, geom_col=geom_column)
     if communes.geometry.name != "geom":
         communes = communes.rename_geometry("geom")
+
+    col_map = {str(c).upper(): c for c in communes.columns}
+    if "ADM3_PCODE" in col_map and "ADM3_PCODE" not in communes.columns:
+        communes["ADM3_PCODE"] = communes[col_map["ADM3_PCODE"]]
+    if "ADM3_EN" in col_map and "ADM3_EN" not in communes.columns:
+        communes["ADM3_EN"] = communes[col_map["ADM3_EN"]]
+    if "ADM1_EN" in col_map and "ADM1_EN" not in communes.columns:
+        communes["ADM1_EN"] = communes[col_map["ADM1_EN"]]
 
     if "ADM3_PCODE" not in communes.columns:
         raise RuntimeError(f"La table {communes_table} doit contenir la colonne ADM3_PCODE.")
@@ -566,6 +582,14 @@ def build_communes_geojson(engine: Engine, map_precip: pd.DataFrame, deficit_cri
             "type": "FeatureCollection",
             "features": [],
         }
+
+    col_map = {str(c).upper(): c for c in communes.columns}
+    if "ADM3_PCODE" in col_map and "ADM3_PCODE" not in communes.columns:
+        communes["ADM3_PCODE"] = communes[col_map["ADM3_PCODE"]]
+    if "ADM3_EN" in col_map and "ADM3_EN" not in communes.columns:
+        communes["ADM3_EN"] = communes[col_map["ADM3_EN"]]
+    if "ADM1_EN" in col_map and "ADM1_EN" not in communes.columns:
+        communes["ADM1_EN"] = communes[col_map["ADM1_EN"]]
 
     if "ADM3_PCODE" not in communes.columns:
         raise RuntimeError(f"La table {communes_table} doit contenir la colonne ADM3_PCODE.")

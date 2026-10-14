@@ -29,10 +29,10 @@ MODIS_DIR = ROOT_DIR / "NDVI_MODIS"
 
 # --- Paramètres GeoServer (configurables via variables d'environnement) ---
 GEOSERVER_URL = os.getenv("GEOSERVER_URL", "http://localhost:8080/geoserver").rstrip("/")
-GS_USER = os.getenv("GEOSERVER_USER", "frabearimalala")
-GS_PASSWORD = os.getenv("GEOSERVER_PASSWORD", "admin_dynatsimo")
-WORKSPACE = os.getenv("GEOSERVER_WORKSPACE", "donnees_dynatsimo")
-NAMESPACE_URI = os.getenv("GEOSERVER_NAMESPACE", "http://ns_dynatsimo")
+GS_USER = os.getenv("GEOSERVER_USER", "admin")
+GS_PASSWORD = os.getenv("GEOSERVER_PASSWORD", "geoserver")
+WORKSPACE = os.getenv("GEOSERVER_WORKSPACE", "dynatsimo")
+NAMESPACE_URI = os.getenv("GEOSERVER_NAMESPACE", "http://dynatsimo")
 
 AUTH = HTTPBasicAuth(GS_USER, GS_PASSWORD)
 HEADERS_XML = {"Content-Type": "application/xml"}
@@ -192,16 +192,33 @@ def publish_geotiff(file_path: Path, store_name: str, default_style: str | None 
         if res.status_code in (200, 201):
             print(f"  ✓ Raster '{store_name}' publié avec succès.")
 
-            # Appliquer le style SLD par défaut si spécifié
-            if default_style:
-                layer_url = f"{GEOSERVER_URL}/rest/layers/{WORKSPACE}:{store_name}.xml"
-                layer_payload = f"""<layer>
-                    <defaultStyle>
-                        <name>{WORKSPACE}:{default_style}</name>
-                        <workspace>{WORKSPACE}</workspace>
-                    </defaultStyle>
-                </layer>"""
-                requests.put(layer_url, data=layer_payload, headers=HEADERS_XML, auth=AUTH)
+            # Configurer le style SLD par défaut et la transparence
+            style_name = default_style or "ndvi_modis_6classes"
+            layer_url = f"{GEOSERVER_URL}/rest/layers/{WORKSPACE}:{store_name}.xml"
+            layer_payload = f"""<layer>
+                <defaultStyle>
+                    <name>{WORKSPACE}:{style_name}</name>
+                    <workspace>{WORKSPACE}</workspace>
+                </defaultStyle>
+                <opaque>false</opaque>
+            </layer>"""
+            requests.put(layer_url, data=layer_payload, headers=HEADERS_XML, auth=AUTH)
+
+            # Définir la valeur NoData (0.0) et l'interpolation
+            cov_url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/coveragestores/{store_name}/coverages/{store_name}.xml"
+            cov_payload = """<coverage>
+                <defaultInterpolationMethod>nearest neighbor</defaultInterpolationMethod>
+                <dimensions>
+                    <coverageDimension>
+                        <name>PALETTE_INDEX</name>
+                        <description>GridSampleDimension[-Infinity,Infinity]</description>
+                        <range><min>-inf</min><max>inf</max></range>
+                        <nullValues><double>0.0</double></nullValues>
+                        <dimensionType><name>UNSIGNED_8BITS</name></dimensionType>
+                    </coverageDimension>
+                </dimensions>
+            </coverage>"""
+            requests.put(cov_url, data=cov_payload, headers=HEADERS_XML, auth=AUTH)
             return True
         else:
             print(f"  ❌ Échec publication '{store_name}' : Code {res.status_code} - {res.text[:150]}")

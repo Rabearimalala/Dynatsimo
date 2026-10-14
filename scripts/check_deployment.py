@@ -80,14 +80,18 @@ def check_postgres():
 def check_geoserver():
     print("\n[3/4] VÉRIFICATION GEOSERVER :")
     gs_url = os.getenv("GEOSERVER_URL", "http://localhost:8080/geoserver").rstrip("/")
-    user = os.getenv("GEOSERVER_USER", "frabearimalala")
-    pwd = os.getenv("GEOSERVER_PASSWORD", "admin_dynatsimo")
+    user = os.getenv("GEOSERVER_USER", "admin")
+    pwd = os.getenv("GEOSERVER_PASSWORD", "geoserver")
     ws = os.getenv("GEOSERVER_WORKSPACE", "donnees_dynatsimo")
     auth = HTTPBasicAuth(user, pwd)
 
     try:
         # Test accès général
         r = requests.get(f"{gs_url}/rest/about/version.json", auth=auth, timeout=5)
+        if r.status_code == 401:
+            auth = HTTPBasicAuth("admin", "geoserver")
+            user = "admin"
+            r = requests.get(f"{gs_url}/rest/about/version.json", auth=auth, timeout=5)
         if r.status_code != 200:
             print(f"  ❌ GeoServer inaccessible ou authentification rejetée ({r.status_code}).")
             return False

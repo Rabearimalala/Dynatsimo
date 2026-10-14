@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import subprocess
+import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -197,6 +199,14 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", origin)
         self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+
+class DynatsimoServer(ThreadingHTTPServer):
+    def handle_error(self, request, client_address):
+        exc_type, exc_val, _ = sys.exc_info()
+        if exc_type in (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
+            return
+        super().handle_error(request, client_address)
 
 
 import threading
