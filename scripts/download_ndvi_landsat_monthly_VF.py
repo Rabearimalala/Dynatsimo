@@ -32,16 +32,20 @@ START_YEAR = 2000
 # Le script détecte automatiquement la dernière image disponible.
 
 
+from pathlib import Path
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+except ImportError:
+    pass
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
 # ============================================================
 # PROJET EARTH ENGINE
 # ============================================================
 
-EE_PROJECT = "eehanitriniala"
-
-
-from pathlib import Path
-
-ROOT_DIR = Path(__file__).resolve().parents[1]
+EE_PROJECT = os.getenv("EE_PROJECT", "eehanitriniala")
 
 # ============================================================
 # SHAPEFILE AOI

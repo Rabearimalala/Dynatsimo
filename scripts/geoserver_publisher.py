@@ -24,6 +24,12 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT_DIR / ".env")
+except ImportError:
+    pass
+
 CHIRPS_DIR = ROOT_DIR / "CHIRPS_data"
 MODIS_DIR = ROOT_DIR / "NDVI_MODIS"
 

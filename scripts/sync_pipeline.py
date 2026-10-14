@@ -33,6 +33,12 @@ if sys.platform == "win32":
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = ROOT_DIR / "scripts"
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT_DIR / ".env")
+except ImportError:
+    pass
+
 
 def print_step_header(num: int, title: str) -> None:
     print("\n" + "=" * 75)

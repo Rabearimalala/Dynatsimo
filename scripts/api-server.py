@@ -12,6 +12,12 @@ from urllib.parse import urlparse
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT_DIR / ".env")
+except ImportError:
+    pass
+
 DATA_MODULE_PATH = ROOT_DIR / "scripts" / "import-chirps-and-export.py"
 
 

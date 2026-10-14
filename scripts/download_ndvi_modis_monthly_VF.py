@@ -9,6 +9,11 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
 from pathlib import Path
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+except ImportError:
+    pass
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 
@@ -24,7 +29,7 @@ START_YEAR = 2000
 # PROJET GOOGLE EARTH ENGINE
 # ============================================================
 
-EE_PROJECT = "eehanitriniala"
+EE_PROJECT = os.getenv("EE_PROJECT", "eehanitriniala")
 
 
 # ============================================================

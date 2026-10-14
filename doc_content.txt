@@ -1,0 +1,167 @@
+PARAGRAPHS (109):
+
+[0] (Title) DYNATSIMO — Guide d'installation sur Debian 13 (Trixie) / Proxmox
+[1] (Normal) Document de référence consolidant la procédure réellement suivie pour déployer DYNATSIMO sur une nouvelle VM Proxmox, en l'adaptant du guide d'installation d'origine (pensé pour Debian 12/Ubuntu) à Debian 13. Les notes de travail brutes (décisions, captures d'écran commentées) restent dans le document de suivi du projet ; celui-ci est la version propre, utilisable pour reproduire ou auditer l'installation.
+[2] (Normal) Statut au 12/10/2026 : installation fonctionnelle et accessible en interne (http://10.10.5.30). CHIRPS se synchronise automatiquement. Il reste : transfert des données NDVI, résolution de l'accès Google Earth Engine, décision sur l'authentification applicative, et ouverture contrôlée vers le reverse proxy de production. Ces points font l'objet des questions en fin de document.
+[3] (Heading 1) 1. Contexte et architecture
+[4] (Normal) DYNATSIMO est un IDG (infrastructure de données géographiques) de suivi agro-végétal et pluviométrique pour le sud de Madagascar : frontend React/Vite, backend API Python (serveur HTTP natif, sans framework), PostgreSQL/PostGIS, servi en interne par Nginx derrière le reverse proxy de production déjà existant. Cette VM n'a donc pas besoin de certbot ni de nom de domaine public — juste d'un Nginx local minimal qui sert le build dist/ et relaie /api/ vers le backend Python sur 127.0.0.1:8000.
+[5] (Normal) Dépôt applicatif : github.com/Rabearimalala/Dynatsimo.
+[6] (Heading 1) 2. Dimensionnement
+[7] (Normal) D'après le document officiel de dimensionnement du 25/08/2026 ("Ressources nécessaires au fonctionnement de l'IDG DYNATSIMO", Architecture 1) :
+[9] (Normal) Volumes observés en cours de route : données web publiées ~86 Mo, GeoJSON communes ~20 Mo, CHIRPS découpé sur la zone d'étude ~0,02 Mo/fichier (bien en-deçà de l'estimation officielle, qui visait probablement les rasters avant découpage), dossier externe de travail ~104,3 Go / >22 000 fichiers (cache NDVI historique présumé, à migrer), NDVI de production (MODIS/Landsat/Sentinel) pas encore chiffré en volume définitif.
+[10] (Normal) Évolution anticipée par le document officiel : bascule vers GeoServer (Architecture 2) une fois le corpus NDVI complet intégré, pour ne pas tout stocker en local. Pas nécessaire au déploiement initial.
+[11] (Heading 1) 3. Création de la VM Proxmox
+[12] (List Paragraph) CPU : 1 socket × 6 cores, type Default (x86-64-v2-AES)
+[13] (List Paragraph) Mémoire : 16384 MiB, ballooning désactivé, KSM désactivé
+[14] (List Paragraph) Disque système : 500 Go, SCSI, stockage ZFS, Discard activé, IO thread activé, cache "No cache", Async IO io_uring
+[15] (List Paragraph) Disque données : 300 Go, mêmes réglages
+[16] (List Paragraph) Contrôleur SCSI : VirtIO SCSI single
+[17] (List Paragraph) Qemu Guest Agent : activé (onglet Système), qemu-guest-agent installé et actif côté invité
+[18] (List Paragraph) Réseau : vmbr1, VLAN 140, pare-feu Proxmox activé au niveau de la VM
+[19] (List Paragraph) Debian 13 (Trixie), localisation Madagascar (Indian/Antananarivo, UTC+3/EAT)
+[21] (Normal) ⚠️ Piège de nommage disque : pendant l'installeur Debian (environnement live), les noms de disque sont inversés (sda = disque données 300 Go, sdb = disque système 500 Go) à cause de l'ordre d'énumération propre à cet environnement. Une fois le système installé et démarré, les noms reviennent à la normale (sda = système 500 Go, sdb = données 300 Go). Bien vérifier la taille avant de partitionner, pas seulement le nom du périphérique.
+[22] (Heading 1) 4. Partitionnement (installeur Debian, partitionnement manuel)
+[23] (Heading 2) Disque système (/dev/sda une fois démarré, 500 Go)
+[24] (Normal) LVM classique (pas thin — disque largement dimensionné), groupe de volumes vg_system sur sda2 :
+[26] (Normal) GRUB installé sur /dev/sdb (= drive-scsi0, disque de boot par défaut côté Proxmox).
+[27] (Heading 2) Disque données (/dev/sdb une fois démarré, 300 Go)
+[28] (Normal) LVM thin, groupe vg_data :
+[29] (List Paragraph) tp_data : thin pool de 280 Go
+[30] (List Paragraph) app_data : volume thin de 280 Go, XFS, monté sur /var/data/dynatsimo (defaults,noatime)
+[31] (List Paragraph) Sous-dossiers : ndvi/, chirps/, scratch/ (correspondent à DYNATSIMO_NDVI_DIR, DYNATSIMO_CHIRPS_DIR, et un scratch dédié pour ne pas solliciter le /tmp du disque système)
+[32] (List Paragraph) Paquets requis pour le montage LVM thin : parted, thin-provisioning-tools (absents par défaut sur Trixie)
+[33] (List Paragraph) fstrim.timer actif (par défaut sur Debian, hebdomadaire)
+[34] (List Paragraph) Permissions www-data:www-data une fois le service systemd en place
+[35] (Heading 1) 5. Adaptations Debian 13 (Trixie) par rapport au guide d'origine (Debian 12)
+[37] (Normal) npm install a pris ~6 minutes (lent mais pas de blocage réseau réel). Build Vite réussi (dist/ généré, ~994 Ko JS / 270 Ko gzippé, avertissement cosmétique sur la taille de chunk).
+[38] (Heading 1) 6. Base de données PostgreSQL/PostGIS
+[39] (Normal) Rôle applicatif dédié (plutôt que de réutiliser le rôle superuser postgres, créé par initdb) :
+[40] (Normal) CREATE ROLE dynatsimo WITH LOGIN PASSWORD 'VotreMotDePasseSolide';
+CREATE DATABASE precipitation OWNER dynatsimo;
+[41] (Normal) Puis, connecté en superuser sur la base precipitation (CREATE EXTENSION nécessite les droits superuser) :
+[42] (Normal) \c precipitation
+CREATE EXTENSION IF NOT EXISTS postgis;
+[43] (Normal) ⚠️ En copiant-collant un bloc multi-lignes dans psql, la commande \c peut avaler les mots suivants comme arguments de connexion (ex. IF/EXTENSION interprétés comme nom de port). Saisir les commandes une par une évite le problème.
+[44] (Heading 1) 7. Déploiement de l'application
+[45] (Normal) git clone https://github.com/Rabearimalala/Dynatsimo.git /var/www/dynatsimo
+cd /var/www/dynatsimo
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install "psycopg[binary]" requests   # manquants de requirements.txt, cf. section Bugs
+[46] (Normal) Build du frontend :
+[47] (Normal) npm install
+npm run build
+[48] (Normal) Fichier .env (/var/www/dynatsimo/.env, chmod 600, propriétaire www-data:www-data) :
+[49] (Normal) DYNATSIMO_DBUSER=dynatsimo
+DYNATSIMO_DBPASSWORD=VotreMotDePasseSolide
+DYNATSIMO_DBHOST=127.0.0.1
+DYNATSIMO_DBPORT=5432
+DYNATSIMO_DBNAME=precipitation
+DYNATSIMO_NDVI_DIR=/var/data/dynatsimo/ndvi
+DYNATSIMO_CHIRPS_DIR=/var/data/dynatsimo/chirps
+# + host/port API, CORS, table/colonne géométrie communes (cf. .env.example du dépôt)
+[50] (Normal) (Si le mot de passe contient !, penser à set +H avant le heredoc de création du fichier, pour éviter que bash interprète ! comme une expansion d'historique.)
+[51] (Heading 1) 8. Service systemd
+[52] (Normal) /etc/systemd/system/dynatsimo-api.service :
+[53] (Normal) [Unit]
+Description=API Backend Python - DYNATSIMO
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/dynatsimo
+EnvironmentFile=/var/www/dynatsimo/.env
+ExecStart=/var/www/dynatsimo/venv/bin/python scripts/api-server.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+[54] (Normal) systemctl daemon-reload
+systemctl enable --now dynatsimo-api
+journalctl -u dynatsimo-api -f   # pour suivre le démarrage
+[55] (Heading 1) 9. Nginx (reverse-proxy local, sans certbot/domaine)
+[56] (Normal) /etc/nginx/sites-available/dynatsimo (symlinké dans sites-enabled/, site par défaut désactivé) : serveur statique sur /var/www/dynatsimo/dist (try_files $uri $uri/ /index.html), gzip activé, location /api/ en proxy_pass vers http://127.0.0.1:8000/api/ avec les en-têtes proxy standard, /assets/ en cache 30 j, /data/ en cache 7 j, logs d'accès/erreur dédiés. server_name _; (catch-all) puisque le nom de domaine final n'est pas encore fixé — le reverse proxy en production portera le nom de domaine réel.
+[57] (Heading 1) 10. Bugs du dépôt applicatif rencontrés
+[58] (Normal) Indépendants de Debian 13, rencontrés en déployant le dépôt tel quel. À remonter au mainteneur (github.com/Rabearimalala/Dynatsimo) :
+[59] (Normal) 1. CREATE USER postgres WITH ENCRYPTED PASSWORD 'admn'; (guide d'install) échoue car le rôle postgres existe déjà (créé par initdb). Corrigé en créant un rôle dédié dynatsimo plutôt que de réutiliser le rôle superuser.
+[60] (Normal) 2. Mot de passe incohérent entre le SQL du guide (admn) et le .env d'exemple (admin).
+[61] (Normal) 3. git clone git clone https://... dupliqué dans le guide, section 4.1 (faute de frappe).
+[62] (Normal) 4. requirements.txt incomplet : ne déclare que psycopg2-binary, alors que le code utilise le driver psycopg (v3) via SQLAlchemy. requests manque aussi (utilisé par download_chirps_monthly_VF.py).
+[63] (Normal) 5. scripts/api-server.py ligne 243 : DynatsimoServer n'est définie nulle part dans le fichier (vérifié par grep). Remplacée par ThreadingHTTPServer, déjà importée.
+[64] (Normal) 6. scripts/api-server.py : background_worker appelle time.sleep(10) mais import time est absent du fichier.
+[65] (Normal) 7. scripts/download_chirps_monthly_VF.py ligne 41 : OUTPUT_DIR en dur (ROOT_DIR / "CHIRPS_data"), ignore totalement DYNATSIMO_CHIRPS_DIR du .env. Sans correctif, les téléchargements atterrissent sur le disque système au lieu du volume de données dédié.
+[66] (Normal) 8. Même bug que le 7, répété trois fois dans les scripts NDVI (download_ndvi_modis_monthly_VF.py → NDVI_MODIS, download_ndvi_landsat_monthly_VF.py → NDVI_LANDSAT, download_sentinnel_monthly_VF.py → NDVI_SENTINEL, ce dernier avec une faute de frappe dans le nom de fichier) : OUTPUT_DIR en dur sous ROOT_DIR, DYNATSIMO_NDVI_DIR jamais lu. À corriger au moins sur le script MODIS (le seul réellement appelé par le pipeline automatique, cf. section 12).
+[67] (Heading 1) 11. CHIRPS : découverte du téléchargement automatique
+[68] (Normal) L'application télécharge automatiquement tout l'historique CHIRPS (1981 → mois courant) via un thread d'arrière-plan (DynatsimoAutoSyncThread) dès le démarrage de l'API, découpé sur la zone d'étude du projet (Regions 3/3_region.shp, 4 géométries). Aucun transfert manuel de CHIRPS n'est donc nécessaire depuis l'ancien poste — une fois le bug n°7 corrigé, les fichiers atterrissent directement sur /var/data/dynatsimo/chirps.
+[69] (Heading 1) 12. NDVI : état des lieux
+[70] (Normal) Le dépôt contient trois scripts de téléchargement NDVI distincts, tous basés sur Google Earth Engine (module Python ee), projet Earth Engine eehanitriniala :
+[71] (List Paragraph) download_ndvi_modis_monthly_VF.py (MODIS MOD13Q1, 250 m, depuis 2000) — seul script appelé par le pipeline automatique (sync_pipeline.py, étape 4, avec export_ndvi_6classes.py pour la classification 6-classes)
+[72] (List Paragraph) download_ndvi_landsat_monthly_VF.py (depuis 2000, mosaïque de tuiles) — pas appelé automatiquement
+[73] (List Paragraph) download_sentinnel_monthly_VF.py (Sentinel-2, depuis 2015) — pas appelé automatiquement
+[75] (Normal) Les trois appellent ee.Initialize(project=EE_PROJECT) sans credentials/service_account explicite — donc basé sur les identifiants Earth Engine mis en cache localement (~/.config/earthengine/credentials) pour l'utilisateur qui exécute le script, issus d'un earthengine authenticate fait au préalable. Aucune authentification par compte de service n'est câblée dans le code actuel.
+[76] (Normal) Le log d'erreur ndvi-download.err.log de l'ancien poste (C:\Users\Hanitriniala_RH\...) montre que cette authentification OAuth échouait déjà là-bas, bloquée par le proxy local empêchant d'atteindre oauth2.googleapis.com. Le dossier externe de ~104 Go / >22 000 fichiers est très probablement le cache NDVI déjà calculé lors d'exécutions passées (quand l'authentification fonctionnait), plutôt qu'une source à aller télécharger ailleurs.
+[77] (Normal) Deux options pour remettre ça en service sur la nouvelle VM, exécuté par www-data :
+[78] (List Paragraph) Compte de service GCP (recommandé pour un service systemd sans surveillance) : clé JSON déposée sur la VM, référencée via GOOGLE_APPLICATION_CREDENTIALS dans le .env, reprise automatiquement par les "Application Default Credentials" — aucune modification de code nécessaire.
+[79] (List Paragraph) Authentification interactive (earthengine authenticate --auth_mode=notebook en tant que www-data) : plus rapide mais liée au compte Google personnel de quelqu'un, jeton pouvant expirer ou être révoqué.
+[81] (Normal) Dans les deux cas, il faut aussi confirmer que la VM a un accès réseau sortant vers les domaines Google concernés (earthengine.googleapis.com, oauth2.googleapis.com, accounts.google.com) — l'ancien poste en était empêché par son propre proxy.
+[82] (Heading 1) 13. Absence d'authentification applicative
+[83] (Normal) Le frontend affiche un badge "Administrateur" (src/main.jsx, ligne ~1008) qui est purement cosmétique : aucune route, session, login ni mot de passe n'existe dans le code (aucune occurrence de login/auth/session dans src/). L'application est donc, en l'état, entièrement publique dès qu'elle est exposée — à trancher avec l'équipe projet (cf. questions en fin de document).
+[84] (Heading 1) 14. Sécurité réseau (en attente)
+[85] (List Paragraph) Pare-feu VM (Proxmox) activé à la création mais sans règle explicite ajoutée : pas encore restreint au reverse proxy de production (10.10.6.10).
+[86] (List Paragraph) Nginx configuré en server_name _; (catch-all) : pas de restriction par domaine pour l'instant, le nom de domaine final n'étant pas fixé.
+[87] (List Paragraph) Décision prise consciemment de différer cette restriction jusqu'à ce que le fonctionnement interne soit validé et que le nom de domaine soit connu.
+[88] (Heading 1) 15. Limites systemd pour les traitements batch (recommandé, pas encore appliqué)
+[89] (Normal) Le document de dimensionnement officiel (section 6) recommande d'encadrer les traitements lourds (PCA/CAH/Random Forest) :
+[90] (Normal) [Service]
+MemoryMax=6G
+CPUQuota=300%
+IOWeight=10
+[91] (Normal) Et de les planifier hors heures de forte utilisation (cron/systemd timer), plus vm.swappiness=10 (sysctl) pour que PostgreSQL ne soit pas swappé en priorité pendant les pics batch. Reste à déterminer si ces traitements sont déclenchables indépendamment (scripts dédiés) ou intégrés au sync_pipeline.py.
+[92] (Heading 1) 16. Pistes à évaluer plus tard
+[93] (List Paragraph) Montage NFS depuis le stockage partagé existant (Synology / SAN Dell / HPE MSA) pour le volume raster, ou bascule vers l'Architecture 2 (GeoServer) une fois le corpus NDVI complet intégré.
+[94] (List Paragraph) Taille définitive du volume données à reconfirmer une fois le corpus NDVI de production quantifié.
+[96] (Heading 1) Questions pour faire avancer le sujet
+[97] (Heading 2) Earth Engine / NDVI
+[98] (Normal) 1. Qui administre le projet Google Earth Engine eehanitriniala (vraisemblablement la personne derrière le compte Windows Hanitriniala_RH dans les logs) ? Peut-elle créer un compte de service GCP avec accès Earth Engine et fournir la clé JSON — ou faut-il faire l'authentification interactive avec son compte Google personnel ?
+[99] (Normal) 2. Les scripts Landsat et Sentinel (non appelés par le pipeline automatique) sont-ils encore utilisés manuellement par l'équipe de dev, ou sont-ils obsolètes pour ce déploiement ?
+[100] (Normal) 3. Le dossier externe de ~104 Go est-il accessible pour migration, et peut-on confirmer qu'il s'agit bien du cache NDVI déjà calculé (pas de nouvelle source à aller chercher ailleurs) ?
+[101] (Heading 2) Authentification applicative
+[102] (Normal) 4. L'application doit-elle rester en accès libre pour tout le monde (cohérent avec un outil de consultation publique), ou faut-il mettre en place une vraie distinction Administrateur/Visiteur ? Le badge actuel est cosmétique, aucune authentification réelle n'existe dans le code.
+[103] (Heading 2) Réseau / exposition publique
+[104] (Normal) 5. Quel sera le nom de domaine final, pour configurer Nginx et le reverse proxy en conséquence, et restreindre le pare-feu de la VM au seul trafic du RP (10.10.6.10) ?
+[105] (Heading 2) Traitements batch
+[106] (Normal) 6. Confirmez-vous l'application des limites systemd (MemoryMax, CPUQuota, IOWeight) proposées par le document de dimensionnement ? Et savez-vous si les traitements PCA/CAH/Random Forest sont déclenchés manuellement, par cron, ou intégrés à sync_pipeline.py ?
+[107] (Heading 2) Pour le mainteneur du dépôt
+[108] (Normal) 7. Qui contacter chez Rabearimalala/Dynatsimo pour remonter la liste des bugs recensés (section 10) ?
+
+
+TABLES (3):
+
+--- TABLE 1 ---
+Ressource | Besoin | Réalisé
+CPU | 4 à 6 vCPU | 1 socket × 6 cores
+Mémoire | 16 Go RAM | 16 Go, ballooning et KSM désactivés
+Stockage système/applicatif | ~500 Go SSD extensible | 500 Go (LVM classique)
+Stockage données (raster) | Volume séparé, extensible | 300 Go (LVM thin)
+--- TABLE 2 ---
+LV / partition | Point de montage | Taille | FS | Options
+sda1 | /boot | ~1 Go | ext4 | amorçable (flag bootable activé, obligatoire en BIOS legacy)
+vg_system-swap | swap | 8 Go | — | —
+vg_system-pg_data | /var/lib/postgresql | 180 Go | XFS | defaults,noatime
+vg_system-var_log | /var/log | 20 Go | ext4 | defaults
+vg_system-root | / | ~328 Go | ext4 | errors=remount-ro
+--- TABLE 3 ---
+Composant | Debian 12 (guide d'origine) | Debian 13 (réalisé)
+PostgreSQL | 15 | 17 natif. Paquet postgresql-17-postgis-3 (tiré par postgis). Confirmé via pg_lsclusters : Data directory = /var/lib/postgresql/17/main, sur le volume XFS dédié
+Python | 3.11 | 3.13. Dépendances géo (geopandas 1.2.0, rasterio 1.5.2, pyogrio, shapely, pyproj) installées en wheels précompilées, aucune compilation requise. geopandas 1.2.0 utilise pyogrio par défaut au lieu de fiona (dépendance GDAL plus simple)
+GDAL | — | Aucun souci — pas de version GDAL== épinglée dans ce projet
+Node.js | script NodeSource nécessaire | apt install nodejs npm suffit : Node v20.19.2 / npm 9.2.0 nativement sur Trixie
+Paquets additionnels | — | parted, thin-provisioning-tools (nécessaires pour le disque de données en LVM thin, absents par défaut)
