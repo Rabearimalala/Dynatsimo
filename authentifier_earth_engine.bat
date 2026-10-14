@@ -18,6 +18,5 @@ if %ERRORLEVEL% equ 0 (
     echo.
     echo [ATTENTION] L'authentification a echoue ou a ete annulee.
 )
-
 echo.
 pause
