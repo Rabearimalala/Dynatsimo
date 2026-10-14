@@ -43,9 +43,14 @@ import rasterio
 # Dossier contenant les rasters NDVI
 # -------------------------------------------------------------
 
-INPUT_DIR = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Documents\Projet_test\dynatsimo-react\NDVI_MODIS"
+PROJECT_DIR = os.getenv(
+    "DYNATSIMO_PROJECT_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+)
+
+INPUT_DIR = os.getenv(
+    "DYNATSIMO_NDVI_DIR",
+    os.path.join(PROJECT_DIR, "NDVI_MODIS")
 )
 
 
@@ -53,10 +58,9 @@ INPUT_DIR = (
 # Dossier des résultats
 # -------------------------------------------------------------
 
-OUTPUT_DIR = (
-    r"C:\Users\Hanitriniala_RH"
-    r"\Documents\Projet_test\dynatsimo-react\NDVI_MODIS"
-    r"\RESULTATS_6_CLASSES"
+OUTPUT_DIR = os.path.join(
+    INPUT_DIR,
+    "RESULTATS_6_CLASSES"
 )
 
 

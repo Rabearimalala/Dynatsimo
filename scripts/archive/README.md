@@ -20,14 +20,12 @@ Ces scripts ont servi à produire des documents Word (`.docx`), présentations P
 
 ---
 
-## 📁 2. `obsolete/` (Scripts obsolètes, brouillons ou dépréciés)
+## 📁 2. `obsolete/` (Scripts dépréciés ou données de test)
 
-Ces scripts sont devenus inutiles dans le flux de production actuel car ils ont été remplacés par des versions plus robustes, intégrées au pipeline automatique (`sync_pipeline.py`).
+Ces scripts ne font plus partie du flux de production actuel :
 
 | Script | Statut & Motif d'archivage | Script actif de remplacement |
 |---|---|---|
-| `cluster_ndvi_raster_VF.py` | **Obsolète** : Contenait des chemins absolus en dur (`Hanitriniala_RH/...`). | Remplacé par `export_ndvi_6classes.py` (piloté par `sync_pipeline.py`). |
-| `isohyette_chirps_VF.py` | **Obsolète** : Contenait des chemins absolus en dur (`Hanitriniala_RH/...`). | Remplacé par `export_isohyetes.py` (génère GeoTIFF, PNG transparents et GeoJSON). |
 | `export-data.R` | **Déprécié** : Ancien script R pour PostgreSQL issu de l'époque R Shiny. | Remplacé par l'écosystème Python `import-chirps-and-export.py` et `api-server.py`. |
 | `generate-mock-data.py` | **Non utilisé** : Générateur de données fictives (mock) utilisé pendant la phase initiale de prototypage. | Inutile en environnement avec base réelle PostgreSQL et données réelles. |
 
@@ -41,7 +39,9 @@ Pour exécuter le pipeline ou lancer l'application, utilisez les scripts situés
 - `sync_pipeline.py` : Orchestrateur unifié de synchronisation (`npm run sync`)
 - `import-chirps-and-export.py` : Ingestion CHIRPS & exports JSON
 - `export_isohyetes.py` : Calcul et rendu des isohyètes (`npm run isohyetes:export`)
+- `isohyette_chirps_VF.py` : Script autonome de génération de GeoTIFFs d'isohyètes CHIRPS
 - `export_ndvi_6classes.py` : Classification et tuilage NDVI MODIS (`npm run ndvi:export-classes`)
+- `cluster_ndvi_raster_VF.py` : Script autonome de surveillance et classification NDVI MODIS en 6 classes
 - `geoserver_publisher.py` : Publication automatisée des couches GeoServer
 - `download_chirps_monthly_VF.py` : Téléchargement CHIRPS (UC Santa Barbara / GEE)
 - `download_ndvi_landsat_monthly_VF.py` : Téléchargement NDVI Landsat
@@ -49,3 +49,5 @@ Pour exécuter le pipeline ou lancer l'application, utilisez les scripts situés
 - `download_sentinnel_monthly_VF.py` : Téléchargement NDVI Sentinel-2
 - `check_deployment.py` : Diagnostic de santé de l'environnement
 - `test_authentications.py` : Validation des connexions PostgreSQL, GeoServer et Earth Engine
+- `programmer_sync_hebdomadaire.bat` : Automatisation tâche planifiée hebdo
+- `setup_windows_task.bat` : Automatisation tâche planifiée quotidienne

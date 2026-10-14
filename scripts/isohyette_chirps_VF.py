@@ -17,9 +17,9 @@ import rasterio
 # Dossier principal du projet
 # ------------------------------------------------
 
-PROJECT_DIR = (
-    r"C:\Users\Hanitriniala_RH\Documents"
-    r"\Dynatsimo\dynatsimo-react"
+PROJECT_DIR = os.getenv(
+    "DYNATSIMO_PROJECT_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
 
