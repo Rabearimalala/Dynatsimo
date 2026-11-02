@@ -46,6 +46,7 @@ const staticDataFiles = {
   vegetationData: "/data/vegetation-data.json",
   ndviClasses: "/data/ndvi_classes_metadata.json",
   isohyetesMeta: "/data/isohyetes_metadata.json",
+  ndviChirpsMeta: "/data/ndvi_chirps_metadata.json",
 };
 
 const Icons = {
@@ -526,6 +527,14 @@ async function loadAppData() {
   } catch (e) {
     console.warn("isohyetesMeta non trouvées", e);
   }
+  try {
+    if (!apiData.ndviChirpsMeta) {
+      const ndviChirpsMeta = await fetchJson(`/data/ndvi_chirps_metadata.json`);
+      apiData.ndviChirpsMeta = ndviChirpsMeta;
+    }
+  } catch (e) {
+    console.warn("ndviChirpsMeta non trouvées", e);
+  }
   return {
     data: apiData,
     source: "Base PostgreSQL via API Python",
@@ -850,6 +859,7 @@ function App() {
                         { id: "precip", label: "🌧️ Précipitations" },
                         { id: "deficit", label: "📉 Déficits/Excès Pluviométriques" },
                         { id: "ndvi_classes", label: "🌿 Végétation (NDVI)" },
+                        { id: "ndvi_chirps", label: "📊 Corrélation NDVI & CHIRPS" },
                       ].map((sub) => (
                         <button
                           key={sub.id}
@@ -1047,6 +1057,8 @@ function App() {
               annualData={data.annualData}
               ndviClasses={data.ndviClasses}
               isohyetesMeta={data.isohyetesMeta}
+          ndviChirpsMeta={data.ndviChirpsMeta}
+              ndviChirpsMeta={data.ndviChirpsMeta}
               mapSubItem={mapSubItem}
               setMapSubItem={setMapSubItem}
               selectedCommune={selectedCommune}
@@ -1205,6 +1217,7 @@ function UnifiedSinglePage({
           annualData={data.annualData}
           ndviClasses={data.ndviClasses}
           isohyetesMeta={data.isohyetesMeta}
+          ndviChirpsMeta={data.ndviChirpsMeta}
           mapSubItem={mapSubItem}
           setMapSubItem={setMapSubItem}
           selectedCommune={selectedCommune}
@@ -5460,6 +5473,7 @@ function Carte({
   annualData = [],
   ndviClasses = null,
   isohyetesMeta = null,
+  ndviChirpsMeta = null,
   mapSubItem: parentMapSubItem,
   setMapSubItem: parentSetMapSubItem,
   selectedCommune: externalSelectedCommune,
@@ -5693,6 +5707,92 @@ function Carte({
     if (period) {
       setNdviYear(period.year);
       setNdviMonth(period.month);
+    }
+  };
+
+  // --- ÉTATS & LOGIQUE POUR CORRÉLATION NDVI - CHIRPS ---
+  const [localNdviChirpsMeta, setLocalNdviChirpsMeta] = React.useState(ndviChirpsMeta);
+  React.useEffect(() => {
+    if (ndviChirpsMeta) {
+      setLocalNdviChirpsMeta(ndviChirpsMeta);
+    } else {
+      fetch("/data/ndvi_chirps_metadata.json")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setLocalNdviChirpsMeta(data);
+        })
+        .catch(() => {});
+    }
+  }, [ndviChirpsMeta]);
+
+  const ndviChirpsPeriods = React.useMemo(() => localNdviChirpsMeta?.periods || [], [localNdviChirpsMeta]);
+  const availableNdviChirpsYears = React.useMemo(
+    () => localNdviChirpsMeta?.years || [2000, 2010, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
+    [localNdviChirpsMeta]
+  );
+  const ndviChirpsClasses = React.useMemo(() => localNdviChirpsMeta?.classes || [], [localNdviChirpsMeta]);
+
+  const [ndviChirpsYear, setNdviChirpsYear] = React.useState(2026);
+  const [ndviChirpsMonth, setNdviChirpsMonth] = React.useState(8);
+  const [ndviChirpsViewMode, setNdviChirpsViewMode] = React.useState("monthly"); // 'monthly' | 'lag0' | 'lag1' | 'lag_opt'
+  const [ndviChirpsOpacity, setNdviChirpsOpacity] = React.useState(0.85);
+  const [isPlayingNdviChirpsTimeline, setIsPlayingNdviChirpsTimeline] = React.useState(false);
+  const [ndviChirpsPlaySpeed, setNdviChirpsPlaySpeed] = React.useState(1200);
+
+  const availableMonthsForNdviChirpsYear = React.useMemo(() => {
+    return ndviChirpsPeriods.filter((p) => p.year === ndviChirpsYear).map((p) => p.month);
+  }, [ndviChirpsPeriods, ndviChirpsYear]);
+
+  React.useEffect(() => {
+    if (availableMonthsForNdviChirpsYear.length > 0 && !availableMonthsForNdviChirpsYear.includes(ndviChirpsMonth)) {
+      setNdviChirpsMonth(availableMonthsForNdviChirpsYear[availableMonthsForNdviChirpsYear.length - 1]);
+    }
+  }, [availableMonthsForNdviChirpsYear, ndviChirpsMonth]);
+
+  const activeNdviChirpsPeriod = React.useMemo(() => {
+    return (
+      ndviChirpsPeriods.find((p) => p.year === ndviChirpsYear && p.month === ndviChirpsMonth) ||
+      ndviChirpsPeriods[ndviChirpsPeriods.length - 1] ||
+      null
+    );
+  }, [ndviChirpsPeriods, ndviChirpsYear, ndviChirpsMonth]);
+
+  const activeNdviChirpsIndex = React.useMemo(() => {
+    const idx = ndviChirpsPeriods.findIndex((p) => p.year === ndviChirpsYear && p.month === ndviChirpsMonth);
+    return idx >= 0 ? idx : (ndviChirpsPeriods.length > 0 ? ndviChirpsPeriods.length - 1 : 0);
+  }, [ndviChirpsPeriods, ndviChirpsYear, ndviChirpsMonth]);
+
+  React.useEffect(() => {
+    if (!isPlayingNdviChirpsTimeline || ndviChirpsPeriods.length === 0 || ndviChirpsViewMode !== "monthly") return;
+    const timer = setInterval(() => {
+      const currentIndex = ndviChirpsPeriods.findIndex((p) => p.year === ndviChirpsYear && p.month === ndviChirpsMonth);
+      const nextIndex = (currentIndex + 1) % ndviChirpsPeriods.length;
+      const nextPeriod = ndviChirpsPeriods[nextIndex];
+      if (nextPeriod) {
+        setNdviChirpsYear(nextPeriod.year);
+        setNdviChirpsMonth(nextPeriod.month);
+      }
+    }, ndviChirpsPlaySpeed);
+    return () => clearInterval(timer);
+  }, [isPlayingNdviChirpsTimeline, ndviChirpsPeriods, ndviChirpsYear, ndviChirpsMonth, ndviChirpsPlaySpeed, ndviChirpsViewMode]);
+
+  const handleNdviChirpsTimelineStep = (direction) => {
+    if (ndviChirpsPeriods.length === 0) return;
+    let nextIndex = activeNdviChirpsIndex + direction;
+    if (nextIndex < 0) nextIndex = ndviChirpsPeriods.length - 1;
+    if (nextIndex >= ndviChirpsPeriods.length) nextIndex = 0;
+    const nextPeriod = ndviChirpsPeriods[nextIndex];
+    if (nextPeriod) {
+      setNdviChirpsYear(nextPeriod.year);
+      setNdviChirpsMonth(nextPeriod.month);
+    }
+  };
+
+  const handleNdviChirpsTimelineScrub = (index) => {
+    const period = ndviChirpsPeriods[index];
+    if (period) {
+      setNdviChirpsYear(period.year);
+      setNdviChirpsMonth(period.month);
     }
   };
 
@@ -6622,6 +6722,201 @@ function Carte({
           </div>
         )}
 
+        {/* Options pour Relation et Corrélation NDVI - CHIRPS */}
+        {mapSubItem === "ndvi_chirps" && (
+          <div className="ndvi-controls-box">
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <h3 style={{ fontSize: "12px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>
+                Corrélation & Relation NDVI — CHIRPS
+              </h3>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "600" }}>
+                320 mois couplés (2000–2026) • MODIS & CHIRPS
+              </span>
+            </div>
+
+            {/* Sélecteur de mode d'affichage : Mensuel vs Corrélation Globale */}
+            <div className="filter-group">
+              <label style={{ fontSize: "11px", fontWeight: "700" }}>Mode d'analyse :</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginTop: "4px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="ndvi_chirps_mode"
+                    value="monthly"
+                    checked={ndviChirpsViewMode === "monthly"}
+                    onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                  />
+                  <span>🗓️ Relation Mensuelle (Année / Mois)</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="ndvi_chirps_mode"
+                    value="lag0"
+                    checked={ndviChirpsViewMode === "lag0"}
+                    onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                  />
+                  <span>🌐 Corrélation Pearson Lag 0 (Instantanée)</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="ndvi_chirps_mode"
+                    value="lag1"
+                    checked={ndviChirpsViewMode === "lag1"}
+                    onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                  />
+                  <span>🌐 Corrélation Décalée Lag 1 (1 mois de retard)</span>
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="ndvi_chirps_mode"
+                    value="lag_opt"
+                    checked={ndviChirpsViewMode === "lag_opt"}
+                    onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                  />
+                  <span>⏱️ Décalage Optimal de Réponse (0, 1, 2 mois)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Sélecteurs Année / Mois en mode mensuel */}
+            {ndviChirpsViewMode === "monthly" && (
+              <>
+                <div className="filter-group">
+                  <label htmlFor="ndvi-chirps-annee-sel">Année :</label>
+                  <select
+                    id="ndvi-chirps-annee-sel"
+                    value={ndviChirpsYear}
+                    onChange={(e) => setNdviChirpsYear(Number(e.target.value))}
+                  >
+                    {availableNdviChirpsYears.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label htmlFor="ndvi-chirps-mois-sel">Mois :</label>
+                  <select
+                    id="ndvi-chirps-mois-sel"
+                    value={ndviChirpsMonth}
+                    onChange={(e) => setNdviChirpsMonth(Number(e.target.value))}
+                  >
+                    {availableMonthsForNdviChirpsYear.map((m) => (
+                      <option key={m} value={m}>
+                        {monthNamesFr[m - 1]} ({String(m).padStart(2, "0")})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Animation Timeline Player */}
+                <div className="timeline-player-panel">
+                  <div className="timeline-header">
+                    <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase" }}>
+                      Animation Temporelle :
+                    </span>
+                    <span className="timeline-period-badge">
+                      {activeNdviChirpsPeriod ? activeNdviChirpsPeriod.label : `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`}
+                    </span>
+                  </div>
+
+                  <div className="timeline-buttons">
+                    <button
+                      type="button"
+                      className="timeline-btn"
+                      onClick={() => handleNdviChirpsTimelineStep(-1)}
+                      title="Mois précédent"
+                    >
+                      ⏮️
+                    </button>
+                    <button
+                      type="button"
+                      className={`timeline-btn timeline-btn-play ${isPlayingNdviChirpsTimeline ? "playing" : ""}`}
+                      onClick={() => setIsPlayingNdviChirpsTimeline(!isPlayingNdviChirpsTimeline)}
+                      title={isPlayingNdviChirpsTimeline ? "Pause" : "Lecture automatique"}
+                    >
+                      {isPlayingNdviChirpsTimeline ? "⏸️ Pause" : "▶️ Animer"}
+                    </button>
+                    <button
+                      type="button"
+                      className="timeline-btn"
+                      onClick={() => handleNdviChirpsTimelineStep(1)}
+                      title="Mois suivant"
+                    >
+                      ⏭️
+                    </button>
+                  </div>
+
+                  <div className="timeline-slider-row">
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max(0, ndviChirpsPeriods.length - 1)}
+                      value={activeNdviChirpsIndex}
+                      onChange={(e) => handleNdviChirpsTimelineScrub(Number(e.target.value))}
+                      className="timeline-slider"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Réglage d'Opacité */}
+            <div className="filter-group">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label htmlFor="ndvi-chirps-opacity-sel">Transparence du Raster :</label>
+                <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--primary)" }}>
+                  {Math.round(ndviChirpsOpacity * 100)}%
+                </span>
+              </div>
+              <input
+                id="ndvi-chirps-opacity-sel"
+                type="range"
+                min="0.1"
+                max="1.0"
+                step="0.05"
+                value={ndviChirpsOpacity}
+                onChange={(e) => setNdviChirpsOpacity(parseFloat(e.target.value))}
+                style={{ width: "100%", accentColor: "var(--primary)", marginTop: "4px" }}
+              />
+            </div>
+
+            {/* Source GeoServer WMS */}
+            <div className="layer-toggle-group" style={{ marginTop: "8px", padding: "8px 10px", background: "var(--bg-secondary, #f8fafc)", borderRadius: "6px", border: "1px solid var(--border-color, #e2e8f0)" }}>
+              <label className="layer-toggle-label" style={{ fontWeight: 600, fontSize: "11.5px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                <span>Flux GeoServer WMS</span>
+                <input
+                  type="checkbox"
+                  checked={useGeoServerWms}
+                  onChange={(e) => setUseGeoServerWms(e.target.checked)}
+                />
+              </label>
+              <div style={{ fontSize: "10.5px", color: useGeoServerWms ? "#16a34a" : "#64748b", marginTop: "3px" }}>
+                {useGeoServerWms
+                  ? (isGeoServerAvailable ? "● Connecté à GeoServer" : "⚠ GeoServer local non joint (port 8080)")
+                  : "✓ Mode images Web PNG optimisées"}
+              </div>
+            </div>
+
+            {/* Superposition communes */}
+            <div className="layer-toggle-group">
+              <label className="layer-toggle-label">
+                <input
+                  type="checkbox"
+                  checked={showCommunesLayer}
+                  onChange={(e) => setShowCommunesLayer(e.target.checked)}
+                />
+                <span>Superposer les limites des communes</span>
+              </label>
+            </div>
+          </div>
+        )}
+
         {/* Options pour Précipitations */}
         {mapSubItem === "precip" && (
           <>
@@ -7187,7 +7482,9 @@ function Carte({
           <div>
             <h2>
               <Icons.Map />{" "}
-              {mapSubItem === "ndvi_classes"
+              {mapSubItem === "ndvi_chirps"
+                ? `Relation & Corrélation NDVI vs CHIRPS — ${ndviChirpsViewMode === "monthly" ? (activeNdviChirpsPeriod?.label || `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`) : ndviChirpsViewMode === "lag0" ? "Corrélation Instantanée (Lag 0)" : ndviChirpsViewMode === "lag1" ? "Corrélation Décalée 1 Mois (Lag 1)" : "Décalage Optimal de Croissance"}`
+                : mapSubItem === "ndvi_classes" 
                 ? `Classification NDVI MODIS 6 Classes — ${activePeriod?.label || `${monthNamesFr[ndviMonth - 1]} ${ndviYear}`}`
                 : mapSubItem === "deficit"
                 ? `Carte des déficits pluviométriques — ${
@@ -7309,6 +7606,99 @@ function Carte({
                 zoomCounter={zoomCounter}
                 resetTrigger={resetTrigger}
               />
+
+              {/* Raster Relation & Corrélation NDVI-CHIRPS Overlay */}
+              {mapSubItem === "ndvi_chirps" && (
+                ndviChirpsViewMode === "monthly" && activeNdviChirpsPeriod ? (
+                  useGeoServerWms ? (
+                    <WMSTileLayer
+                      key={`wms-ndvi-chirps-${activeNdviChirpsPeriod.year}-${activeNdviChirpsPeriod.month}`}
+                      url={`${geoserverUrl}/dynatsimo/wms`}
+                      layers={`dynatsimo:ndvi_chirps_${activeNdviChirpsPeriod.year}_${String(activeNdviChirpsPeriod.month).padStart(2, "0")}`}
+                      format="image/png"
+                      transparent={true}
+                      version="1.1.1"
+                      styles="dynatsimo:style_relation_ndvi_chirps_5classes"
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  ) : (
+                    <ImageOverlay
+                      key={`rel-${activeNdviChirpsPeriod.key}`}
+                      url={activeNdviChirpsPeriod.pngUrl}
+                      bounds={activeNdviChirpsPeriod.bounds || ndviBounds}
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  )
+                ) : ndviChirpsViewMode === "lag0" ? (
+                  useGeoServerWms ? (
+                    <WMSTileLayer
+                      key="wms-ndvi-chirps-lag0"
+                      url={`${geoserverUrl}/dynatsimo/wms`}
+                      layers="dynatsimo:ndvi_chirps_correlation_lag0"
+                      format="image/png"
+                      transparent={true}
+                      version="1.1.1"
+                      styles="dynatsimo:style_correlation_ndvi_chirps"
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  ) : (
+                    <ImageOverlay
+                      key="rel-global-lag0"
+                      url="/data/raster/ndvi_chirps/global/ndvi_chirps_correlation_lag0.png"
+                      bounds={activeNdviChirpsPeriod?.bounds || ndviBounds}
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  )
+                ) : ndviChirpsViewMode === "lag1" ? (
+                  useGeoServerWms ? (
+                    <WMSTileLayer
+                      key="wms-ndvi-chirps-lag1"
+                      url={`${geoserverUrl}/dynatsimo/wms`}
+                      layers="dynatsimo:ndvi_chirps_correlation_lag1"
+                      format="image/png"
+                      transparent={true}
+                      version="1.1.1"
+                      styles="dynatsimo:style_correlation_ndvi_chirps"
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  ) : (
+                    <ImageOverlay
+                      key="rel-global-lag1"
+                      url="/data/raster/ndvi_chirps/global/ndvi_chirps_correlation_lag1.png"
+                      bounds={activeNdviChirpsPeriod?.bounds || ndviBounds}
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  )
+                ) : (
+                  useGeoServerWms ? (
+                    <WMSTileLayer
+                      key="wms-ndvi-chirps-lag-opt"
+                      url={`${geoserverUrl}/dynatsimo/wms`}
+                      layers="dynatsimo:ndvi_chirps_lag_optimal"
+                      format="image/png"
+                      transparent={true}
+                      version="1.1.1"
+                      styles="dynatsimo:style_lag_optimal"
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  ) : (
+                    <ImageOverlay
+                      key="rel-global-lag-opt"
+                      url="/data/raster/ndvi_chirps/global/ndvi_chirps_lag_optimal.png"
+                      bounds={activeNdviChirpsPeriod?.bounds || ndviBounds}
+                      opacity={ndviChirpsOpacity}
+                      zIndex={10}
+                    />
+                  )
+                )
+              )}
 
               {/* Raster NDVI 6-Classes Overlay (GeoServer WMS avec fallback ImageOverlay) */}
               {mapSubItem === "ndvi_classes" && activePeriod && (
@@ -7524,7 +7914,7 @@ function Carte({
               )}
 
               {/* Couche des Communes superposée au NDVI (commutable à volonté) */}
-              {mapSubItem === "ndvi_classes" && showCommunesLayer && geojson && geojson.features && (
+              {(mapSubItem === "ndvi_classes" || mapSubItem === "ndvi_chirps") && showCommunesLayer && geojson && geojson.features && (
                 <GeoJSON
                   key={`ndvi-overlay-${selectedFeatureCode}-${communeOverlayStyle}`}
                   data={geojson}
@@ -7566,7 +7956,79 @@ function Carte({
           </div>
 
           {/* Légendes adaptées selon le mode actif */}
-          {mapSubItem === "ndvi_classes" ? (
+          {mapSubItem === "ndvi_chirps" ? (
+            <div className="ndvi-legend-container">
+              <div className="ndvi-legend-header">
+                <span className="ndvi-legend-title">
+                  {ndviChirpsViewMode === "monthly"
+                    ? "Légende Relation Mensuelle NDVI - CHIRPS (Couplage Eau-Végétation)"
+                    : ndviChirpsViewMode === "lag_opt"
+                    ? "Décalage Optimal de Croissance Végétale (Latence après Pluies)"
+                    : `Corrélation Linéaire de Pearson (${ndviChirpsViewMode === "lag0" ? "Lag 0 : Instantanée" : "Lag 1 : 1 mois de décalage"})`}
+                </span>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  {ndviChirpsViewMode === "monthly"
+                    ? `Période active : ${activeNdviChirpsPeriod?.label || `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`}`
+                    : "Série multi-annuelle historique 2000–2026 (320 mois)"}
+                </span>
+              </div>
+
+              {ndviChirpsViewMode === "monthly" ? (
+                <div className="ndvi-legend-grid">
+                  {(ndviChirpsClasses.length > 0 ? ndviChirpsClasses : [
+                    { id: 1, label: "Sécheresse sévère", description: "Déficit pluviométrique aigu & végétation dégradée", color: "#dc2626" },
+                    { id: 2, label: "Stress hydrique", description: "Précipitations faibles, végétation sous tension", color: "#ea580c" },
+                    { id: 3, label: "Équilibre / Normal", description: "Pluie et végétation conformes aux normales", color: "#eab308" },
+                    { id: 4, label: "Conditions favorables", description: "Pluie suffisante & bonne régénération", color: "#16a34a" },
+                    { id: 5, label: "Vigueur maximale", description: "Pluies abondantes & végétation très dense", color: "#15803d" },
+                  ]).map((cls) => (
+                    <div key={cls.id} className="ndvi-legend-item">
+                      <span className="ndvi-legend-color-box" style={{ backgroundColor: cls.color }} />
+                      <div className="ndvi-legend-text">
+                        <span className="ndvi-legend-label">{cls.label}</span>
+                        <span className="ndvi-legend-range">{cls.description}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : ndviChirpsViewMode === "lag_opt" ? (
+                <div className="ndvi-legend-grid">
+                  {[
+                    { id: 0, label: "Lag 0 (Même mois)", color: "#ffff33", desc: "La végétation réagit au cours du même mois" },
+                    { id: 1, label: "Lag 1 (1 mois de latence)", color: "#4daf4a", desc: "La végétation reverdit le mois suivant les pluies" },
+                    { id: 2, label: "Lag 2 (2 mois de latence)", color: "#377eb8", desc: "Temps de réponse végétale de 2 mois" },
+                  ].map((l) => (
+                    <div key={l.id} className="ndvi-legend-item">
+                      <span className="ndvi-legend-color-box" style={{ backgroundColor: l.color }} />
+                      <div className="ndvi-legend-text">
+                        <span className="ndvi-legend-label">{l.label}</span>
+                        <span className="ndvi-legend-range">{l.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="map-legend-bar-wrap" style={{ marginTop: "6px" }}>
+                  <div
+                    className="map-legend-gradient-bar"
+                    style={{
+                      height: "14px",
+                      borderRadius: "4px",
+                      background: "linear-gradient(to right, #d73027 0%, #fee08b 35%, #ffffbf 50%, #91cf60 70%, #006837 100%)",
+                      border: "1px solid rgba(0, 0, 0, 0.15)",
+                    }}
+                  />
+                  <div className="map-legend-ticks" style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", marginTop: "3px", color: "var(--text-muted)", fontWeight: "600" }}>
+                    <span style={{ color: "#d73027" }}>-1.0 (Corrélation Négative)</span>
+                    <span style={{ color: "#f59e0b" }}>-0.2</span>
+                    <span>0.0 (Nulle)</span>
+                    <span style={{ color: "#16a34a" }}>+0.5 (Forte)</span>
+                    <span style={{ color: "#006837" }}>+1.0 (Très forte)</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : mapSubItem === "ndvi_classes" ? (
             <div className="ndvi-legend-container">
               <div className="ndvi-legend-header">
                 <span className="ndvi-legend-title">Légende des 6 Classes NDVI MODIS</span>

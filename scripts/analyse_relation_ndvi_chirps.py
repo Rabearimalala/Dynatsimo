@@ -1,27 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-DYNATSIMO — Analyse Spatio-Temporelle des Relations entre NDVI et CHIRPS
+DYNATSIMO — Analyse Spatio-Temporelle des Relations entre NDVI et CHIRPS (Par Mois / Année & Globale)
 
-Ce script calcule la relation statistique pixel par pixel entre l'indice de végétation (NDVI)
-et les précipitations (CHIRPS) :
-1. Corrélation de Pearson (Lag 0 : réponse immédiate le même mois).
-2. Corrélation avec décalage temporel (Lag 1 & Lag 2 : latence de la réponse végétale 1 à 2 mois).
-3. Lag optimal (le délai temporel offrant la meilleure réponse).
-4. Degré de significativité statistique (p-value, test t de Student).
-5. Régression linéaire : Pente (sensibilité du NDVI par mm de pluie) et R² (variance expliquée).
-6. Sauvegarde des rasters bruts GeoTIFF dans le dossier 'NDVI_CHIRPS'.
-7. Publication automatisée de tous les rasters et de leurs styles SLD dans GeoServer via REST API.
+Ce script :
+1. Calcule la relation couplée mensuelle pixel par pixel pour chaque mois et chaque année (2000 à 2026+) :
+   - Indice de Couplage Agro-Climatique (Joint Drought & Vigor Index basé sur anomalies standardisées)
+   - Classification en 5 états d'interaction Eau-Végétation (Sécheresse, Stress hydrique, Normal, Favorable, Vigueur max).
+2. Sauvegarde tous les rasters bruts GeoTIFF par mois/année dans 'NDVI_CHIRPS/{annee}/NDVI_CHIRPS_{annee}_{mois}.tif'.
+3. Génère les calques Web PNG transparents optimisés pour Leaflet dans 'public/data/raster/ndvi_chirps/{annee}/'.
+4. Calcule les métriques globales multi-annuelles (Corrélation de Pearson Lag 0, Lag 1, Décalage optimal, Pente de régression, p-value).
+5. Met à jour automatiquement 'public/data/ndvi_chirps_metadata.json' pour l'affichage interactif dans React.
+6. Publie l'ensemble des rasters et styles SLD dans GeoServer (optionnel avec --publish-geoserver).
 
 Usage :
     python scripts/analyse_relation_ndvi_chirps.py
     python scripts/analyse_relation_ndvi_chirps.py --publish-geoserver
-    python scripts/analyse_relation_ndvi_chirps.py --start-year 2010 --end-year 2025
+    python scripts/analyse_relation_ndvi_chirps.py --start-year 2015 --end-year 2026
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -30,20 +31,21 @@ import warnings
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-# Ignorer les avertissements sur tranches vides (pixels maritimes ou hors zone)
-warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*Mean of empty slice.*")
-warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*Degrees of freedom <= 0 for slice.*")
-
-# Forcer l'encodage UTF-8 sous Windows
+# Forcer UTF-8 sous Windows
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
 import numpy as np
+from PIL import Image
 import rasterio
 from rasterio.warp import Resampling, reproject
 import requests
 from requests.auth import HTTPBasicAuth
 import scipy.stats as stats
+
+# Ignorer les avertissements sur tranches vides (pixels maritimes ou hors zone)
+warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*Mean of empty slice.*")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*Degrees of freedom <= 0 for slice.*")
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 try:
@@ -55,6 +57,9 @@ except ImportError:
 CHIRPS_DIR = ROOT_DIR / "CHIRPS_data"
 MODIS_DIR = ROOT_DIR / "NDVI_MODIS"
 OUTPUT_DIR = ROOT_DIR / "NDVI_CHIRPS"
+PUBLIC_DATA_DIR = ROOT_DIR / "public" / "data"
+PUBLIC_RASTER_DIR = PUBLIC_DATA_DIR / "raster" / "ndvi_chirps"
+METADATA_FILE = PUBLIC_DATA_DIR / "ndvi_chirps_metadata.json"
 
 # Configuration GeoServer
 GEOSERVER_URL = os.getenv("GEOSERVER_URL", "http://localhost:8080/geoserver").rstrip("/")
@@ -68,10 +73,82 @@ HEADERS_XML = {"Content-Type": "application/xml"}
 HEADERS_JSON = {"Content-Type": "application/json", "Accept": "application/json"}
 HEADERS_SLD = {"Content-Type": "application/vnd.ogc.sld+xml"}
 
+MONTH_NAMES_FR = {
+    1: "Janvier", 2: "Février", 3: "Mars", 4: "Avril",
+    5: "Mai", 6: "Juin", 7: "Juillet", 8: "Août",
+    9: "Septembre", 10: "Octobre", 11: "Novembre", 12: "Décembre"
+}
 
-# ==============================================================================
-# STYLES SLD POUR GEOSERVER
-# ==============================================================================
+MONTH_SHORT_FR = {
+    1: "Jan", 2: "Fév", 3: "Mar", 4: "Avr",
+    5: "Mai", 6: "Juin", 7: "Juil", 8: "Août",
+    9: "Sep", 10: "Oct", 11: "Nov", 12: "Déc"
+}
+
+# Définition des 5 classes officielles de relation NDVI-CHIRPS
+RELATION_CLASSES = [
+    {
+        "id": 1,
+        "label": "Sécheresse sévère",
+        "description": "Déficit pluviométrique aigu & végétation très dégradée",
+        "color": "#dc2626",
+        "rgba": [220, 38, 38, 230]
+    },
+    {
+        "id": 2,
+        "label": "Stress hydrique",
+        "description": "Précipitations insuffisantes, végétation sous tension",
+        "color": "#ea580c",
+        "rgba": [234, 88, 12, 230]
+    },
+    {
+        "id": 3,
+        "label": "Équilibre / Normal",
+        "description": "Pluviométrie et vigueur conformes aux normales saisonnières",
+        "color": "#eab308",
+        "rgba": [234, 179, 8, 220]
+    },
+    {
+        "id": 4,
+        "label": "Conditions favorables",
+        "description": "Pluie suffisante & bonne régénération végétale",
+        "color": "#16a34a",
+        "rgba": [22, 163, 74, 230]
+    },
+    {
+        "id": 5,
+        "label": "Vigueur maximale",
+        "description": "Pluies abondantes & végétation exceptionnellement dense",
+        "color": "#15803d",
+        "rgba": [21, 128, 61, 240]
+    }
+]
+
+# Styles SLD pour GeoServer
+SLD_RELATION_5CLASSES = f"""<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
+  <NamedLayer>
+    <Name>style_relation_ndvi_chirps_5classes</Name>
+    <UserStyle>
+      <Title>Relation Mensuelle NDVI - CHIRPS (5 Classes)</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="values">
+              <ColorMapEntry color="#000000" quantity="0" opacity="0.0" label="NoData"/>
+              <ColorMapEntry color="#dc2626" quantity="1" opacity="0.9" label="Sécheresse sévère"/>
+              <ColorMapEntry color="#ea580c" quantity="2" opacity="0.9" label="Stress hydrique"/>
+              <ColorMapEntry color="#eab308" quantity="3" opacity="0.85" label="Normal"/>
+              <ColorMapEntry color="#16a34a" quantity="4" opacity="0.9" label="Favorable"/>
+              <ColorMapEntry color="#15803d" quantity="5" opacity="0.95" label="Vigueur maximale"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+"""
 
 SLD_CORRELATION = f"""<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
@@ -91,28 +168,6 @@ SLD_CORRELATION = f"""<?xml version="1.0" encoding="UTF-8"?>
               <ColorMapEntry color="#91cf60" quantity="0.5" opacity="0.9" label="0.5 (Modérée)"/>
               <ColorMapEntry color="#1a9850" quantity="0.8" opacity="0.95" label="0.8 (Forte)"/>
               <ColorMapEntry color="#006837" quantity="1.0" opacity="1.0" label="1.0 (Très forte)"/>
-            </ColorMap>
-          </RasterSymbolizer>
-        </Rule>
-      </FeatureTypeStyle>
-    </UserStyle>
-  </NamedLayer>
-</StyledLayerDescriptor>
-"""
-
-SLD_PVALUE = f"""<?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
-  <NamedLayer>
-    <Name>style_pvalue_significativite</Name>
-    <UserStyle>
-      <Title>Significativité p-value</Title>
-      <FeatureTypeStyle>
-        <Rule>
-          <RasterSymbolizer>
-            <ColorMap type="intervals">
-              <ColorMapEntry color="#006d2c" quantity="0.01" opacity="0.9" label="Très significatif (p &lt; 0.01)"/>
-              <ColorMapEntry color="#74c476" quantity="0.05" opacity="0.8" label="Significatif (p &lt; 0.05)"/>
-              <ColorMapEntry color="#cccccc" quantity="1.00" opacity="0.3" label="Non significatif (p &gt;= 0.05)"/>
             </ColorMap>
           </RasterSymbolizer>
         </Rule>
@@ -144,138 +199,112 @@ SLD_LAG = f"""<?xml version="1.0" encoding="UTF-8"?>
 </StyledLayerDescriptor>
 """
 
-SLD_SLOPE = f"""<?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
-  <NamedLayer>
-    <Name>style_regression_slope</Name>
-    <UserStyle>
-      <Title>Sensibilité NDVI / Pluie (Pente x 100mm)</Title>
-      <FeatureTypeStyle>
-        <Rule>
-          <RasterSymbolizer>
-            <ColorMap type="ramp">
-              <ColorMapEntry color="#b2182b" quantity="-0.001" opacity="0.8" label="Négatif"/>
-              <ColorMapEntry color="#ffffff" quantity="0.0" opacity="0.4" label="0.0"/>
-              <ColorMapEntry color="#c7eae5" quantity="0.0005" opacity="0.8" label="Faible sensibilité"/>
-              <ColorMapEntry color="#35978f" quantity="0.0015" opacity="0.9" label="Sensibilité moyenne"/>
-              <ColorMapEntry color="#003c30" quantity="0.0030" opacity="0.95" label="Forte sensibilité"/>
-            </ColorMap>
-          </RasterSymbolizer>
-        </Rule>
-      </FeatureTypeStyle>
-    </UserStyle>
-  </NamedLayer>
-</StyledLayerDescriptor>
-"""
-
 
 # ==============================================================================
-# FONCTIONS D'HARMONISATION ET CALCULS SCIENTIFIQUES
+# 1. HARMONISATION SPATIALE & DÉTECTION
 # ==============================================================================
 
-def find_matched_dates(start_year: int | None = None, end_year: int | None = None) -> List[Tuple[str, str, Path, Path]]:
-    """
-    Associe chaque raster CHIRPS à son raster NDVI MODIS correspondant pour le même mois (AAAA, MM).
-    """
-    chirps_map: Dict[Tuple[str, str], Path] = {}
+def find_matched_dates(start_year: int | None = None, end_year: int | None = None) -> List[Tuple[int, int, Path, Path]]:
+    chirps_map: Dict[Tuple[int, int], Path] = {}
     for f in CHIRPS_DIR.glob("chirps-v2.0.*.*.tif"):
         m = re.search(r"chirps-v2\.0\.(\d{4})\.(\d{2})\.tif", f.name)
         if m:
-            y, mm = m.groups()
-            chirps_map[(y, mm)] = f
+            chirps_map[(int(m.group(1)), int(m.group(2)))] = f
 
-    ndvi_map: Dict[Tuple[str, str], Path] = {}
+    ndvi_map: Dict[Tuple[int, int], Path] = {}
     for f in MODIS_DIR.rglob("*.tif"):
         if "RESULTATS_6_CLASSES" in f.parts:
             continue
         m = re.search(r"(\d{4})_(\d{2})", f.name)
         if m:
-            y, mm = m.groups()
-            ndvi_map[(y, mm)] = f
+            ndvi_map[(int(m.group(1)), int(m.group(2)))] = f
 
     matched = []
-    common_dates = sorted(list(set(chirps_map.keys()).intersection(set(ndvi_map.keys()))))
-
-    for y, mm in common_dates:
-        yi = int(y)
-        if start_year and yi < start_year:
+    common = sorted(list(set(chirps_map.keys()).intersection(set(ndvi_map.keys()))))
+    for y, mm in common:
+        if start_year and y < start_year:
             continue
-        if end_year and yi > end_year:
+        if end_year and y > end_year:
             continue
         matched.append((y, mm, chirps_map[(y, mm)], ndvi_map[(y, mm)]))
 
     return matched
 
 
-def compute_pixel_correlation(
-    x_stack: np.ndarray, y_stack: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Calcule de manière vectorisée pixel par pixel :
-    - Le coefficient de corrélation de Pearson r
-    - La p-value (test t de Student à deux queues)
-    - La pente de la régression linéaire (slope)
-    - Le coefficient de détermination R²
-    """
-    T, H, W = x_stack.shape
+def create_relation_png(classified_data: np.ndarray, out_png_path: Path) -> None:
+    """Génère une image PNG transparente avec la palette des 5 classes pour Leaflet."""
+    out_png_path.parent.mkdir(parents=True, exist_ok=True)
+    H, W = classified_data.shape
+    rgba = np.zeros((H, W, 4), dtype=np.uint8)
 
-    # Masque des pixels où toutes les dates ou au moins 80% sont valides
-    valid_count = np.sum(~np.isnan(x_stack) & ~np.isnan(y_stack), axis=0)
-    min_required = max(10, int(T * 0.5))
-    mask = valid_count >= min_required
+    for item in RELATION_CLASSES:
+        mask = (classified_data == item["id"])
+        rgba[mask] = item["rgba"]
 
-    # Remplacer les NaN temporairement par 0 pour le calcul vectorisé
-    x = np.where(np.isnan(x_stack) | np.isnan(y_stack), np.nan, x_stack)
-    y = np.where(np.isnan(x_stack) | np.isnan(y_stack), np.nan, y_stack)
+    img = Image.fromarray(rgba, mode="RGBA")
+    img.save(out_png_path, optimize=True)
 
-    # Moyennes temporelles
-    x_mean = np.nanmean(x, axis=0)
-    y_mean = np.nanmean(y, axis=0)
 
-    # Écarts à la moyenne
-    x_dev = x - x_mean
-    y_dev = y - y_mean
+def create_continuous_png(
+    data: np.ndarray,
+    out_png_path: Path,
+    vmin: float = -1.0,
+    vmax: float = 1.0,
+    nodata: float = -9999.0,
+    colormap_type: str = "correlation"
+) -> None:
+    """Génère un PNG transparent à rampe continue pour la corrélation ou le lag."""
+    out_png_path.parent.mkdir(parents=True, exist_ok=True)
+    H, W = data.shape
+    rgba = np.zeros((H, W, 4), dtype=np.uint8)
+    valid_mask = ~np.isnan(data) & (data != nodata)
 
-    # Sommes des produits croisés et des carrés
-    cov = np.nansum(x_dev * y_dev, axis=0)
-    var_x = np.nansum(x_dev ** 2, axis=0)
-    var_y = np.nansum(y_dev ** 2, axis=0)
+    if colormap_type == "lag":
+        # Palette discrète : Lag 0 (Jaune), Lag 1 (Vert), Lag 2 (Bleu)
+        rgba[valid_mask & (data == 0)] = [255, 255, 51, 220]
+        rgba[valid_mask & (data == 1)] = [77, 175, 74, 220]
+        rgba[valid_mask & (data == 2)] = [55, 126, 184, 220]
+    else:
+        # Corrélation -1 à +1 : RdYlGn
+        norm = np.clip((data - vmin) / (vmax - vmin), 0.0, 1.0)
+        for i in range(H):
+            for j in range(W):
+                if not valid_mask[i, j]:
+                    continue
+                val = norm[i, j]
+                # Palette simplifiée RdYlGn
+                if val < 0.35:  # Négatif -> Rouge / Orange
+                    r = int(215 + (244 - 215) * (val / 0.35))
+                    g = int(48 + (109 - 48) * (val / 0.35))
+                    b = int(39 + (67 - 39) * (val / 0.35))
+                elif val < 0.5:  # Autour de 0 -> Jaune
+                    r = 254
+                    g = int(224 + (255 - 224) * ((val - 0.35) / 0.15))
+                    b = 139
+                elif val < 0.75:  # Faible à modéré -> Vert clair
+                    r = int(217 - (217 - 145) * ((val - 0.5) / 0.25))
+                    g = int(239 - (239 - 207) * ((val - 0.5) / 0.25))
+                    b = int(139 - (139 - 96) * ((val - 0.5) / 0.25))
+                else:  # Fort -> Vert foncé
+                    r = int(26 - 26 * ((val - 0.75) / 0.25))
+                    g = int(152 - (152 - 104) * ((val - 0.75) / 0.25))
+                    b = int(80 - (80 - 55) * ((val - 0.75) / 0.25))
+                rgba[i, j] = [r, g, b, 225]
 
-    # Initialisation des résultats avec NaN
-    r = np.full((H, W), np.nan, dtype=np.float32)
-    slope = np.full((H, W), np.nan, dtype=np.float32)
-    p_val = np.full((H, W), np.nan, dtype=np.float32)
-    r2 = np.full((H, W), np.nan, dtype=np.float32)
-
-    # Calcul sur les pixels valides
-    denom = np.sqrt(var_x * var_y)
-    calc_mask = mask & (denom > 1e-8) & (var_y > 1e-8)
-
-    r_calc = np.clip(cov[calc_mask] / denom[calc_mask], -1.0, 1.0)
-    r[calc_mask] = r_calc
-    r2[calc_mask] = r_calc ** 2
-    slope[calc_mask] = cov[calc_mask] / var_y[calc_mask]
-
-    # Test t pour la p-value
-    df = valid_count[calc_mask] - 2
-    t_stat = r_calc * np.sqrt(df / np.maximum(1e-7, (1.0 - r_calc ** 2)))
-    p_calc = 2.0 * (1.0 - stats.t.cdf(np.abs(t_stat), df=df))
-    p_val[calc_mask] = p_calc
-
-    return r, p_val, slope, r2
+    img = Image.fromarray(rgba, mode="RGBA")
+    img.save(out_png_path, optimize=True)
 
 
 def save_geotiff(
     data: np.ndarray,
     out_path: Path,
-    reference_meta: dict,
-    nodata: float = -9999.0,
-    dtype: str = "float32"
+    meta: dict,
+    nodata: float = 0.0,
+    dtype: str = "uint8"
 ) -> None:
-    """Enregistre une matrice NumPy au format GeoTIFF géoréférencé."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    meta = reference_meta.copy()
-    meta.update({
+    out_meta = meta.copy()
+    out_meta.update({
         "driver": "GTiff",
         "height": data.shape[0],
         "width": data.shape[1],
@@ -284,115 +313,139 @@ def save_geotiff(
         "nodata": nodata,
         "compress": "lzw"
     })
-
-    # Convertir les NaN en valeur NoData
     out_data = np.where(np.isnan(data), nodata, data).astype(dtype)
-
-    with rasterio.open(out_path, "w", **meta) as dst:
+    with rasterio.open(out_path, "w", **out_meta) as dst:
         dst.write(out_data, 1)
 
-    print(f"  💾 Fichier sauvegardé : {out_path.name} ({out_path.stat().st_size / 1024:.1f} Ko)")
+
+# ==============================================================================
+# 2. CALCULS STATISTIQUES MULTI-ANNUELS
+# ==============================================================================
+
+def compute_multiyear_correlation(
+    ndvi_stack: np.ndarray, chirps_stack: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Calcule les relations multi-annuelles : Lag 0, Lag 1, Lag Optimal, Slope, P-value."""
+    T, H, W = ndvi_stack.shape
+
+    def _calc_r(x_s, y_s):
+        val_cnt = np.sum(~np.isnan(x_s) & ~np.isnan(y_s), axis=0)
+        calc_m = val_cnt >= max(10, int(len(x_s) * 0.5))
+
+        x_m = np.nanmean(x_s, axis=0)
+        y_m = np.nanmean(y_s, axis=0)
+        x_d = x_s - x_m
+        y_d = y_s - y_m
+
+        cov = np.nansum(x_d * y_d, axis=0)
+        vx = np.nansum(x_d ** 2, axis=0)
+        vy = np.nansum(y_d ** 2, axis=0)
+
+        r_res = np.full((H, W), np.nan, dtype=np.float32)
+        slope_res = np.full((H, W), np.nan, dtype=np.float32)
+        p_res = np.full((H, W), np.nan, dtype=np.float32)
+
+        denom = np.sqrt(vx * vy)
+        valid = calc_m & (denom > 1e-8) & (vy > 1e-8)
+
+        r_c = np.clip(cov[valid] / denom[valid], -1.0, 1.0)
+        r_res[valid] = r_c
+        slope_res[valid] = cov[valid] / vy[valid]
+
+        df = val_cnt[valid] - 2
+        t_stat = r_c * np.sqrt(df / np.maximum(1e-7, (1.0 - r_c ** 2)))
+        p_res[valid] = 2.0 * (1.0 - stats.t.cdf(np.abs(t_stat), df=df))
+
+        return r_res, p_res, slope_res
+
+    r_lag0, p_lag0, slope = _calc_r(ndvi_stack, chirps_stack)
+    r_lag1, _, _ = _calc_r(ndvi_stack[1:], chirps_stack[:-1])
+    r_lag2, _, _ = _calc_r(ndvi_stack[2:], chirps_stack[:-2])
+
+    stack_lags = np.stack([
+        np.nan_to_num(r_lag0, nan=-999),
+        np.nan_to_num(r_lag1, nan=-999),
+        np.nan_to_num(r_lag2, nan=-999)
+    ], axis=0)
+    lag_opt = np.argmax(stack_lags, axis=0).astype(np.float32)
+    lag_opt = np.where(np.isnan(r_lag0), np.nan, lag_opt)
+
+    return r_lag0, r_lag1, lag_opt, slope, p_lag0
 
 
 # ==============================================================================
-# FONCTIONS DE PUBLICATION DANS GEOSERVER
+# 3. PUBLICATION GEOSERVER
 # ==============================================================================
 
-def geoserver_test_connection() -> bool:
-    """Vérifie l'accès à GeoServer."""
+def geoserver_publish(files_to_publish: List[Tuple[Path, str, str]]) -> int:
+    """Publie un ensemble de rasters et leurs styles dans GeoServer."""
     try:
         url = f"{GEOSERVER_URL}/rest/about/version.json"
         res = requests.get(url, auth=AUTH, headers=HEADERS_JSON, timeout=5)
-        return res.status_code == 200
+        if res.status_code != 200:
+            print("⚠ GeoServer non accessible.")
+            return 0
     except Exception:
-        return False
+        print("⚠ GeoServer non accessible.")
+        return 0
 
+    # Workspace
+    w_url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}.json"
+    if requests.get(w_url, auth=AUTH, headers=HEADERS_JSON).status_code == 404:
+        requests.post(f"{GEOSERVER_URL}/rest/workspaces", data=f"<workspace><name>{WORKSPACE}</name></workspace>", headers=HEADERS_XML, auth=AUTH)
 
-def geoserver_ensure_workspace() -> bool:
-    """Crée le workspace GeoServer s'il n'existe pas encore."""
-    url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}.json"
-    res = requests.get(url, auth=AUTH, headers=HEADERS_JSON)
-    if res.status_code == 404:
-        payload = f"<workspace><name>{WORKSPACE}</name></workspace>"
-        c_res = requests.post(f"{GEOSERVER_URL}/rest/workspaces", data=payload, headers=HEADERS_XML, auth=AUTH)
-        if c_res.status_code in (200, 201):
-            ns_payload = f"<namespace><prefix>{WORKSPACE}</prefix><uri>{NAMESPACE_URI}</uri></namespace>"
-            requests.put(f"{GEOSERVER_URL}/rest/namespaces/{WORKSPACE}", data=ns_payload, headers=HEADERS_XML, auth=AUTH)
-            return True
-        return False
-    return res.status_code == 200
+    # Styles
+    styles = {
+        "style_relation_ndvi_chirps_5classes": SLD_RELATION_5CLASSES,
+        "style_correlation_ndvi_chirps": SLD_CORRELATION,
+        "style_lag_optimal": SLD_LAG,
+    }
+    for s_name, sld in styles.items():
+        st_url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/styles/{s_name}.json"
+        if requests.get(st_url, auth=AUTH, headers=HEADERS_JSON).status_code == 404:
+            requests.post(f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/styles?name={s_name}", data=sld.encode("utf-8"), headers=HEADERS_SLD, auth=AUTH)
 
-
-def geoserver_publish_style(style_name: str, sld_body: str) -> bool:
-    """Téléverse un style SLD dans le workspace GeoServer."""
-    url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/styles/{style_name}.json"
-    res = requests.get(url, auth=AUTH, headers=HEADERS_JSON)
-    if res.status_code == 404:
-        create_url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/styles?name={style_name}"
-        res_post = requests.post(create_url, data=sld_body.encode("utf-8"), headers=HEADERS_SLD, auth=AUTH)
-        return res_post.status_code in (200, 201)
-    return True
-
-
-def geoserver_publish_raster(file_path: Path, store_name: str, style_name: str | None = None) -> bool:
-    """Publie un raster GeoTIFF et applique son style SLD."""
-    if not file_path.exists():
-        return False
-
-    url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/coveragestores/{store_name}/file.geotiff?configure=first&coverageName={store_name}"
-    headers = {"Content-Type": "image/tiff"}
-
-    try:
-        with open(file_path, "rb") as f:
-            res = requests.put(url, data=f, headers=headers, auth=AUTH, timeout=120)
-
-        if res.status_code in (200, 201):
+    published = 0
+    for tif_path, store_name, style_name in files_to_publish:
+        if not tif_path.exists():
+            continue
+        c_url = f"{GEOSERVER_URL}/rest/workspaces/{WORKSPACE}/coveragestores/{store_name}/file.geotiff?configure=first&coverageName={store_name}"
+        with open(tif_path, "rb") as f:
+            r = requests.put(c_url, data=f, headers={"Content-Type": "image/tiff"}, auth=AUTH, timeout=120)
+        if r.status_code in (200, 201):
             if style_name:
-                layer_url = f"{GEOSERVER_URL}/rest/layers/{WORKSPACE}:{store_name}.xml"
-                layer_payload = f"""<layer>
-                    <defaultStyle>
-                        <name>{WORKSPACE}:{style_name}</name>
-                        <workspace>{WORKSPACE}</workspace>
-                    </defaultStyle>
-                    <opaque>false</opaque>
-                </layer>"""
-                requests.put(layer_url, data=layer_payload, headers=HEADERS_XML, auth=AUTH)
-            print(f"  ✓ GeoServer : Couche '{WORKSPACE}:{store_name}' publiée avec style '{style_name}'.")
-            return True
-        else:
-            print(f"  ❌ GeoServer erreur {res.status_code} pour '{store_name}' : {res.text[:120]}")
-            return False
-    except Exception as e:
-        print(f"  ❌ Erreur envoi GeoServer '{store_name}' : {e}")
-        return False
+                l_url = f"{GEOSERVER_URL}/rest/layers/{WORKSPACE}:{store_name}.xml"
+                l_pay = f"<layer><defaultStyle><name>{WORKSPACE}:{style_name}</name><workspace>{WORKSPACE}</workspace></defaultStyle><opaque>false</opaque></layer>"
+                requests.put(l_url, data=l_pay, headers=HEADERS_XML, auth=AUTH)
+            published += 1
+            print(f"  ✓ GeoServer : {WORKSPACE}:{store_name} publié.")
+    return published
 
 
 # ==============================================================================
-# PIPELINE PRINCIPAL D'ANALYSE
+# 4. PIPELINE PRINCIPAL
 # ==============================================================================
 
-def run_analysis(
+def run_analysis_pipeline(
     start_year: int | None = None,
     end_year: int | None = None,
     publish_geoserver: bool = False
 ) -> bool:
     t_start = time.time()
     print("\n" + "=" * 75)
-    print("🌾 DYNATSIMO — ANALYSE DE RELATION NDVI vs CHIRPS (PRÉCIPITATIONS)")
+    print("🌾 DYNATSIMO — ANALYSE RELATION NDVI vs CHIRPS PAR MOIS & ANNÉE")
     print("=" * 75)
 
-    # 1. Détection des couples de rasters
     matched = find_matched_dates(start_year, end_year)
     if not matched:
-        print("❌ Aucun couple de rasters CHIRPS / NDVI trouvé pour la période spécifiée.")
+        print("❌ Aucun couple de rasters CHIRPS/NDVI trouvé.")
         return False
 
-    print(f"📅 Nombre de mois analysés : {len(matched)}")
-    print(f"   Période : {matched[0][0]}-{matched[0][1]}  à  {matched[-1][0]}-{matched[-1][1]}")
+    T = len(matched)
+    print(f"📅 Nombre de mois analysés : {T} mois ({matched[0][0]}-{matched[0][1]:02d} à {matched[-1][0]}-{matched[-1][1]:02d})")
 
-    # Récupération de la référence spatiale (CHIRPS sert de grille cible)
-    ref_chirps_path = matched[0][2]
-    with rasterio.open(ref_chirps_path) as ref_c:
+    # Grille de référence CHIRPS
+    with rasterio.open(matched[0][2]) as ref_c:
         ref_meta = ref_c.meta.copy()
         target_shape = ref_c.shape
         target_transform = ref_c.transform
@@ -400,31 +453,28 @@ def run_analysis(
         chirps_nodata = ref_c.nodata if ref_c.nodata is not None else -9999.0
 
     H, W = target_shape
-    T = len(matched)
-    print(f"📐 Grille de calcul : {H} lignes x {W} colonnes ({H * W} pixels), CRS : {target_crs}")
+    leaflet_bounds = [
+        [float(target_transform[5] + H * target_transform[4]), float(target_transform[2])],
+        [float(target_transform[5]), float(target_transform[2] + W * target_transform[0])]
+    ]
 
-    # 2. Chargement et harmonisation spatiale (Rééchantillonnage de NDVI sur la grille CHIRPS)
-    print("\n⏳ Étape 1/3 : Chargement et rééchantillonnage des séries temporelles...")
+    # 1. Chargement et harmonisation spatiale
+    print("\n⏳ Étape 1/4 : Chargement et rééchantillonnage de la pile spatio-temporelle...")
     chirps_stack = np.full((T, H, W), np.nan, dtype=np.float32)
     ndvi_stack = np.full((T, H, W), np.nan, dtype=np.float32)
 
     for idx, (y, mm, c_path, n_path) in enumerate(matched):
-        # Lecture CHIRPS
         with rasterio.open(c_path) as c_src:
-            c_data = c_src.read(1)
-            c_valid = np.where((c_data == chirps_nodata) | (c_data < 0), np.nan, c_data)
-            chirps_stack[idx] = c_valid
+            c_d = c_src.read(1)
+            chirps_stack[idx] = np.where((c_d == chirps_nodata) | (c_d < 0), np.nan, c_d)
 
-        # Lecture & Reprojection NDVI sur la grille CHIRPS
         with rasterio.open(n_path) as n_src:
-            n_data = n_src.read(1)
-            # Traiter les 0 ou valeurs aberrantes hors [-0.2, 1.0]
-            n_data = np.where((n_data == 0.0) | (n_data < -0.2) | (n_data > 1.0), np.nan, n_data)
-            
-            reprojected_ndvi = np.full(target_shape, np.nan, dtype=np.float32)
+            n_d = n_src.read(1)
+            n_d = np.where((n_d == 0.0) | (n_d < -0.2) | (n_d > 1.0), np.nan, n_d)
+            reproj_ndvi = np.full(target_shape, np.nan, dtype=np.float32)
             reproject(
-                source=n_data.astype(np.float32),
-                destination=reprojected_ndvi,
+                source=n_d.astype(np.float32),
+                destination=reproj_ndvi,
                 src_transform=n_src.transform,
                 src_crs=n_src.crs,
                 dst_transform=target_transform,
@@ -433,85 +483,170 @@ def run_analysis(
                 src_nodata=np.nan,
                 dst_nodata=np.nan
             )
-            ndvi_stack[idx] = reprojected_ndvi
+            ndvi_stack[idx] = reproj_ndvi
+
+    # 2. Climatologie mensuelle pour le calcul des anomalies standardisées
+    print("\n📊 Étape 2/4 : Calcul des anomalies standardisées et des relations mensuelles...")
+    # Regrouper par mois de l'année (1 à 12) pour normaliser selon la saisonnalité
+    monthly_stats = {}
+    for m in range(1, 13):
+        m_indices = [i for i, item in enumerate(matched) if item[1] == m]
+        if m_indices:
+            c_sub = chirps_stack[m_indices]
+            n_sub = ndvi_stack[m_indices]
+            monthly_stats[m] = {
+                "c_mean": np.nanmean(c_sub, axis=0),
+                "c_std": np.maximum(1e-4, np.nanstd(c_sub, axis=0)),
+                "n_mean": np.nanmean(n_sub, axis=0),
+                "n_std": np.maximum(1e-4, np.nanstd(n_sub, axis=0)),
+            }
+
+    # 3. Génération des rasters TIFF et PNG mensuels
+    print(f"\n📂 Étape 3/4 : Sauvegarde des GeoTIFFs et PNGs mensuels dans 'NDVI_CHIRPS/{{annee}}/'...")
+    periods_meta = []
+    years_set = set()
+    geoserver_queue = []
+
+    for idx, (y, mm, _, _) in enumerate(matched):
+        years_set.add(y)
+        st = monthly_stats.get(mm)
+        c_val = chirps_stack[idx]
+        n_val = ndvi_stack[idx]
+
+        valid_pix = ~np.isnan(c_val) & ~np.isnan(n_val) & ~np.isnan(st["c_mean"])
+
+        # Anomalies standardisées Z
+        z_c = np.full((H, W), np.nan, dtype=np.float32)
+        z_n = np.full((H, W), np.nan, dtype=np.float32)
+        z_c[valid_pix] = (c_val[valid_pix] - st["c_mean"][valid_pix]) / st["c_std"][valid_pix]
+        z_n[valid_pix] = (n_val[valid_pix] - st["n_mean"][valid_pix]) / st["n_std"][valid_pix]
+
+        # Indice combiné Joint Drought Index
+        jdi = 0.5 * (z_c + z_n)
+
+        # Classification en 5 catégories d'état Eau-Végétation
+        # 1: Sévère (< -1.0) | 2: Stress (-1.0 à -0.3) | 3: Normal (-0.3 à +0.3) | 4: Favorable (+0.3 à +1.0) | 5: Vigueur max (> +1.0)
+        rel_class = np.zeros((H, W), dtype=np.uint8)
+        rel_class[valid_pix & (jdi < -1.0)] = 1
+        rel_class[valid_pix & (jdi >= -1.0) & (jdi < -0.3)] = 2
+        rel_class[valid_pix & (jdi >= -0.3) & (jdi <= 0.3)] = 3
+        rel_class[valid_pix & (jdi > 0.3) & (jdi <= 1.0)] = 4
+        rel_class[valid_pix & (jdi > 1.0)] = 5
+
+        # Sauvegarde TIFF brut : NDVI_CHIRPS/{annee}/NDVI_CHIRPS_{annee}_{mois:02d}.tif
+        year_tif_dir = OUTPUT_DIR / str(y)
+        tif_path = year_tif_dir / f"NDVI_CHIRPS_{y}_{mm:02d}.tif"
+        save_geotiff(rel_class, tif_path, ref_meta, nodata=0, dtype="uint8")
+
+        # Sauvegarde PNG Web transparent : public/data/raster/ndvi_chirps/{annee}/ndvi_chirps_{annee}_{mois:02d}.png
+        year_png_dir = PUBLIC_RASTER_DIR / str(y)
+        png_path = year_png_dir / f"ndvi_chirps_{y}_{mm:02d}.png"
+        create_relation_png(rel_class, png_path)
+
+        store_name = f"ndvi_chirps_{y}_{mm:02d}"
+        geoserver_queue.append((tif_path, store_name, "style_relation_ndvi_chirps_5classes"))
+
+        period_item = {
+            "key": f"{y}_{mm:02d}",
+            "year": y,
+            "month": mm,
+            "label": f"{MONTH_NAMES_FR.get(mm, '')} {y}",
+            "shortLabel": f"{MONTH_SHORT_FR.get(mm, '')} {y}",
+            "pngUrl": f"/data/raster/ndvi_chirps/{y}/ndvi_chirps_{y}_{mm:02d}.png",
+            "geotiffPath": str(tif_path.relative_to(ROOT_DIR)).replace("\\", "/"),
+            "width": W,
+            "height": H,
+            "bounds": leaflet_bounds,
+        }
+        periods_meta.append(period_item)
 
         if (idx + 1) % 50 == 0 or (idx + 1) == T:
-            print(f"   → Synchronisé : {idx + 1}/{T} mois ({y}-{mm})")
+            print(f"   ✓ Traité et sauvegardé : {idx + 1}/{T} mois ({y}-{mm:02d})")
 
-    # 3. Calculs statistiques pixel par pixel
-    print("\n📊 Étape 2/3 : Calculs statistiques pixel par pixel (Pearson r, Lag, P-value, Régression)...")
+    # 4. Calculs multi-annuels globaux (Lag 0, Lag 1, Lag Optimal, Pente)
+    print("\n🌐 Étape 4/4 : Calculs multi-annuels globaux et métadonnées...")
+    r_lag0, r_lag1, lag_opt, slope, p_lag0 = compute_multiyear_correlation(ndvi_stack, chirps_stack)
 
-    # (A) Lag 0 : Végétation du mois M vs Pluie du mois M
-    r_lag0, p_lag0, slope_lag0, r2_lag0 = compute_pixel_correlation(ndvi_stack, chirps_stack)
-
-    # (B) Lag 1 : Végétation du mois M vs Pluie du mois M-1 (latence de 1 mois)
-    # NDVI à partir du mois index 1, CHIRPS jusqu'à T-1
-    r_lag1, p_lag1, slope_lag1, r2_lag1 = compute_pixel_correlation(ndvi_stack[1:], chirps_stack[:-1])
-
-    # (C) Lag 2 : Végétation du mois M vs Pluie du mois M-2 (latence de 2 mois)
-    r_lag2, p_lag2, slope_lag2, r2_lag2 = compute_pixel_correlation(ndvi_stack[2:], chirps_stack[:-2])
-
-    # (D) Lag Optimal : Déterminer pour chaque pixel quel délai maximise le r
-    r_stack = np.stack([
-        np.nan_to_num(r_lag0, nan=-999),
-        np.nan_to_num(r_lag1, nan=-999),
-        np.nan_to_num(r_lag2, nan=-999)
-    ], axis=0)
-    lag_optimal = np.argmax(r_stack, axis=0).astype(np.float32)
-    # Masquer les pixels où lag0 est NaN
-    lag_optimal = np.where(np.isnan(r_lag0), np.nan, lag_optimal)
-
-    # 4. Sauvegarde des rasters bruts dans le dossier 'NDVI_CHIRPS'
-    print(f"\n📂 Étape 3/3 : Sauvegarde des rasters bruts dans '{OUTPUT_DIR.name}/'...")
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    outputs = [
-        ("ndvi_chirps_correlation_lag0.tif", r_lag0, "style_correlation_ndvi_chirps"),
-        ("ndvi_chirps_correlation_lag1.tif", r_lag1, "style_correlation_ndvi_chirps"),
-        ("ndvi_chirps_lag_optimal.tif", lag_optimal, "style_lag_optimal"),
-        ("ndvi_chirps_pvalue_lag0.tif", p_lag0, "style_pvalue_significativite"),
-        ("ndvi_chirps_regression_slope.tif", slope_lag0, "style_regression_slope"),
-        ("ndvi_chirps_r_squared.tif", r2_lag0, "style_correlation_ndvi_chirps"),
+    # Sauvegarde TIFFs globaux
+    global_outputs = [
+        ("ndvi_chirps_correlation_lag0.tif", r_lag0, "style_correlation_ndvi_chirps", -1.0, 1.0, "correlation"),
+        ("ndvi_chirps_correlation_lag1.tif", r_lag1, "style_correlation_ndvi_chirps", -1.0, 1.0, "correlation"),
+        ("ndvi_chirps_lag_optimal.tif", lag_opt, "style_lag_optimal", 0, 2, "lag"),
+        ("ndvi_chirps_regression_slope.tif", slope, "style_correlation_ndvi_chirps", -0.001, 0.003, "correlation"),
+        ("ndvi_chirps_pvalue_lag0.tif", p_lag0, "style_correlation_ndvi_chirps", 0.0, 1.0, "correlation"),
     ]
 
-    for fname, data_arr, style in outputs:
-        save_geotiff(data_arr, OUTPUT_DIR / fname, ref_meta)
+    global_png_dir = PUBLIC_RASTER_DIR / "global"
+    for fname, data_arr, st_name, vmin, vmax, col_type in global_outputs:
+        # Sauvegarde TIFF racine NDVI_CHIRPS/
+        save_geotiff(data_arr, OUTPUT_DIR / fname, ref_meta, nodata=-9999.0, dtype="float32")
+        # Sauvegarde PNG global
+        png_name = fname.replace(".tif", ".png")
+        create_continuous_png(data_arr, global_png_dir / png_name, vmin=vmin, vmax=vmax, nodata=-9999.0, colormap_type=col_type)
+        geoserver_queue.append((OUTPUT_DIR / fname, fname.replace(".tif", ""), st_name))
 
-    # 5. Publication dans GeoServer
+    # Écriture du fichier de métadonnées JSON pour l'application React
+    metadata = {
+        "bounds": leaflet_bounds,
+        "classesCount": 5,
+        "classes": RELATION_CLASSES,
+        "years": sorted(list(years_set)),
+        "periods": periods_meta,
+        "globalLayers": [
+            {
+                "id": "correlation_lag0",
+                "label": "Corrélation Instantanée (Lag 0)",
+                "description": "Liaison directe au cours du même mois (-1 à +1)",
+                "pngUrl": "/data/raster/ndvi_chirps/global/ndvi_chirps_correlation_lag0.png",
+                "storeName": "ndvi_chirps_correlation_lag0",
+                "bounds": leaflet_bounds
+            },
+            {
+                "id": "correlation_lag1",
+                "label": "Corrélation Décalée 1 Mois (Lag 1)",
+                "description": "Latence de la végétation réagissant 1 mois après la pluie (-1 à +1)",
+                "pngUrl": "/data/raster/ndvi_chirps/global/ndvi_chirps_correlation_lag1.png",
+                "storeName": "ndvi_chirps_correlation_lag1",
+                "bounds": leaflet_bounds
+            },
+            {
+                "id": "lag_optimal",
+                "label": "Décalage Optimal de Croissance",
+                "description": "Délai temporel maximisant la réponse (0 = même mois, 1 = 1 mois, 2 = 2 mois)",
+                "pngUrl": "/data/raster/ndvi_chirps/global/ndvi_chirps_lag_optimal.png",
+                "storeName": "ndvi_chirps_lag_optimal",
+                "bounds": leaflet_bounds
+            },
+        ]
+    }
+
+    METADATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(METADATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    print(f"  💾 Métadonnées React sauvegardées : {METADATA_FILE.relative_to(ROOT_DIR)}")
+
+    # 5. Publication GeoServer optionnelle
     if publish_geoserver:
-        print("\n🌍 Intégration et Publication dans GeoServer...")
-        if not geoserver_test_connection():
-            print(f"⚠ Impossible de joindre GeoServer sur {GEOSERVER_URL}. Assurez-vous que GeoServer est démarré.")
-        else:
-            geoserver_ensure_workspace()
-
-            # Publication des styles SLD
-            geoserver_publish_style("style_correlation_ndvi_chirps", SLD_CORRELATION)
-            geoserver_publish_style("style_pvalue_significativite", SLD_PVALUE)
-            geoserver_publish_style("style_lag_optimal", SLD_LAG)
-            geoserver_publish_style("style_regression_slope", SLD_SLOPE)
-
-            # Publication des rasters de résultat
-            for fname, _, style in outputs:
-                tif_path = OUTPUT_DIR / fname
-                store_name = fname.replace(".tif", "")
-                geoserver_publish_raster(tif_path, store_name, style)
+        print("\n🌍 Publication dans GeoServer...")
+        pub_count = geoserver_publish(geoserver_queue)
+        print(f"✨ GeoServer : {pub_count} couche(s) synchronisée(s).")
 
     print("\n" + "=" * 75)
-    print(f"✨ ANALYSE NDVI-CHIRPS TERMINÉE AVEC SUCCÈS en {time.time() - t_start:.1f} secondes !")
-    print(f"📁 Tous les rasters GeoTIFF bruts sont disponibles dans : {OUTPUT_DIR}")
+    print(f"✨ ANALYSE NDVI-CHIRPS PAR MOIS/ANNÉE TERMINÉE AVEC SUCCÈS ({time.time() - t_start:.1f}s) !")
+    print(f"📁 Rasters TIFF bruts sauvegardés dans : {OUTPUT_DIR}/<ANNEE>/")
+    print(f"🌐 Calques Web PNG prêts dans : {PUBLIC_RASTER_DIR}/")
     print("=" * 75 + "\n")
     return True
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Calcul des relations spatiales NDVI vs CHIRPS et publication GeoServer")
-    parser.add_argument("--start-year", type=int, default=None, help="Année de début (ex: 2000)")
-    parser.add_argument("--end-year", type=int, default=None, help="Année de fin (ex: 2026)")
-    parser.add_argument("--publish-geoserver", action="store_true", help="Publier automatiquement les résultats dans GeoServer")
+    parser = argparse.ArgumentParser(description="Analyse spatio-temporelle NDVI vs CHIRPS par mois et année")
+    parser.add_argument("--start-year", type=int, default=None, help="Année de début")
+    parser.add_argument("--end-year", type=int, default=None, help="Année de fin")
+    parser.add_argument("--publish-geoserver", action="store_true", help="Publier automatiquement dans GeoServer")
     args = parser.parse_args()
 
-    run_analysis(
+    run_analysis_pipeline(
         start_year=args.start_year,
         end_year=args.end_year,
         publish_geoserver=args.publish_geoserver

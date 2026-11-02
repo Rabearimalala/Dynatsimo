@@ -100,6 +100,31 @@ SLD_NDVI_6CLASSES = f"""<?xml version="1.0" encoding="UTF-8"?>
 </StyledLayerDescriptor>
 """
 
+SLD_RELATION_5CLASSES = f"""<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
+  <NamedLayer>
+    <Name>style_relation_ndvi_chirps_5classes</Name>
+    <UserStyle>
+      <Title>Relation Mensuelle NDVI - CHIRPS (5 Classes)</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="values">
+              <ColorMapEntry color="#000000" quantity="0" opacity="0.0" label="NoData"/>
+              <ColorMapEntry color="#dc2626" quantity="1" opacity="0.9" label="Sécheresse sévère"/>
+              <ColorMapEntry color="#ea580c" quantity="2" opacity="0.9" label="Stress hydrique"/>
+              <ColorMapEntry color="#eab308" quantity="3" opacity="0.85" label="Normal"/>
+              <ColorMapEntry color="#16a34a" quantity="4" opacity="0.9" label="Favorable"/>
+              <ColorMapEntry color="#15803d" quantity="5" opacity="0.95" label="Vigueur maximale"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+"""
+
 SLD_CORRELATION = f"""<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
   <NamedLayer>
@@ -347,6 +372,7 @@ def sync_geoserver(max_recent: int | None = None) -> bool:
     ensure_workspace()
     ensure_style("chirps_style", SLD_CHIRPS)
     ensure_style("ndvi_6classes_style", SLD_NDVI_6CLASSES)
+    ensure_style("style_relation_ndvi_chirps_5classes", SLD_RELATION_5CLASSES)
     ensure_style("style_correlation_ndvi_chirps", SLD_CORRELATION)
     ensure_style("style_pvalue_significativite", SLD_PVALUE)
     ensure_style("style_lag_optimal", SLD_LAG)
@@ -408,7 +434,7 @@ def sync_geoserver(max_recent: int | None = None) -> bool:
 
     # 3. Traitement des Rasters de Relation NDVI-CHIRPS
     if NDVI_CHIRPS_DIR.exists():
-        ndvi_chirps_files = sorted(NDVI_CHIRPS_DIR.glob("*.tif"))
+        ndvi_chirps_files = sorted(NDVI_CHIRPS_DIR.rglob("*.tif"))
         if ndvi_chirps_files:
             print(f"\n📂 Détection des rasters NDVI-CHIRPS ({len(ndvi_chirps_files)} fichiers trouvés)...")
             style_mapping = {
@@ -418,18 +444,24 @@ def sync_geoserver(max_recent: int | None = None) -> bool:
                 "lag_optimal": "style_lag_optimal",
                 "regression": "style_regression_slope"
             }
+            to_publish_rel = []
             for tif in ndvi_chirps_files:
-                store_name = tif.stem
+                store_name = tif.stem.lower()
                 if store_name not in existing_stores:
-                    # Choisir le style approprié
-                    matched_style = "style_correlation_ndvi_chirps"
+                    matched_style = "style_relation_ndvi_chirps_5classes"
                     for kw, st in style_mapping.items():
                         if kw in store_name:
                             matched_style = st
                             break
-                    print(f"→ Envoi NDVI-CHIRPS : {tif.name} -> {WORKSPACE}:{store_name} (Style: {matched_style})")
-                    if publish_geotiff(tif, store_name, default_style=matched_style):
-                        published_count += 1
+                    to_publish_rel.append((tif, store_name, matched_style))
+
+            if max_recent:
+                to_publish_rel = to_publish_rel[-max_recent:]
+
+            for tif, store_name, matched_style in to_publish_rel:
+                print(f"→ Envoi NDVI-CHIRPS : {tif.name} -> {WORKSPACE}:{store_name} (Style: {matched_style})")
+                if publish_geotiff(tif, store_name, default_style=matched_style):
+                    published_count += 1
 
     print("\n" + "=" * 75)
     print(f"✨ SYNCHRONISATION GEOSERVER TERMINÉE : {published_count} nouvelle(s) couche(s) publiée(s).")
