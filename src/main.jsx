@@ -47,6 +47,7 @@ const staticDataFiles = {
   ndviClasses: "/data/ndvi_classes_metadata.json",
   isohyetesMeta: "/data/isohyetes_metadata.json",
   ndviChirpsMeta: "/data/ndvi_chirps_metadata.json",
+  correlationNdviChirps: "/data/correlation_ndvi_chirps.json",
 };
 
 const Icons = {
@@ -535,6 +536,14 @@ async function loadAppData() {
   } catch (e) {
     console.warn("ndviChirpsMeta non trouvées", e);
   }
+  try {
+    if (!apiData.correlationNdviChirps) {
+      const correlationNdviChirps = await fetchJson(`/data/correlation_ndvi_chirps.json`);
+      apiData.correlationNdviChirps = correlationNdviChirps;
+    }
+  } catch (e) {
+    console.warn("correlationNdviChirps non trouvées", e);
+  }
   return {
     data: apiData,
     source: "Base PostgreSQL via API Python",
@@ -909,6 +918,7 @@ function App() {
                       {[
                         { id: "precip", label: "🌧️ Pluviométrie (CHIRPS)" },
                         { id: "vegetation", label: "🌿 Végétation (MODIS)" },
+                        { id: "correlation", label: "🔗 Corrélation (NDVI / CHIRPS)" },
                       ].map((sub) => (
                         <button
                           key={sub.id}
@@ -1098,6 +1108,7 @@ function App() {
               annualData={data.annualData}
               seasonData={data.seasonData}
               vegData={data.vegetationData}
+              correlationData={data.correlationNdviChirps}
             />
           )}
           {activeTab === "guide" && (
@@ -1321,6 +1332,7 @@ function UnifiedSinglePage({
           annualData={data?.annualData || []}
           seasonData={data?.seasonData || []}
           vegData={data?.vegetationData || {}}
+          correlationData={data?.correlationNdviChirps}
         />
       </section>
 
@@ -1740,6 +1752,35 @@ function SuiviVegetation({
   const [activeSensor, setActiveSensor] = React.useState("modis");
   const [polyOrder, setPolyOrder] = React.useState(3);
 
+  // Synchronisation dynamique de la hauteur du menu de paramètres
+  const vegRightFigureRef = React.useRef(null);
+  const [vegRightFigureHeight, setVegRightFigureHeight] = React.useState(null);
+
+  React.useLayoutEffect(() => {
+    const el = vegRightFigureRef.current;
+    if (!el) return;
+    const updateHeight = () => {
+      const h = el.offsetHeight;
+      if (h > 0) setVegRightFigureHeight(h);
+    };
+    updateHeight();
+    let rafId = null;
+    const ro = new ResizeObserver((entries) => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const h = Math.round(entry.borderBoxSize?.[0]?.blockSize || el.offsetHeight);
+          if (h > 0) setVegRightFigureHeight(h);
+        }
+      });
+    });
+    ro.observe(el);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      ro.disconnect();
+    };
+  }, [timeScale, polyOrder, activeSensor, activeSeason]);
+
   const districtsList = React.useMemo(() => {
     const list = communes
       .filter((c) => !selectedRegion || c.region === selectedRegion)
@@ -2146,8 +2187,16 @@ function SuiviVegetation({
         )}
       </section>
 
-      <section className="split-layout" style={{ alignItems: "stretch" }}>
-        <aside className="filters-panel" style={{ height: "100%", boxSizing: "border-box" }}>
+      <section className="split-layout" style={{ alignItems: "start" }}>
+        <aside
+          className="filters-panel"
+          style={{
+            height: vegRightFigureHeight ? `${vegRightFigureHeight}px` : "auto",
+            maxHeight: vegRightFigureHeight ? `${vegRightFigureHeight}px` : "500px",
+            overflowY: "auto",
+            boxSizing: "border-box",
+          }}
+        >
           <h2>Paramètres Végétation</h2>
 
           <div className="filter-group">
@@ -2241,7 +2290,7 @@ function SuiviVegetation({
 
         {/* Primary Chart */}
         {timeScale === "annual" ? (
-          <div className="panel" style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box", margin: 0 }}>
+          <div className="panel" ref={vegRightFigureRef} style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box", margin: 0 }}>
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
                 <h2><Icons.Stats /> Évolution Interannuelle du NDVI Moyen — {activeCommuneObj?.nom}</h2>
@@ -2269,7 +2318,7 @@ function SuiviVegetation({
                 </div>
               </div>
             </div>
-            <div style={{ width: "100%", flex: 1, minHeight: 280, position: "relative" }}>
+            <div style={{ width: "100%", height: 360, marginTop: "12px", position: "relative" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={annualChartData} margin={{ top: 10, right: 30, bottom: 25, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -2315,14 +2364,14 @@ function SuiviVegetation({
             </div>
           </div>
         ) : (
-          <div className="panel" style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box", margin: 0 }}>
+          <div className="panel" ref={vegRightFigureRef} style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box", margin: 0 }}>
             <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
               <div>
                 <h2><Icons.Stats /> Profil Phénologique & Végétation Mensuelle — {activeCommuneObj?.nom} (Saison {activeSeasonData?.season ?? activeSeason})</h2>
                 <span>Comparaison mensuelle : Végétation observée (NDVI) et moyenne de référence historique</span>
               </div>
             </div>
-            <div style={{ width: "100%", flex: 1, minHeight: 280, position: "relative" }}>
+            <div style={{ width: "100%", height: 360, marginTop: "12px", position: "relative" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={monthlyChartData} margin={{ top: 20, right: 30, bottom: 30, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -2952,6 +3001,34 @@ function Saison({
     }
   }, [availableSeasons]);
 
+  const saisonRightFigureRef = React.useRef(null);
+  const [saisonRightFigureHeight, setSaisonRightFigureHeight] = React.useState(null);
+
+  React.useLayoutEffect(() => {
+    const el = saisonRightFigureRef.current;
+    if (!el) return;
+    const updateHeight = () => {
+      const h = el.offsetHeight;
+      if (h > 0) setSaisonRightFigureHeight(h);
+    };
+    updateHeight();
+    let rafId = null;
+    const ro = new ResizeObserver((entries) => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const h = Math.round(entry.borderBoxSize?.[0]?.blockSize || el.offsetHeight);
+          if (h > 0) setSaisonRightFigureHeight(h);
+        }
+      });
+    });
+    ro.observe(el);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      ro.disconnect();
+    };
+  }, [subTab, seasonRange]);
+
   const districtsList = React.useMemo(() => {
     const list = (communes || [])
       .filter((c) => !selectedRegion || c.region === selectedRegion)
@@ -3166,8 +3243,15 @@ function Saison({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <section className="split-layout" style={{ marginBottom: "6px" }}>
-        <aside className="filters-panel">
+      <section className="split-layout" style={{ marginBottom: "6px", alignItems: "start" }}>
+        <aside
+          className="filters-panel"
+          style={{
+            height: saisonRightFigureHeight ? `${saisonRightFigureHeight}px` : "auto",
+            maxHeight: saisonRightFigureHeight ? `${saisonRightFigureHeight}px` : "500px",
+            overflowY: "auto",
+          }}
+        >
           <h2>Paramètres Début et fin de pluie</h2>
 
           <div className="filter-group">
@@ -3266,7 +3350,7 @@ function Saison({
           </div>
         </aside>
 
-        <div className="panel">
+        <div className="panel" ref={saisonRightFigureRef}>
           <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <h2><Icons.Rain /> Début et fin de pluie — {selectedCommuneName}</h2>
@@ -3740,6 +3824,35 @@ function StatistiquesCorrelation({
   const [selectedCommune, setSelectedCommune] = React.useState(parentCommune || communes[0]?.code || "");
   const [timeFilter, setTimeFilter] = React.useState("all"); // 'recent5', 'recent10', 'all'
 
+  // Synchronisation dynamique de la hauteur du menu de paramètres avec la figure de droite
+  const corrRightFigureRef = React.useRef(null);
+  const [corrRightFigureHeight, setCorrRightFigureHeight] = React.useState(null);
+
+  React.useLayoutEffect(() => {
+    const el = corrRightFigureRef.current;
+    if (!el) return;
+    const updateHeight = () => {
+      const h = el.offsetHeight;
+      if (h > 0) setCorrRightFigureHeight(h);
+    };
+    updateHeight();
+    let rafId = null;
+    const ro = new ResizeObserver((entries) => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const h = Math.round(entry.borderBoxSize?.[0]?.blockSize || el.offsetHeight);
+          if (h > 0) setCorrRightFigureHeight(h);
+        }
+      });
+    });
+    ro.observe(el);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      ro.disconnect();
+    };
+  }, [timeFilter, selectedCommune]);
+
   // Sync with parent props
   React.useEffect(() => {
     if (parentRegion && parentRegion !== selectedRegion) setSelectedRegion(parentRegion);
@@ -3939,16 +4052,17 @@ function StatistiquesCorrelation({
     };
   }, [activeCommuneObj, vegData, precipRecords, timeFilter]);
 
-  // Scope et pagination du tableau comparatif des communes
+  // Scope, filtre par statut et pagination du tableau comparatif des communes
   const [comparisonScope, setComparisonScope] = React.useState("district"); // 'district' | 'region' | 'all'
   const [comparisonSearch, setComparisonSearch] = React.useState("");
+  const [comparisonStatusFilter, setComparisonStatusFilter] = React.useState("");
   const [comparisonPage, setComparisonPage] = React.useState(1);
   const comparisonPageSize = 10;
 
   // Réinitialisation de la page en cas de changement
   React.useEffect(() => {
     setComparisonPage(1);
-  }, [comparisonScope, comparisonSearch, activeCommuneObj?.district, activeCommuneObj?.region]);
+  }, [comparisonScope, comparisonSearch, comparisonStatusFilter, activeCommuneObj?.district, activeCommuneObj?.region]);
 
   const districtCount = React.useMemo(() => {
     return communes.filter((c) => c.district && c.district === activeCommuneObj?.district).length;
@@ -4088,8 +4202,13 @@ function StatistiquesCorrelation({
         status: maxR >= 0.7 ? "Très forte dépendance" : maxR >= 0.5 ? "Forte dépendance" : "Dépendance modérée",
         statusColor: maxR >= 0.7 ? "#16a34a" : maxR >= 0.5 ? "#2563eb" : "#d97706",
       };
-    }).sort((a, b) => (typeof b.r1 === "number" ? b.r1 : 0) - (typeof a.r1 === "number" ? a.r1 : 0));
-  }, [searchedComparisonPool, vegData, precipRecords]);
+    })
+    .filter((row) => {
+      if (!comparisonStatusFilter) return true;
+      return row.status === comparisonStatusFilter;
+    })
+    .sort((a, b) => (typeof b.r1 === "number" ? b.r1 : 0) - (typeof a.r1 === "number" ? a.r1 : 0));
+  }, [searchedComparisonPool, vegData, precipRecords, comparisonStatusFilter]);
 
   // Pagination calculée
   const totalComparisonPages = Math.max(1, Math.ceil(fullComparisonList.length / comparisonPageSize));
@@ -4099,61 +4218,153 @@ function StatistiquesCorrelation({
   }, [fullComparisonList, comparisonPage, comparisonPageSize]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      {/* Barre de Filtres & Sélection Commune */}
-      <div className="panel" style={{ padding: "16px", backgroundColor: "var(--bg-panel)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "14px" }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>📊 Analyse Statistique du Couplage : Végétation & Pluviométrie</span>
-            </h3>
-            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-              Commune de <strong>{activeCommuneObj?.nom || activeCommuneObj?.code}</strong> &bull; District de <strong>{activeCommuneObj?.district || "n/d"}</strong> ({activeCommuneObj?.region || "Grand Sud"})
-            </span>
-          </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* 1. KPIs Clés Couplage Végétation & Pluie en haut */}
+      {correlationData && (
+        <section
+          className="metric-grid metric-grid-5cols"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+            gap: "10px",
+            marginBottom: "4px",
+            alignItems: "stretch",
+          }}
+        >
+          <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #f59e0b", boxSizing: "border-box" }}>
+            <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Réaction immédiate (Lag 0)">
+                Réaction immédiate (Lag 0)
+              </span>
+              <strong style={{ fontSize: "21px", color: "#f59e0b", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
+                {correlationData.r0 > 0 ? `+${correlationData.r0}` : correlationData.r0}
+              </strong>
+              <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Même mois de pluie
+              </span>
+            </div>
+          </article>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)" }}>Période :</span>
-            <div style={{ display: "flex", gap: "4px" }}>
+          <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #16a34a", boxSizing: "border-box" }}>
+            <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Reverdissement décalé (Lag 1)">
+                Reverdissement décalé (Lag 1)
+              </span>
+              <strong style={{ fontSize: "21px", color: "#16a34a", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
+                {correlationData.r1 > 0 ? `+${correlationData.r1}` : correlationData.r1}
+              </strong>
+              <span style={{ fontSize: "9.5px", color: "#16a34a", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                ★ Réponse maximale
+              </span>
+            </div>
+          </article>
+
+          <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #0284c7", boxSizing: "border-box" }}>
+            <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Délai optimal de repousse">
+                Délai optimal de repousse
+              </span>
+              <strong style={{ fontSize: "21px", color: "var(--primary)", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
+                {correlationData.optLag} mois
+              </strong>
+              <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Latence physiologique
+              </span>
+            </div>
+          </article>
+
+          <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #2563eb", boxSizing: "border-box" }}>
+            <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Sensibilité Végétale">
+                Sensibilité Végétale
+              </span>
+              <strong style={{ fontSize: "21px", color: "#2563eb", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
+                +{correlationData.slopePer100mm}
+              </strong>
+              <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                NDVI / 100 mm pluie
+              </span>
+            </div>
+          </article>
+
+          <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #8b5cf6", boxSizing: "border-box" }}>
+            <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Variance expliquée (R²)">
+                Variance expliquée (R²)
+              </span>
+              <strong style={{ fontSize: "21px", color: "var(--text-main)", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
+                {correlationData.r2}%
+              </strong>
+              <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Régie par la pluie
+              </span>
+            </div>
+          </article>
+        </section>
+      )}
+
+      {/* 2. Section Principale Split-Layout : Paramètres à Gauche & Figure Principale à Droite */}
+      <section className="split-layout" style={{ marginBottom: "16px", alignItems: "start" }}>
+        <aside
+          className="filters-panel"
+          style={{
+            height: corrRightFigureHeight ? `${corrRightFigureHeight}px` : "auto",
+            maxHeight: corrRightFigureHeight ? `${corrRightFigureHeight}px` : "500px",
+            overflowY: "auto",
+            boxSizing: "border-box",
+          }}
+        >
+          <h2>Paramètres Corrélation</h2>
+
+          {/* Période d'analyse */}
+          <div className="filter-group">
+            <label style={{ fontWeight: "700" }}>Période d'analyse :</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginTop: "4px" }}>
               {[
-                { id: "recent5", label: "5 dernières saisons" },
-                { id: "recent10", label: "10 dernières saisons" },
-                { id: "all", label: "Série complète (2000–2026)" },
+                { id: "all", label: "Historique complet (2000–2026)" },
+                { id: "recent10", label: "10 dernières années" },
+                { id: "recent5", label: "5 dernières années" },
               ].map((btn) => (
                 <button
                   key={btn.id}
                   type="button"
-                  className={`btn-subtab ${timeFilter === btn.id ? "active" : ""}`}
-                  style={{
-                    padding: "4px 10px",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    borderRadius: "6px",
-                    border: timeFilter === btn.id ? "1px solid var(--primary)" : "1px solid var(--border-color)",
-                    backgroundColor: timeFilter === btn.id ? "var(--primary)" : "var(--bg-panel-secondary)",
-                    color: timeFilter === btn.id ? "#ffffff" : "var(--text-main)",
-                    cursor: "pointer",
-                  }}
+                  className={`scale-tab-btn ${timeFilter === btn.id ? "active" : ""}`}
                   onClick={() => setTimeFilter(btn.id)}
+                  style={{
+                    padding: "7px 10px",
+                    fontSize: "11.5px",
+                    textAlign: "left",
+                    justifyContent: "flex-start",
+                    fontWeight: timeFilter === btn.id ? "700" : "500",
+                  }}
                 >
                   {btn.label}
                 </button>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Sélecteurs Région / District / Commune */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
-          <div className="filter-group">
-            <label style={{ fontSize: "11px", fontWeight: "700" }}>Région :</label>
+          {/* Recherche Commune */}
+          <div className="filter-group" style={{ marginTop: "6px" }}>
+            <label style={{ fontWeight: "700" }}>🔍 Chercher Commune :</label>
+            <CommuneSearchBar
+              communes={communes}
+              placeholder="Nom ou code..."
+              onSelectCommune={(c) => handleSelectCommune(c.code)}
+            />
+          </div>
+
+          {/* Sélecteur Région */}
+          <div className="filter-group" style={{ marginTop: "6px" }}>
+            <label htmlFor="corr-region-sel" style={{ fontWeight: "700" }}>Région :</label>
             <select
+              id="corr-region-sel"
               value={selectedRegion}
               onChange={(e) => {
                 setSelectedRegion(e.target.value);
+                if (parentSetRegion) parentSetRegion(e.target.value);
                 setSelectedDistrict("");
               }}
-              style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: "6px", border: "1px solid var(--border-color)" }}
             >
               <option value="">Toutes les régions (Grand Sud)</option>
               {regions.map((reg) => (
@@ -4162,12 +4373,13 @@ function StatistiquesCorrelation({
             </select>
           </div>
 
+          {/* Sélecteur District */}
           <div className="filter-group">
-            <label style={{ fontSize: "11px", fontWeight: "700" }}>District :</label>
+            <label htmlFor="corr-district-sel" style={{ fontWeight: "700" }}>District :</label>
             <select
+              id="corr-district-sel"
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
-              style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: "6px", border: "1px solid var(--border-color)" }}
             >
               <option value="">Tous les districts</option>
               {districtsList.map((dist) => (
@@ -4176,12 +4388,13 @@ function StatistiquesCorrelation({
             </select>
           </div>
 
+          {/* Sélecteur Commune */}
           <div className="filter-group">
-            <label style={{ fontSize: "11px", fontWeight: "700" }}>Commune cible :</label>
+            <label htmlFor="corr-commune-sel" style={{ fontWeight: "700" }}>Commune :</label>
             <select
+              id="corr-commune-sel"
               value={selectedCommune}
               onChange={(e) => handleSelectCommune(e.target.value)}
-              style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: "6px", border: "1px solid var(--border-color)", fontWeight: "700" }}
             >
               {filteredCommunes.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -4190,167 +4403,111 @@ function StatistiquesCorrelation({
               ))}
             </select>
           </div>
-        </div>
-      </div>
 
-      {correlationData ? (
-        <>
-          {/* Grille des 5 KPIs Clés sur une seule ligne avec hauteur optimisée */}
-          <section
-            className="metric-grid metric-grid-5cols"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-              gap: "10px",
-              marginBottom: "18px",
-              alignItems: "stretch",
-            }}
-          >
-            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #f59e0b", boxSizing: "border-box" }}>
-              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Réaction immédiate (Lag 0)">
-                  Réaction immédiate (Lag 0)
-                </span>
-                <strong style={{ fontSize: "21px", color: "#f59e0b", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
-                  {correlationData.r0 > 0 ? `+${correlationData.r0}` : correlationData.r0}
-                </strong>
-                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  Même mois de pluie
-                </span>
+          {/* Information Couplage Capteurs */}
+          <div className="filter-group" style={{ marginTop: "10px", borderTop: "1px solid var(--border-color)", paddingTop: "10px" }}>
+            <label style={{ fontWeight: "700" }}>Couplage des Données :</label>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span>🌿</span>
+                <span><strong>MODIS Terra</strong> (NDVI mensuel • 250m)</span>
               </div>
-            </article>
-
-            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #16a34a", boxSizing: "border-box" }}>
-              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Reverdissement décalé (Lag 1)">
-                  Reverdissement décalé (Lag 1)
-                </span>
-                <strong style={{ fontSize: "21px", color: "#16a34a", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
-                  {correlationData.r1 > 0 ? `+${correlationData.r1}` : correlationData.r1}
-                </strong>
-                <span style={{ fontSize: "9.5px", color: "#16a34a", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  ★ Réponse maximale
-                </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span>🌧️</span>
+                <span><strong>CHIRPS v2.0</strong> (Pluie mensuelle • 0.05°)</span>
               </div>
-            </article>
-
-            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #0284c7", boxSizing: "border-box" }}>
-              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Délai optimal de repousse">
-                  Délai optimal de repousse
-                </span>
-                <strong style={{ fontSize: "21px", color: "var(--primary)", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
-                  {correlationData.optLag} mois
-                </strong>
-                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  Latence physiologique
-                </span>
-              </div>
-            </article>
-
-            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #2563eb", boxSizing: "border-box" }}>
-              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Sensibilité Végétale">
-                  Sensibilité Végétale
-                </span>
-                <strong style={{ fontSize: "21px", color: "#2563eb", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
-                  +{correlationData.slopePer100mm}
-                </strong>
-                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  NDVI / 100 mm pluie
-                </span>
-              </div>
-            </article>
-
-            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #8b5cf6", boxSizing: "border-box" }}>
-              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Variance expliquée (R²)">
-                  Variance expliquée (R²)
-                </span>
-                <strong style={{ fontSize: "21px", color: "var(--text-main)", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
-                  {correlationData.r2}%
-                </strong>
-                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  Régie par la pluie
-                </span>
-              </div>
-            </article>
-          </section>
-
-          {/* Graphique 1 : Chronologie Double Axe Précipitations (Barres) & NDVI (Courbe) */}
-          <div className="panel" style={{ padding: "20px", backgroundColor: "var(--bg-panel)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "var(--text-main)" }}>
-                  🌧️ Synchronisation Temporelle : Pluies CHIRPS (mm) & Couvert Végétal NDVI (MODIS)
-                </h4>
-                <span style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
-                  Observation conjointe sur {correlationData.totalMonths} mois &bull; Visualisez l'effet direct des averses sur la repousse végétale
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: "16px", fontSize: "11px", fontWeight: "700" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#3b82f6" }}>
-                  <span style={{ width: "12px", height: "12px", backgroundColor: "#3b82f6", borderRadius: "2px" }} />
-                  Précipitations (mm)
-                </span>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#16a34a" }}>
-                  <span style={{ width: "12px", height: "3px", backgroundColor: "#16a34a" }} />
-                  NDVI Végétation
-                </span>
-              </div>
-            </div>
-
-            <div style={{ width: "100%", height: 320 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={correlationData.pairs} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis
-                    dataKey="dateLabel"
-                    tick={{ fontSize: 10 }}
-                    interval={Math.ceil(correlationData.pairs.length / 15)}
-                    angle={-30}
-                    textAnchor="end"
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    orientation="left"
-                    stroke="#3b82f6"
-                    tick={{ fontSize: 10 }}
-                    domain={[0, "auto"]}
-                    label={{ value: "Pluie (mm)", angle: -90, position: "insideLeft", fontSize: 10, fill: "#3b82f6" }}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    stroke="#16a34a"
-                    tick={{ fontSize: 10 }}
-                    domain={[0.1, 0.7]}
-                    label={{ value: "Indice NDVI", angle: 90, position: "insideRight", fontSize: 10, fill: "#16a34a" }}
-                  />
-                  <RechartsTooltip
-                    content={({ active, payload, label }) => {
-                      if (!active || !payload || !payload.length) return null;
-                      const d = payload[0]?.payload;
-                      if (!d) return null;
-                      return (
-                        <div style={{ backgroundColor: "#0f172a", color: "#ffffff", padding: "10px 14px", borderRadius: "8px", fontSize: "11px", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
-                          <strong style={{ fontSize: "12px", color: "#f8fafc" }}>{d.dateLabel}</strong>
-                          <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <div style={{ color: "#93c5fd" }}>🌧️ Pluie : <strong>{d.precip} mm</strong></div>
-                            <div style={{ color: "#86efac" }}>🌿 NDVI : <strong>{d.ndvi}</strong></div>
-                            {d.baseline && <div style={{ color: "#cbd5e1" }}>📏 Normale : {d.baseline}</div>}
-                          </div>
-                        </div>
-                      );
-                    }}
-                  />
-                  <Bar yAxisId="left" dataKey="precip" fill="#3b82f6" opacity={0.65} barSize={8} radius={[2, 2, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: "#16a34a" }} />
-                </ComposedChart>
-              </ResponsiveContainer>
             </div>
           </div>
+        </aside>
 
+        {/* Figure à droite : Graphique 1 (Synchronisation Temporelle Pluies CHIRPS & NDVI MODIS) */}
+        <div className="panel" ref={corrRightFigureRef} style={{ margin: 0, boxSizing: "border-box" }}>
+          {correlationData ? (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "var(--text-main)" }}>
+                    🌧️ Synchronisation Temporelle : Pluies CHIRPS (mm) & Couvert Végétal NDVI (MODIS) — {activeCommuneObj?.nom || ""}
+                  </h4>
+                  <span style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                    Observation conjointe sur {correlationData.totalMonths} mois &bull; Visualisez l'effet direct des averses sur la repousse végétale
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "16px", fontSize: "11px", fontWeight: "700" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#3b82f6" }}>
+                    <span style={{ width: "12px", height: "12px", backgroundColor: "#3b82f6", borderRadius: "2px" }} />
+                    Précipitations (mm)
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#16a34a" }}>
+                    <span style={{ width: "12px", height: "3px", backgroundColor: "#16a34a" }} />
+                    NDVI Végétation
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ width: "100%", height: 360, marginTop: "12px" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={correlationData.pairs} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis
+                      dataKey="dateLabel"
+                      tick={{ fontSize: 10 }}
+                      interval={Math.ceil(correlationData.pairs.length / 15)}
+                      angle={-30}
+                      textAnchor="end"
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      orientation="left"
+                      stroke="#3b82f6"
+                      tick={{ fontSize: 10 }}
+                      domain={[0, "auto"]}
+                      label={{ value: "Pluie (mm)", angle: -90, position: "insideLeft", fontSize: 10, fill: "#3b82f6" }}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="#16a34a"
+                      tick={{ fontSize: 10 }}
+                      domain={[0.1, 0.7]}
+                      label={{ value: "Indice NDVI", angle: 90, position: "insideRight", fontSize: 10, fill: "#16a34a" }}
+                    />
+                    <RechartsTooltip
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        const d = payload[0]?.payload;
+                        if (!d) return null;
+                        return (
+                          <div style={{ backgroundColor: "#0f172a", color: "#ffffff", padding: "10px 14px", borderRadius: "8px", fontSize: "11px", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                            <strong style={{ fontSize: "12px", color: "#f8fafc" }}>{d.dateLabel}</strong>
+                            <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ color: "#93c5fd" }}>🌧️ Pluie : <strong>{d.precip} mm</strong></div>
+                              <div style={{ color: "#86efac" }}>🌿 NDVI : <strong>{d.ndvi}</strong></div>
+                              {d.baseline && <div style={{ color: "#cbd5e1" }}>📏 Normale : {d.baseline}</div>}
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Bar yAxisId="left" dataKey="precip" fill="#3b82f6" opacity={0.65} barSize={8} radius={[2, 2, 0, 0]} />
+                    <Line yAxisId="right" type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: "#16a34a" }} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          ) : (
+            <div className="placeholder" style={{ padding: "40px 20px" }}>
+              <Icons.Info />
+              <strong>Séries non disponibles</strong>
+              <p>Données de couplage végétation et précipitations non disponibles pour cette commune.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 3. Figures secondaires en bas (comme dans Suivi Végétation) */}
+      {correlationData && (
+        <>
           {/* Grille 2 Colonnes : Profil des Délais (Lags) & Droite de Régression */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "16px" }}>
             {/* Graphique 2 : Profil des Délais (Lag 0 à Lag 3) */}
@@ -4476,6 +4633,26 @@ function StatistiquesCorrelation({
                     </button>
                   </div>
 
+                  <select
+                    value={comparisonStatusFilter}
+                    onChange={(e) => setComparisonStatusFilter(e.target.value)}
+                    style={{
+                      padding: "5px 10px",
+                      fontSize: "11.5px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border-color)",
+                      backgroundColor: "var(--bg-panel-secondary)",
+                      color: "var(--text-main)",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <option value="">Tous les statuts</option>
+                    <option value="Très forte dépendance">Très forte dépendance</option>
+                    <option value="Forte dépendance">Forte dépendance</option>
+                    <option value="Dépendance modérée">Dépendance modérée</option>
+                  </select>
+
                   <input
                     type="text"
                     placeholder="🔍 Filtrer une commune..."
@@ -4488,7 +4665,7 @@ function StatistiquesCorrelation({
                       border: "1px solid var(--border-color)",
                       backgroundColor: "var(--bg-panel-secondary)",
                       color: "var(--text-main)",
-                      width: "180px",
+                      width: "160px",
                     }}
                   />
                 </div>
@@ -4619,10 +4796,6 @@ function StatistiquesCorrelation({
             </div>
           )}
         </>
-      ) : (
-        <div className="panel" style={{ padding: "30px", textAlign: "center", color: "var(--text-muted)" }}>
-          Chargement des séries temporelles de la commune...
-        </div>
       )}
     </div>
   );
@@ -4656,6 +4829,35 @@ function Statistiques({
   const [seasonSubTab, setSeasonSubTab] = React.useState("start_end"); // 'start_end', 'max_month', 'timeline'
   const [ordrePoly, setOrdrePoly] = React.useState(4);
   const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2026);
+
+  // Synchronisation dynamique de la hauteur du panneau de filtres avec la figure de droite
+  const rightFigureRef = React.useRef(null);
+  const [rightFigureHeight, setRightFigureHeight] = React.useState(null);
+
+  React.useLayoutEffect(() => {
+    const el = rightFigureRef.current;
+    if (!el) return;
+    const updateHeight = () => {
+      const h = el.offsetHeight;
+      if (h > 0) setRightFigureHeight(h);
+    };
+    updateHeight();
+    let rafId = null;
+    const ro = new ResizeObserver((entries) => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const h = Math.round(entry.borderBoxSize?.[0]?.blockSize || el.offsetHeight);
+          if (h > 0) setRightFigureHeight(h);
+        }
+      });
+    });
+    ro.observe(el);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      ro.disconnect();
+    };
+  }, [typeGraph, seasonSubTab, selectedYearForMonth, ordrePoly, seasonRange, modeCommune, statsCategory]);
 
   // Sync selectedCommune with appSelectedCommune
   React.useEffect(() => {
@@ -5304,8 +5506,15 @@ function Statistiques({
           </section>
 
           {/* Main Analysis Section with Split Control Panel */}
-          <section className="split-layout" style={{ marginBottom: "10px" }}>
-            <aside className="filters-panel">
+          <section className="split-layout" style={{ marginBottom: "10px", alignItems: "start" }}>
+            <aside
+              className="filters-panel"
+              style={{
+                height: rightFigureHeight ? `${rightFigureHeight}px` : "auto",
+                maxHeight: rightFigureHeight ? `${rightFigureHeight}px` : "520px",
+                overflowY: "auto",
+              }}
+            >
               <h2>Paramètres Pluviométrie</h2>
 
               <div className="filter-group">
@@ -5465,7 +5674,7 @@ function Statistiques({
               )}
             </aside>
 
-            <div className="panel">
+            <div className="panel" ref={rightFigureRef}>
               <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                 <div>
                   <h2>

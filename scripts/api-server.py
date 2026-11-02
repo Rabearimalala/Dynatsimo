@@ -72,6 +72,7 @@ ROUTES = {
     "/api/precip-records": "precipRecords",
     "/api/communes.geojson": "communesGeojson",
     "/api/vegetation-data": "vegetationData",
+    "/api/correlation-ndvi-chirps": "correlationNdviChirps",
 }
 
 
@@ -164,6 +165,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                 try:
                     with iso_path.open("r", encoding="utf-8") as f:
                         payload["isohyetesMeta"] = json.load(f)
+                except Exception:
+                    pass
+
+            corr_path = ROOT_DIR / "public" / "data" / "correlation_ndvi_chirps.json"
+            if corr_path.exists():
+                try:
+                    with corr_path.open("r", encoding="utf-8") as f:
+                        payload["correlationNdviChirps"] = json.load(f)
                 except Exception:
                     pass
 
