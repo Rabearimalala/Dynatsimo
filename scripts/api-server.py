@@ -179,6 +179,9 @@ class ApiHandler(BaseHTTPRequestHandler):
         except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
             self.close_connection = True
         except Exception as error:
+            import traceback
+            print(f"❌ Erreur API sur {path} : {error}")
+            traceback.print_exc()
             try:
                 self.send_json({"error": str(error)}, HTTPStatus.INTERNAL_SERVER_ERROR)
             except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, TimeoutError):
@@ -240,10 +243,13 @@ def start_background_auto_sync():
                 print("=" * 70)
                 pipe_mod = load_pipeline_module()
                 if pipe_mod and hasattr(pipe_mod, "run_full_pipeline"):
-                    pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=False)
+                    success = pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=False)
                     global data_module
                     data_module = load_data_module()
-                    print("✓ Synchronisation automatique d'arrière-plan terminée avec succès.")
+                    if success:
+                        print("✓ Synchronisation automatique d'arrière-plan terminée avec succès.")
+                    else:
+                        print("⚠ La synchronisation automatique s'est arrêtée suite à des erreurs.")
             except Exception as e:
                 print(f"⚠ Erreur lors de la synchronisation automatique d'arrière-plan : {e}")
 

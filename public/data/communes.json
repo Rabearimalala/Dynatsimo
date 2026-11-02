@@ -175,6 +175,13 @@
     "ecoregion": null
   },
   {
+    "code": "MG52516032",
+    "nom": "Analamary",
+    "region": "Androy",
+    "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
     "code": "MG53515252",
     "nom": "Analamary",
     "region": "Anosy",
@@ -186,13 +193,6 @@
     "nom": "Analamary",
     "region": "Anosy",
     "district": "Betroka",
-    "ecoregion": null
-  },
-  {
-    "code": "MG52516032",
-    "nom": "Analamary",
-    "region": "Androy",
-    "district": "Ambovombe-Androy",
     "ecoregion": null
   },
   {
@@ -256,6 +256,13 @@
     "nom": "Andranomangatsiaka",
     "region": "Atsimo Andrefana",
     "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG54502110",
+    "nom": "Andranopasy",
+    "region": "Menabe",
+    "district": null,
     "ecoregion": null
   },
   {
@@ -392,6 +399,13 @@
     "ecoregion": null
   },
   {
+    "code": "MG54502050",
+    "nom": "Anontsibe Centre",
+    "region": "Menabe",
+    "district": null,
+    "ecoregion": null
+  },
+  {
     "code": "MG51507110",
     "nom": "Antaly",
     "region": "Atsimo Andrefana",
@@ -417,6 +431,13 @@
     "nom": "Antanimora Atsimo",
     "region": "Androy",
     "district": "Ambovombe-Androy",
+    "ecoregion": null
+  },
+  {
+    "code": "MG25222032",
+    "nom": "Antaninarenina",
+    "region": "Atsimo Atsinanana",
+    "district": null,
     "ecoregion": null
   },
   {
@@ -518,6 +539,13 @@
     "ecoregion": null
   },
   {
+    "code": "MG54502030",
+    "nom": "Beharona",
+    "region": "Menabe",
+    "district": null,
+    "ecoregion": null
+  },
+  {
     "code": "MG51520358",
     "nom": "Beheloka",
     "region": "Atsimo Andrefana",
@@ -543,6 +571,13 @@
     "nom": "Bekitro",
     "region": "Androy",
     "district": "Bekily",
+    "ecoregion": null
+  },
+  {
+    "code": "MG25222053",
+    "nom": "Bekofafa Sud",
+    "region": "Atsimo Atsinanana",
+    "district": null,
     "ecoregion": null
   },
   {
@@ -627,6 +662,13 @@
     "nom": "Berenty",
     "region": "Atsimo Andrefana",
     "district": "Ankazoabo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG54509150",
+    "nom": "Beronono",
+    "region": "Menabe",
+    "district": null,
     "ecoregion": null
   },
   {
@@ -816,6 +858,13 @@
     "nom": "Fenoevo-Efita",
     "region": "Anosy",
     "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG21219090",
+    "nom": "Fitampito",
+    "region": "Haute Matsiatra",
+    "district": null,
     "ecoregion": null
   },
   {
@@ -1071,6 +1120,13 @@
     "ecoregion": null
   },
   {
+    "code": "MG22202150",
+    "nom": "Mandrosonoro",
+    "region": "Amoron I Mania",
+    "district": null,
+    "ecoregion": null
+  },
+  {
     "code": "MG53519210",
     "nom": "Manevy",
     "region": "Anosy",
@@ -1194,6 +1250,13 @@
     "nom": "Masiaboay",
     "region": "Atsimo Andrefana",
     "district": "Betioky Atsimo",
+    "ecoregion": null
+  },
+  {
+    "code": "MG54509170",
+    "nom": "Mazavasoa",
+    "region": "Menabe",
+    "district": null,
     "ecoregion": null
   },
   {
@@ -1369,6 +1432,13 @@
     "nom": "Sarisambo",
     "region": "Anosy",
     "district": "Taolagnaro",
+    "ecoregion": null
+  },
+  {
+    "code": "MG24216191",
+    "nom": "Satrokala",
+    "region": "Ihorombe",
+    "district": null,
     "ecoregion": null
   },
   {

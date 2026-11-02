@@ -5608,8 +5608,26 @@ function Carte({
   const [ndviYear, setNdviYear] = React.useState(2026);
   const [ndviMonth, setNdviMonth] = React.useState(8);
   const [ndviOpacity, setNdviOpacity] = React.useState(0.85);
-  const [useGeoServerWms, setUseGeoServerWms] = React.useState(true);
+  const [useGeoServerWms, setUseGeoServerWms] = React.useState(false);
+  const [isGeoServerAvailable, setIsGeoServerAvailable] = React.useState(false);
   const geoserverUrl = "/geoserver";
+
+  // Vérification de la disponibilité de GeoServer en arrière-plan
+  React.useEffect(() => {
+    fetch(`${geoserverUrl}/rest/about/version.json`)
+      .then((res) => {
+        if (res.ok) {
+          setIsGeoServerAvailable(true);
+        } else {
+          setIsGeoServerAvailable(false);
+          setUseGeoServerWms(false);
+        }
+      })
+      .catch(() => {
+        setIsGeoServerAvailable(false);
+        setUseGeoServerWms(false);
+      });
+  }, []);
   const [showCommunesLayer, setShowCommunesLayer] = React.useState(true);
   const [communeOverlayStyle, setCommuneOverlayStyle] = React.useState("borders_only"); // 'borders_only' | 'light_tint'
   const [isPlayingTimeline, setIsPlayingTimeline] = React.useState(false);
@@ -6543,6 +6561,23 @@ function Carte({
                   onChange={(e) => setNdviOpacity(Number(e.target.value))}
                 />
                 <span className="opacity-slider-value">{Math.round(ndviOpacity * 100)}%</span>
+              </div>
+            </div>
+
+            {/* Sélecteur de Source Raster : PNG local vs GeoServer WMS */}
+            <div className="layer-toggle-group" style={{ marginTop: "8px", padding: "8px 10px", background: "var(--bg-secondary, #f8fafc)", borderRadius: "6px", border: "1px solid var(--border-color, #e2e8f0)" }}>
+              <label className="layer-toggle-label" style={{ fontWeight: 600, fontSize: "11.5px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                <span>Source : Flux GeoServer WMS</span>
+                <input
+                  type="checkbox"
+                  checked={useGeoServerWms}
+                  onChange={(e) => setUseGeoServerWms(e.target.checked)}
+                />
+              </label>
+              <div style={{ fontSize: "10.5px", color: useGeoServerWms ? "#16a34a" : "#64748b", marginTop: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                {useGeoServerWms
+                  ? (isGeoServerAvailable ? "● Connecté à GeoServer (WMS)" : "⚠ GeoServer non détecté (port 8080)")
+                  : "✓ Mode images PNG locales (319 rasters 250m)"}
               </div>
             </div>
 

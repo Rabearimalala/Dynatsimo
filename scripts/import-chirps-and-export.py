@@ -254,10 +254,17 @@ def read_communes(engine: Engine):
 
     communes_table = resolve_communes_table(engine)
     geom_column = env("DYNATSIMO_GEOM_COLUMN", "geom")
-    query = f"SELECT * FROM {safe_table_name(communes_table)}"
+    query = f"SELECT * FROM {safe_table_name(communes_table)} WHERE {quote_identifier(geom_column)} IS NOT NULL"
     communes = gpd.read_postgis(query, engine, geom_col=geom_column)
     if communes.geometry.name != "geom":
         communes = communes.rename_geometry("geom")
+
+    # Filtrer les géométries nulles ou vides et corriger les micro-erreurs topologiques
+    communes = communes[communes.geometry.notna() & (~communes.geometry.is_empty)].copy()
+    try:
+        communes["geom"] = communes.geometry.buffer(0)
+    except Exception:
+        pass
 
     col_map = {str(c).upper(): c for c in communes.columns}
     if "ADM3_PCODE" in col_map and "ADM3_PCODE" not in communes.columns:
@@ -359,13 +366,13 @@ def import_chirps_to_postgres(engine: Engine, force_rebuild: bool = False) -> pd
         )
 
         for commune, stat in zip(communes.itertuples(), stats):
-            precip = stat.get("mean")
+            precip = stat.get("mean") if isinstance(stat, dict) else None
             rows.append(
                 {
                     "Commune_Id": commune.ADM3_PCODE,
                     "Year": year,
                     "Month": month,
-                    "Precip": float(precip) if precip is not None else np.nan,
+                    "Precip": float(precip) if (precip is not None and not np.isnan(precip)) else np.nan,
                 }
             )
 
@@ -619,7 +626,15 @@ def build_communes_geojson(engine: Engine, map_precip: pd.DataFrame, deficit_cri
         if not alert and pd.notna(deficit):
             alert = "Alerte Rouge" if deficit < -18 else "Vigilance" if deficit < -8 else "Stable"
 
-        geometry = json.loads(row["geometry_json"]) if row.get("geometry_json") else None
+        geom_val = row.get("geometry_json")
+        geometry = None
+        if pd.notna(geom_val) and isinstance(geom_val, str) and geom_val.strip():
+            try:
+                geometry = json.loads(geom_val)
+            except Exception:
+                geometry = None
+        if geometry is None and code in static_properties:
+            geometry = static_properties[code].get("geometry")
         features.append(
             {
                 "type": "Feature",

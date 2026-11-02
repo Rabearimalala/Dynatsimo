@@ -6500,6 +6500,26 @@
           47.415326484038644
         ]
       ]
+    },
+    {
+      "key": "2026_09",
+      "year": 2026,
+      "month": 9,
+      "label": "Septembre 2026",
+      "shortLabel": "Sep 2026",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2026/ndvi_class_2026_09.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
     }
   ],
   "periodsMap": {
@@ -12882,10 +12902,30 @@
           47.415326484038644
         ]
       ]
+    },
+    "2026_09": {
+      "key": "2026_09",
+      "year": 2026,
+      "month": 9,
+      "label": "Septembre 2026",
+      "shortLabel": "Sep 2026",
+      "pngUrl": "/data/raster/ndvi_modis_6classes/2026/ndvi_class_2026_09.png",
+      "width": 1888,
+      "height": 2092,
+      "bounds": [
+        [
+          -25.60647717382696,
+          43.1752783429945
+        ],
+        [
+          -20.908288237881862,
+          47.415326484038644
+        ]
+      ]
     }
   },
-  "totalRasters": 319,
+  "totalRasters": 320,
   "startPeriod": "2000_02",
-  "endPeriod": "2026_08",
-  "generatedAt": "2026-10-14 09:32:29"
+  "endPeriod": "2026_09",
+  "generatedAt": "2026-11-02 10:00:31"
 }
