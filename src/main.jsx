@@ -4052,170 +4052,6 @@ function StatistiquesCorrelation({
     };
   }, [activeCommuneObj, vegData, precipRecords, timeFilter]);
 
-  // Scope, filtre par statut et pagination du tableau comparatif des communes
-  const [comparisonScope, setComparisonScope] = React.useState("district"); // 'district' | 'region' | 'all'
-  const [comparisonSearch, setComparisonSearch] = React.useState("");
-  const [comparisonStatusFilter, setComparisonStatusFilter] = React.useState("");
-  const [comparisonPage, setComparisonPage] = React.useState(1);
-  const comparisonPageSize = 10;
-
-  // Réinitialisation de la page en cas de changement
-  React.useEffect(() => {
-    setComparisonPage(1);
-  }, [comparisonScope, comparisonSearch, comparisonStatusFilter, activeCommuneObj?.district, activeCommuneObj?.region]);
-
-  const districtCount = React.useMemo(() => {
-    return communes.filter((c) => c.district && c.district === activeCommuneObj?.district).length;
-  }, [communes, activeCommuneObj]);
-
-  const regionCount = React.useMemo(() => {
-    return communes.filter((c) => c.region && c.region === activeCommuneObj?.region).length;
-  }, [communes, activeCommuneObj]);
-
-  // Communes ciblées selon le périmètre choisi
-  const comparisonPool = React.useMemo(() => {
-    if (!communes || communes.length === 0) return [];
-    if (comparisonScope === "district") {
-      return activeCommuneObj?.district ? communes.filter((c) => c.district === activeCommuneObj.district) : communes;
-    }
-    if (comparisonScope === "region") {
-      return activeCommuneObj?.region ? communes.filter((c) => c.region === activeCommuneObj.region) : communes;
-    }
-    return communes; // 'all'
-  }, [communes, activeCommuneObj, comparisonScope]);
-
-  // Filtrage par texte de recherche
-  const searchedComparisonPool = React.useMemo(() => {
-    if (!comparisonSearch.trim()) return comparisonPool;
-    const q = comparisonSearch.toLowerCase().trim();
-    return comparisonPool.filter((c) => {
-      const nom = (c.nom || "").toLowerCase();
-      const code = (c.code || "").toLowerCase();
-      const dist = (c.district || "").toLowerCase();
-      const reg = (c.region || "").toLowerCase();
-      return nom.includes(q) || code.includes(q) || dist.includes(q) || reg.includes(q);
-    });
-  }, [comparisonPool, comparisonSearch]);
-
-  // Calcul dynamique des statistiques de réactivité pour les communes
-  const fullComparisonList = React.useMemo(() => {
-    if (!vegData?.timeSeries?.modis || !precipRecords || precipRecords.length === 0) return [];
-
-    const pIndex = {};
-    precipRecords.forEach((r) => {
-      if (r.code && r.year != null && r.month != null && Number.isFinite(r.precip)) {
-        if (!pIndex[r.code]) pIndex[r.code] = {};
-        pIndex[r.code][`${r.year}_${r.month}`] = Number(r.precip);
-      }
-    });
-
-    const mDefs = [
-      { m: 10, yOffset: 0 }, { m: 11, yOffset: 0 }, { m: 12, yOffset: 0 },
-      { m: 1, yOffset: 1 }, { m: 2, yOffset: 1 }, { m: 3, yOffset: 1 },
-      { m: 4, yOffset: 1 }, { m: 5, yOffset: 1 }, { m: 6, yOffset: 1 },
-      { m: 7, yOffset: 1 }, { m: 8, yOffset: 1 }, { m: 9, yOffset: 1 },
-    ];
-
-    const calcQuickR = (x, y) => {
-      const n = Math.min(x.length, y.length);
-      if (n < 6) return 0;
-      const mx = x.slice(0, n).reduce((a, b) => a + b, 0) / n;
-      const my = y.slice(0, n).reduce((a, b) => a + b, 0) / n;
-      let cv = 0, vx = 0, vy = 0;
-      for (let i = 0; i < n; i++) {
-        const dx = x[i] - mx;
-        const dy = y[i] - my;
-        cv += dx * dy;
-        vx += dx * dx;
-        vy += dy * dy;
-      }
-      const den = Math.sqrt(vx * vy);
-      return den > 1e-9 ? cv / den : 0;
-    };
-
-    return searchedComparisonPool.map((c) => {
-      const seasons = vegData.timeSeries.modis[c.code];
-      const pMap = pIndex[c.code] || {};
-      if (!Array.isArray(seasons) || seasons.length === 0) {
-        return {
-          code: c.code,
-          nom: c.nom || c.code,
-          district: c.district || "n/d",
-          region: c.region || "n/d",
-          r0: "-",
-          r1: "-",
-          opt: "-",
-          r2: "-",
-          status: "Données n/d",
-          statusColor: "#94a3b8",
-        };
-      }
-
-      const pVals = [];
-      const nVals = [];
-      seasons.forEach((s) => {
-        const sYear = s.startYear || Number(String(s.season).split(/[-–]/)[0]);
-        if (!sYear || !Array.isArray(s.ndvi)) return;
-        mDefs.forEach((def, idx) => {
-          const nv = s.ndvi[idx];
-          const pv = pMap[`${sYear + def.yOffset}_${def.m}`];
-          if (Number.isFinite(nv) && Number.isFinite(pv)) {
-            pVals.push(pv);
-            nVals.push(nv);
-          }
-        });
-      });
-
-      if (pVals.length < 12) {
-        return {
-          code: c.code,
-          nom: c.nom || c.code,
-          district: c.district || "n/d",
-          region: c.region || "n/d",
-          r0: "-",
-          r1: "-",
-          opt: "-",
-          r2: "-",
-          status: "Données n/d",
-          statusColor: "#94a3b8",
-        };
-      }
-
-      const qR0 = calcQuickR(pVals, nVals);
-      const qR1 = calcQuickR(pVals.slice(0, -1), nVals.slice(1));
-      const qR2 = calcQuickR(pVals.slice(0, -2), nVals.slice(2));
-
-      let opt = 0;
-      let maxR = qR0;
-      if (qR1 > maxR) { opt = 1; maxR = qR1; }
-      if (qR2 > maxR) { opt = 2; maxR = qR2; }
-
-      return {
-        code: c.code,
-        nom: c.nom || c.code,
-        district: c.district || "n/d",
-        region: c.region || "n/d",
-        r0: Number(qR0.toFixed(2)),
-        r1: Number(qR1.toFixed(2)),
-        opt: `${opt} mois`,
-        r2: `${Math.round(Math.pow(maxR, 2) * 100)}%`,
-        status: maxR >= 0.7 ? "Très forte dépendance" : maxR >= 0.5 ? "Forte dépendance" : "Dépendance modérée",
-        statusColor: maxR >= 0.7 ? "#16a34a" : maxR >= 0.5 ? "#2563eb" : "#d97706",
-      };
-    })
-    .filter((row) => {
-      if (!comparisonStatusFilter) return true;
-      return row.status === comparisonStatusFilter;
-    })
-    .sort((a, b) => (typeof b.r1 === "number" ? b.r1 : 0) - (typeof a.r1 === "number" ? a.r1 : 0));
-  }, [searchedComparisonPool, vegData, precipRecords, comparisonStatusFilter]);
-
-  // Pagination calculée
-  const totalComparisonPages = Math.max(1, Math.ceil(fullComparisonList.length / comparisonPageSize));
-  const paginatedComparisonList = React.useMemo(() => {
-    const start = (comparisonPage - 1) * comparisonPageSize;
-    return fullComparisonList.slice(start, start + comparisonPageSize);
-  }, [fullComparisonList, comparisonPage, comparisonPageSize]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -4588,213 +4424,99 @@ function StatistiquesCorrelation({
             </div>
           </div>
 
-          {/* Tableau Comparatif Multi-Échelles des Communes (District / Région / Grand Sud) */}
-          {fullComparisonList.length > 0 && (
-            <div className="panel" style={{ padding: "20px", backgroundColor: "var(--bg-panel)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "14px" }}>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span>🏘️ Comparatif des Communes : {comparisonScope === "district" ? `District de ${activeCommuneObj?.district || "la zone"}` : comparisonScope === "region" ? `Région ${activeCommuneObj?.region || "Grand Sud"}` : "Tout le Grand Sud"}</span>
-                    <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--primary)", backgroundColor: "rgba(37,99,235,0.08)", padding: "2px 8px", borderRadius: "12px" }}>
-                      {fullComparisonList.length} commune{fullComparisonList.length > 1 ? "s" : ""}
-                    </span>
-                  </h4>
-                  <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
-                    Classement par réactivité végétale aux précipitations &bull; Cliquez sur « Analyser » pour charger les graphiques d'une commune
-                  </p>
-                </div>
-
-                {/* Contrôles de Périmètre & Recherche */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                  <div className="scale-tabs" style={{ display: "flex", gap: "4px", backgroundColor: "var(--bg-panel-secondary)", padding: "3px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                    <button
-                      type="button"
-                      className={`scale-tab-btn ${comparisonScope === "district" ? "active" : ""}`}
-                      onClick={() => setComparisonScope("district")}
-                      style={{ fontSize: "11px", padding: "4px 9px", fontWeight: 700 }}
-                    >
-                      📍 District ({districtCount})
-                    </button>
-                    <button
-                      type="button"
-                      className={`scale-tab-btn ${comparisonScope === "region" ? "active" : ""}`}
-                      onClick={() => setComparisonScope("region")}
-                      style={{ fontSize: "11px", padding: "4px 9px", fontWeight: 700 }}
-                    >
-                      🏛️ Région ({regionCount})
-                    </button>
-                    <button
-                      type="button"
-                      className={`scale-tab-btn ${comparisonScope === "all" ? "active" : ""}`}
-                      onClick={() => setComparisonScope("all")}
-                      style={{ fontSize: "11px", padding: "4px 9px", fontWeight: 700 }}
-                    >
-                      🌍 Tout le Grand Sud ({communes.length})
-                    </button>
-                  </div>
-
-                  <select
-                    value={comparisonStatusFilter}
-                    onChange={(e) => setComparisonStatusFilter(e.target.value)}
-                    style={{
-                      padding: "5px 10px",
-                      fontSize: "11.5px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--border-color)",
-                      backgroundColor: "var(--bg-panel-secondary)",
-                      color: "var(--text-main)",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                    }}
-                  >
-                    <option value="">Tous les statuts</option>
-                    <option value="Très forte dépendance">Très forte dépendance</option>
-                    <option value="Forte dépendance">Forte dépendance</option>
-                    <option value="Dépendance modérée">Dépendance modérée</option>
-                  </select>
-
-                  <input
-                    type="text"
-                    placeholder="🔍 Filtrer une commune..."
-                    value={comparisonSearch}
-                    onChange={(e) => setComparisonSearch(e.target.value)}
-                    style={{
-                      padding: "5px 10px",
-                      fontSize: "11.5px",
-                      borderRadius: "6px",
-                      border: "1px solid var(--border-color)",
-                      backgroundColor: "var(--bg-panel-secondary)",
-                      color: "var(--text-main)",
-                      width: "160px",
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "2px solid var(--border-color)", textAlign: "left", color: "var(--text-muted)" }}>
-                      <th style={{ padding: "8px 10px" }}>Commune</th>
-                      {comparisonScope !== "district" && (
-                        <th style={{ padding: "8px 10px" }}>District</th>
-                      )}
-                      {comparisonScope === "all" && (
-                        <th style={{ padding: "8px 10px" }}>Région</th>
-                      )}
-                      <th style={{ padding: "8px 10px" }}>Réaction immédiate (Lag 0)</th>
-                      <th style={{ padding: "8px 10px" }}>Reverdissement (Lag 1)</th>
-                      <th style={{ padding: "8px 10px" }}>Délai optimal</th>
-                      <th style={{ padding: "8px 10px" }}>Part de variance (R²)</th>
-                      <th style={{ padding: "8px 10px" }}>Dépendance à la pluie</th>
-                      <th style={{ padding: "8px 10px", textAlign: "right" }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedComparisonList.map((row) => {
-                      const isActive = row.code === activeCommuneObj?.code;
-                      return (
-                        <tr
-                          key={row.code}
-                          style={{
-                            borderBottom: "1px solid var(--border-color)",
-                            backgroundColor: isActive ? "rgba(22, 163, 74, 0.08)" : "transparent",
-                            fontWeight: isActive ? "700" : "400",
-                          }}
-                        >
-                          <td style={{ padding: "8px 10px", color: "var(--text-main)" }}>
-                            <strong style={{ color: isActive ? "#16a34a" : "var(--text-main)" }}>{row.nom}</strong>
-                            {isActive && <span style={{ marginLeft: "6px", color: "#16a34a" }}>★</span>}
-                          </td>
-                          {comparisonScope !== "district" && (
-                            <td style={{ padding: "8px 10px", color: "var(--text-muted)", fontSize: "11px" }}>{row.district}</td>
-                          )}
-                          {comparisonScope === "all" && (
-                            <td style={{ padding: "8px 10px", color: "var(--text-muted)", fontSize: "11px" }}>{row.region}</td>
-                          )}
-                          <td style={{ padding: "8px 10px", color: "#f59e0b" }}>{row.r0 > 0 ? `+${row.r0}` : row.r0}</td>
-                          <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: "700" }}>{row.r1 > 0 ? `+${row.r1}` : row.r1}</td>
-                          <td style={{ padding: "8px 10px" }}>{row.opt}</td>
-                          <td style={{ padding: "8px 10px", fontWeight: "700" }}>{row.r2}</td>
-                          <td style={{ padding: "8px 10px", color: row.statusColor, fontWeight: "600" }}>{row.status}</td>
-                          <td style={{ padding: "8px 10px", textAlign: "right" }}>
-                            {!isActive ? (
-                              <button
-                                type="button"
-                                onClick={() => handleSelectCommune(row.code)}
-                                style={{
-                                  padding: "4px 10px",
-                                  fontSize: "11px",
-                                  fontWeight: "700",
-                                  borderRadius: "5px",
-                                  border: "1px solid var(--border-color)",
-                                  backgroundColor: "var(--bg-panel-secondary)",
-                                  color: "var(--primary)",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Analyser
-                              </button>
-                            ) : (
-                              <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: "800", padding: "3px 8px", backgroundColor: "rgba(22, 163, 74, 0.12)", borderRadius: "4px" }}>
-                                Active
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Contrôles de Pagination */}
-              {totalComparisonPages > 1 && (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "14px", paddingTop: "12px", borderTop: "1px solid var(--border-color)", flexWrap: "wrap", gap: "8px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                    Affichage <strong>{(comparisonPage - 1) * comparisonPageSize + 1}</strong> à <strong>{Math.min(comparisonPage * comparisonPageSize, fullComparisonList.length)}</strong> sur <strong>{fullComparisonList.length}</strong> communes
-                  </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <button
-                      type="button"
-                      disabled={comparisonPage <= 1}
-                      onClick={() => setComparisonPage((p) => Math.max(1, p - 1))}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "11px",
-                        borderRadius: "5px",
-                        border: "1px solid var(--border-color)",
-                        backgroundColor: comparisonPage <= 1 ? "var(--bg-app)" : "var(--bg-panel-secondary)",
-                        color: comparisonPage <= 1 ? "var(--text-muted)" : "var(--text-main)",
-                        cursor: comparisonPage <= 1 ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      ◀ Préc.
-                    </button>
-                    <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-main)", padding: "0 6px" }}>
-                      Page {comparisonPage} / {totalComparisonPages}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={comparisonPage >= totalComparisonPages}
-                      onClick={() => setComparisonPage((p) => Math.min(totalComparisonPages, p + 1))}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "11px",
-                        borderRadius: "5px",
-                        border: "1px solid var(--border-color)",
-                        backgroundColor: comparisonPage >= totalComparisonPages ? "var(--bg-app)" : "var(--bg-panel-secondary)",
-                        color: comparisonPage >= totalComparisonPages ? "var(--text-muted)" : "var(--text-main)",
-                        cursor: comparisonPage >= totalComparisonPages ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      Suiv. ▶
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Guide Méthodologique & Formules Scientifiques de Corrélation */}
+          <div className="formula-card" style={{ marginTop: "4px" }}>
+            <div className="formula-card-header">
+              <Icons.Info />
+              <span>Guide Méthodologique : Analyse du Couplage Pluviométrie (CHIRPS) & Végétation (MODIS)</span>
             </div>
-          )}
+            <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
+              <div className="formula-item">
+                <div className="formula-item-title">
+                  <span>1. Lags Temporels & Délai de Réponse (τ)</span>
+                  <span style={{ color: "#16a34a" }}>⏱️ Latence Biophysique</span>
+                </div>
+                <div className="formula-code">
+                  r(τ) = Cov(P_t-τ, NDVI_t) / (σ_P · σ_NDVI) &nbsp;|&nbsp; τ ∈ &#123;0, 1, 2, 3&#125; mois
+                </div>
+                <div className="formula-desc">
+                  Quantifie la liaison linéaire entre l'apport pluviométrique passé et la vigueur foliaire. Dans le Grand Sud semi-aride, la végétation réagit préférentiellement avec <strong>1 mois de latence (Lag 1 : τ = 1)</strong>, temps nécessaire à l'infiltration racinaire et au reverdissement chlorophyllien.
+                </div>
+                <div className="formula-vars">
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">r(τ) :</span>
+                    <span className="formula-var-desc">Coefficient de Pearson pour un décalage de τ mois (−1 à +1).</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">P_t-τ :</span>
+                    <span className="formula-var-desc">Précipitations mensuelles cumulées au mois <em>t − τ</em> (mm, CHIRPS).</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">NDVI_t :</span>
+                    <span className="formula-var-desc">Activité chlorophyllienne observée au mois <em>t</em> (MODIS).</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">Délai optimal :</span>
+                    <span className="formula-var-desc">Décalage τ maximisant la corrélation (réponse physiologique maximale).</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="formula-item">
+                <div className="formula-item-title">
+                  <span>2. Sensibilité Végétale & Régression (β)</span>
+                  <span style={{ color: "var(--primary)" }}>📈 Pente Pluie → Biomasse</span>
+                </div>
+                <div className="formula-code">
+                  NDVI_t = β · P_t-τ_opt + α &nbsp;|&nbsp; β = ΔNDVI / 100 mm pluie
+                </div>
+                <div className="formula-desc">
+                  La pente de régression <strong>β (sensibilité)</strong> quantifie l'efficacité biologique de l'écosystème à convertir la pluie en biomasse. Une sensibilité élevée (ex: <strong>+0.07</strong>) signale une végétation réactive à l'eau, tandis que l'ordonnée <strong>α</strong> mesure le niveau vert de base persistant en saison sèche.
+                </div>
+                <div className="formula-vars">
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">β (Pente) :</span>
+                    <span className="formula-var-desc">Gain de vigueur foliaire par tranche de 100 mm de pluie tombée.</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">α (Intercept) :</span>
+                    <span className="formula-var-desc">NDVI persistant hors précipitations (espèces xérophiles / épineux).</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">Nuage de points :</span>
+                    <span className="formula-var-desc">Paires mensuelles historiques analysées sur la période continue 1999–2026.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="formula-item">
+                <div className="formula-item-title">
+                  <span>3. Part de Variance (R²) & Statut de Dépendance</span>
+                  <span style={{ color: "#d97706" }}>⚖️ Forçage & Vulnérabilité</span>
+                </div>
+                <div className="formula-code">
+                  R² = [r_max]² × 100 (%) &nbsp;|&nbsp; Typologie de Dépendance
+                </div>
+                <div className="formula-desc">
+                  Exprime le pourcentage de fluctuation du couvert végétal directement gouverné par les précipitations. Permet de classer la résilience de la commune :
+                </div>
+                <div className="formula-vars">
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">Très forte (r ≥ 0.70) :</span>
+                    <span className="formula-var-desc">R² &gt; 50%, savanes et cultures soumises au strict régime pluvial.</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">Forte (0.50 ≤ r &lt; 0.70) :</span>
+                    <span className="formula-var-desc">R² 25–50%, forêts sèches et fourrés à inertie intermédiaire.</span>
+                  </div>
+                  <div className="formula-var-row">
+                    <span className="formula-var-name">Modérée (r &lt; 0.50) :</span>
+                    <span className="formula-var-desc">R² &lt; 25%, zones alluviales, ripisylves ou nappes phréatiques.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>
@@ -4829,6 +4551,20 @@ function Statistiques({
   const [seasonSubTab, setSeasonSubTab] = React.useState("start_end"); // 'start_end', 'max_month', 'timeline'
   const [ordrePoly, setOrdrePoly] = React.useState(4);
   const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2026);
+
+  const availableSeasons = React.useMemo(() => {
+    if (!seasonData || seasonData.length === 0) return [1980, 2026];
+    const list = seasonData.map((s) => Number(s.saison)).filter((s) => Number.isFinite(s));
+    return list.length ? [Math.min(...list), Math.max(...list)] : [1980, 2026];
+  }, [seasonData]);
+
+  const [seasonRange, setSeasonRange] = React.useState([1980, 2026]);
+
+  React.useEffect(() => {
+    if (availableSeasons && availableSeasons.length === 2) {
+      setSeasonRange(availableSeasons);
+    }
+  }, [availableSeasons]);
 
   // Synchronisation dynamique de la hauteur du panneau de filtres avec la figure de droite
   const rightFigureRef = React.useRef(null);
@@ -5202,20 +4938,6 @@ function Statistiques({
     Nov: "Novembre",
     Dec: "Décembre",
   };
-
-  const availableSeasons = React.useMemo(() => {
-    if (!seasonData || seasonData.length === 0) return [1980, 2026];
-    const list = seasonData.map((s) => Number(s.saison)).filter((s) => Number.isFinite(s));
-    return list.length ? [Math.min(...list), Math.max(...list)] : [1980, 2026];
-  }, [seasonData]);
-
-  const [seasonRange, setSeasonRange] = React.useState([1980, 2026]);
-
-  React.useEffect(() => {
-    if (availableSeasons && availableSeasons.length === 2) {
-      setSeasonRange(availableSeasons);
-    }
-  }, [availableSeasons]);
 
   const filteredSeasonRows = React.useMemo(() => {
     const targetCode = String(selectedCommune || "").trim().toUpperCase();
