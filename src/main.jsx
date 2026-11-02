@@ -884,6 +884,7 @@ function App() {
                       {[
                         { id: "precip", label: "🌧️ Précipitations" },
                         { id: "vegetation", label: "🌿 Suivi Végétation" },
+                        { id: "correlation", label: "📊 Végétation & Pluie (Corrélation)" },
                       ].map((sub) => (
                         <button
                           key={sub.id}
@@ -1277,6 +1278,28 @@ function UnifiedSinglePage({
           precipRecords={data?.precipRecords || []}
           statsCategory="vegetation"
           setStatsCategory={setStatsCategory}
+        />
+      </section>
+
+      {/* 04b. COUPLAGE VÉGÉTATION & PLUIE */}
+      <section id="sec-stats-correlation" className="section-anchor" style={{ marginTop: "32px" }}>
+        <div className="section-header-banner">
+          <div className="section-index-badge">04b</div>
+          <div>
+            <h2 className="section-title">Couplage & Corrélation Végétation — Pluie</h2>
+            <p className="section-subtitle">Synchronisation temporelle CHIRPS / MODIS, réactivité hydrique et analyse des délais de reverdissement</p>
+          </div>
+        </div>
+        <StatistiquesCorrelation
+          communes={data?.communes || []}
+          regions={regionsList || []}
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+          selectedCommune={selectedCommune}
+          setSelectedCommune={setSelectedCommune}
+          selectedCommuneName={selectedCommuneName}
+          vegData={data?.vegetationData || {}}
+          precipRecords={data?.precipRecords || []}
         />
       </section>
 
@@ -3696,6 +3719,690 @@ function Saison({
   );
 }
 
+
+// ==============================================================================
+// COMPOSANT : ANALYSE STATISTIQUE DU COUPLAGE & CORRÉLATION NDVI — CHIRPS
+// ==============================================================================
+
+function StatistiquesCorrelation({
+  communes = [],
+  regions = [],
+  selectedRegion: parentRegion,
+  setSelectedRegion: parentSetRegion,
+  selectedCommune: parentCommune,
+  setSelectedCommune: parentSetCommune,
+  selectedCommuneName,
+  vegData = {},
+  precipRecords = [],
+}) {
+  const [selectedRegion, setSelectedRegion] = React.useState(parentRegion || "");
+  const [selectedDistrict, setSelectedDistrict] = React.useState("");
+  const [selectedCommune, setSelectedCommune] = React.useState(parentCommune || communes[0]?.code || "");
+  const [timeFilter, setTimeFilter] = React.useState("all"); // 'recent5', 'recent10', 'all'
+
+  // Sync with parent props
+  React.useEffect(() => {
+    if (parentRegion && parentRegion !== selectedRegion) setSelectedRegion(parentRegion);
+  }, [parentRegion]);
+
+  React.useEffect(() => {
+    if (parentCommune && parentCommune !== selectedCommune) setSelectedCommune(parentCommune);
+  }, [parentCommune]);
+
+  const districtsList = React.useMemo(() => {
+    const list = communes
+      .filter((c) => !selectedRegion || c.region === selectedRegion)
+      .map((c) => c.district)
+      .filter(Boolean);
+    return [...new Set(list)].sort();
+  }, [communes, selectedRegion]);
+
+  const filteredCommunes = React.useMemo(() => {
+    return communes.filter((c) => {
+      if (selectedRegion && c.region !== selectedRegion) return false;
+      if (selectedDistrict && c.district !== selectedDistrict) return false;
+      return true;
+    });
+  }, [communes, selectedRegion, selectedDistrict]);
+
+  const activeCommuneObj = React.useMemo(() => {
+    return communes.find((c) => c.code === selectedCommune) || filteredCommunes[0] || communes[0];
+  }, [communes, selectedCommune, filteredCommunes]);
+
+  const handleSelectCommune = (code) => {
+    setSelectedCommune(code);
+    if (parentSetCommune) parentSetCommune(code);
+    const cObj = communes.find((c) => c.code === code);
+    if (cObj) {
+      if (cObj.region && cObj.region !== selectedRegion) {
+        setSelectedRegion(cObj.region);
+        if (parentSetRegion) parentSetRegion(cObj.region);
+      }
+      if (cObj.district && cObj.district !== selectedDistrict) {
+        setSelectedDistrict(cObj.district);
+      }
+    }
+  };
+
+  // Calcul des données temporelles couplées et des métriques de corrélation
+  const correlationData = React.useMemo(() => {
+    const currentCode = activeCommuneObj?.code;
+    if (!currentCode || !vegData?.timeSeries?.modis || !precipRecords || precipRecords.length === 0) {
+      return null;
+    }
+
+    const modisSeasons = vegData.timeSeries.modis[currentCode];
+    if (!Array.isArray(modisSeasons) || modisSeasons.length === 0) {
+      return null;
+    }
+
+    // Dictionnaire précipitations : "YYYY_M" -> precip
+    const pMap = {};
+    precipRecords.forEach((r) => {
+      if (r.code === currentCode && r.year != null && r.month != null && Number.isFinite(r.precip)) {
+        pMap[`${r.year}_${r.month}`] = Number(r.precip);
+      }
+    });
+
+    const monthDefs = [
+      { m: 10, name: "Oct", isStartYear: true },
+      { m: 11, name: "Nov", isStartYear: true },
+      { m: 12, name: "Déc", isStartYear: true },
+      { m: 1, name: "Jan", isStartYear: false },
+      { m: 2, name: "Fév", isStartYear: false },
+      { m: 3, name: "Mar", isStartYear: false },
+      { m: 4, name: "Avr", isStartYear: false },
+      { m: 5, name: "Mai", isStartYear: false },
+      { m: 6, name: "Juin", isStartYear: false },
+      { m: 7, name: "Juil", isStartYear: false },
+      { m: 8, name: "Août", isStartYear: false },
+      { m: 9, name: "Sep", isStartYear: false },
+    ];
+
+    let pairs = [];
+    modisSeasons.forEach((s) => {
+      const sYear = s.startYear || Number(String(s.season).split(/[-–]/)[0]);
+      if (!sYear || !Array.isArray(s.ndvi)) return;
+
+      monthDefs.forEach((def, idx) => {
+        const y = def.isStartYear ? sYear : sYear + 1;
+        const ndviVal = s.ndvi[idx];
+        const pVal = pMap[`${y}_${def.m}`];
+        if (Number.isFinite(ndviVal) && Number.isFinite(pVal)) {
+          pairs.push({
+            season: s.season,
+            year: y,
+            month: def.m,
+            dateLabel: `${def.name} ${y}`,
+            precip: Number(pVal.toFixed(1)),
+            ndvi: Number(ndviVal.toFixed(4)),
+            baseline: s.baseline?.[idx] ? Number(s.baseline[idx].toFixed(4)) : null,
+          });
+        }
+      });
+    });
+
+    if (pairs.length < 12) return null;
+
+    // Filtre temporel
+    if (timeFilter === "recent5") {
+      const maxYear = Math.max(...pairs.map((p) => p.year));
+      pairs = pairs.filter((p) => p.year >= maxYear - 5);
+    } else if (timeFilter === "recent10") {
+      const maxYear = Math.max(...pairs.map((p) => p.year));
+      pairs = pairs.filter((p) => p.year >= maxYear - 10);
+    }
+
+    const calcR = (xArr, yArr) => {
+      const n = Math.min(xArr.length, yArr.length);
+      if (n < 5) return 0;
+      const x = xArr.slice(0, n);
+      const y = yArr.slice(0, n);
+      const mx = x.reduce((a, b) => a + b, 0) / n;
+      const my = y.reduce((a, b) => a + b, 0) / n;
+      let cov = 0, vx = 0, vy = 0;
+      for (let i = 0; i < n; i++) {
+        const dx = x[i] - mx;
+        const dy = y[i] - my;
+        cov += dx * dy;
+        vx += dx * dx;
+        vy += dy * dy;
+      }
+      const denom = Math.sqrt(vx * vy);
+      return denom > 1e-9 ? Math.max(-1, Math.min(1, cov / denom)) : 0;
+    };
+
+    const pVals = pairs.map((p) => p.precip);
+    const nVals = pairs.map((p) => p.ndvi);
+
+    const r0 = calcR(pVals, nVals);
+    const r1 = calcR(pVals.slice(0, -1), nVals.slice(1));
+    const r2 = calcR(pVals.slice(0, -2), nVals.slice(2));
+    const r3 = calcR(pVals.slice(0, -3), nVals.slice(3));
+
+    // Régression linéaire Pluie -> NDVI (avec lag 1)
+    const xLag1 = pVals.slice(0, -1);
+    const yLag1 = nVals.slice(1);
+    const nLen = xLag1.length;
+    const mx = xLag1.reduce((a, b) => a + b, 0) / nLen;
+    const my = yLag1.reduce((a, b) => a + b, 0) / nLen;
+    let cov = 0, varX = 0;
+    for (let i = 0; i < nLen; i++) {
+      cov += (xLag1[i] - mx) * (yLag1[i] - my);
+      varX += Math.pow(xLag1[i] - mx, 2);
+    }
+    const slope = varX > 1e-9 ? cov / varX : 0;
+    const intercept = my - slope * mx;
+    const rSquared = Math.pow(r1, 2);
+
+    const lagProfiles = [
+      { lag: 0, label: "Même mois (Lag 0)", r: Number(r0.toFixed(3)), fill: "#f59e0b" },
+      { lag: 1, label: "1 mois après (Lag 1)", r: Number(r1.toFixed(3)), fill: "#16a34a" },
+      { lag: 2, label: "2 mois après (Lag 2)", r: Number(r2.toFixed(3)), fill: "#3b82f6" },
+      { lag: 3, label: "3 mois après (Lag 3)", r: Number(r3.toFixed(3)), fill: "#8b5cf6" },
+    ];
+
+    let optLag = lagProfiles[0];
+    lagProfiles.forEach((l) => {
+      if (l.r > optLag.r) optLag = l;
+    });
+
+    // Données de dispersion pour nuage de points (Pluie vs NDVI décalé)
+    const scatterData = [];
+    for (let i = 0; i < nLen; i++) {
+      const p = xLag1[i];
+      const nd = yLag1[i];
+      scatterData.push({
+        precip: p,
+        ndvi: nd,
+        trend: Number((intercept + slope * p).toFixed(4)),
+        date: pairs[i + 1]?.dateLabel || "",
+      });
+    }
+
+    return {
+      pairs,
+      r0: Number(r0.toFixed(3)),
+      r1: Number(r1.toFixed(3)),
+      r2: Number(r2.toFixed(3)),
+      r3: Number(r3.toFixed(3)),
+      slope: Number(slope.toFixed(5)),
+      slopePer100mm: Number((slope * 100).toFixed(3)),
+      intercept: Number(intercept.toFixed(4)),
+      r2: Number((rSquared * 100).toFixed(1)),
+      optLag: optLag.lag,
+      optLagName: optLag.label,
+      optLagR: optLag.r,
+      lagProfiles,
+      scatterData,
+      totalMonths: pairs.length,
+    };
+  }, [activeCommuneObj, vegData, precipRecords, timeFilter]);
+
+  // Tableau comparatif des communes du même district
+  const districtComparisonList = React.useMemo(() => {
+    if (!activeCommuneObj?.district || !vegData?.timeSeries?.modis || !precipRecords) return [];
+    const sameDistrictCommunes = communes.filter((c) => c.district === activeCommuneObj.district);
+
+    return sameDistrictCommunes.map((c) => {
+      const seasons = vegData.timeSeries.modis[c.code];
+      if (!Array.isArray(seasons) || seasons.length === 0) {
+        return { code: c.code, nom: c.nom || c.code, r0: "-", r1: "-", opt: "-", r2: "-" };
+      }
+
+      // Quick lag 0 & lag 1 computation
+      const pMap = {};
+      precipRecords.forEach((r) => {
+        if (r.code === c.code && r.year != null && r.month != null) {
+          pMap[`${r.year}_${r.month}`] = Number(r.precip);
+        }
+      });
+
+      const pVals = [];
+      const nVals = [];
+      seasons.forEach((s) => {
+        const sYear = s.startYear || Number(String(s.season).split(/[-–]/)[0]);
+        if (!sYear || !Array.isArray(s.ndvi)) return;
+        const mDefs = [
+          { m: 10, y: sYear }, { m: 11, y: sYear }, { m: 12, y: sYear },
+          { m: 1, y: sYear + 1 }, { m: 2, y: sYear + 1 }, { m: 3, y: sYear + 1 },
+          { m: 4, y: sYear + 1 }, { m: 5, y: sYear + 1 }, { m: 6, y: sYear + 1 },
+          { m: 7, y: sYear + 1 }, { m: 8, y: sYear + 1 }, { m: 9, y: sYear + 1 },
+        ];
+        mDefs.forEach((def, idx) => {
+          const nv = s.ndvi[idx];
+          const pv = pMap[`${def.y}_${def.m}`];
+          if (Number.isFinite(nv) && Number.isFinite(pv)) {
+            pVals.push(pv);
+            nVals.push(nv);
+          }
+        });
+      });
+
+      if (pVals.length < 12) {
+        return { code: c.code, nom: c.nom || c.code, r0: "-", r1: "-", opt: "-", r2: "-" };
+      }
+
+      const calcQuickR = (x, y) => {
+        const n = Math.min(x.length, y.length);
+        const mx = x.slice(0, n).reduce((a, b) => a + b, 0) / n;
+        const my = y.slice(0, n).reduce((a, b) => a + b, 0) / n;
+        let cv = 0, vx = 0, vy = 0;
+        for (let i = 0; i < n; i++) {
+          const dx = x[i] - mx;
+          const dy = y[i] - my;
+          cv += dx * dy;
+          vx += dx * dx;
+          vy += dy * dy;
+        }
+        const den = Math.sqrt(vx * vy);
+        return den > 1e-9 ? cv / den : 0;
+      };
+
+      const qR0 = calcQuickR(pVals, nVals);
+      const qR1 = calcQuickR(pVals.slice(0, -1), nVals.slice(1));
+      const qR2 = calcQuickR(pVals.slice(0, -2), nVals.slice(2));
+
+      let opt = 0;
+      let maxR = qR0;
+      if (qR1 > maxR) { opt = 1; maxR = qR1; }
+      if (qR2 > maxR) { opt = 2; maxR = qR2; }
+
+      return {
+        code: c.code,
+        nom: c.nom || c.code,
+        r0: Number(qR0.toFixed(2)),
+        r1: Number(qR1.toFixed(2)),
+        opt: `${opt} mois`,
+        r2: `${Math.round(Math.pow(maxR, 2) * 100)}%`,
+        status: maxR >= 0.7 ? "Très forte dépendance" : maxR >= 0.5 ? "Forte dépendance" : "Dépendance modérée",
+        statusColor: maxR >= 0.7 ? "#16a34a" : maxR >= 0.5 ? "#2563eb" : "#d97706",
+      };
+    }).sort((a, b) => (typeof b.r1 === "number" ? b.r1 : 0) - (typeof a.r1 === "number" ? a.r1 : 0));
+  }, [activeCommuneObj, communes, vegData, precipRecords]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      {/* Barre de Filtres & Sélection Commune */}
+      <div className="panel" style={{ padding: "16px", backgroundColor: "var(--bg-panel)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "14px" }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>📊 Analyse Statistique du Couplage : Végétation & Pluviométrie</span>
+            </h3>
+            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+              Commune de <strong>{activeCommuneObj?.nom || activeCommuneObj?.code}</strong> &bull; District de <strong>{activeCommuneObj?.district || "n/d"}</strong> ({activeCommuneObj?.region || "Grand Sud"})
+            </span>
+          </div>
+
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)" }}>Période :</span>
+            <div style={{ display: "flex", gap: "4px" }}>
+              {[
+                { id: "recent5", label: "5 dernières saisons" },
+                { id: "recent10", label: "10 dernières saisons" },
+                { id: "all", label: "Série complète (2000–2026)" },
+              ].map((btn) => (
+                <button
+                  key={btn.id}
+                  type="button"
+                  className={`btn-subtab ${timeFilter === btn.id ? "active" : ""}`}
+                  style={{
+                    padding: "4px 10px",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    borderRadius: "6px",
+                    border: timeFilter === btn.id ? "1px solid var(--primary)" : "1px solid var(--border-color)",
+                    backgroundColor: timeFilter === btn.id ? "var(--primary)" : "var(--bg-panel-secondary)",
+                    color: timeFilter === btn.id ? "#ffffff" : "var(--text-main)",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setTimeFilter(btn.id)}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sélecteurs Région / District / Commune */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
+          <div className="filter-group">
+            <label style={{ fontSize: "11px", fontWeight: "700" }}>Région :</label>
+            <select
+              value={selectedRegion}
+              onChange={(e) => {
+                setSelectedRegion(e.target.value);
+                setSelectedDistrict("");
+              }}
+              style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: "6px", border: "1px solid var(--border-color)" }}
+            >
+              <option value="">Toutes les régions (Grand Sud)</option>
+              {regions.map((reg) => (
+                <option key={reg} value={reg}>{reg}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label style={{ fontSize: "11px", fontWeight: "700" }}>District :</label>
+            <select
+              value={selectedDistrict}
+              onChange={(e) => setSelectedDistrict(e.target.value)}
+              style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: "6px", border: "1px solid var(--border-color)" }}
+            >
+              <option value="">Tous les districts</option>
+              {districtsList.map((dist) => (
+                <option key={dist} value={dist}>{dist}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label style={{ fontSize: "11px", fontWeight: "700" }}>Commune cible :</label>
+            <select
+              value={selectedCommune}
+              onChange={(e) => handleSelectCommune(e.target.value)}
+              style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: "6px", border: "1px solid var(--border-color)", fontWeight: "700" }}
+            >
+              {filteredCommunes.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.nom || c.code} ({c.district})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {correlationData ? (
+        <>
+          {/* Grille des 5 KPIs Clés */}
+          <section className="metric-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
+            <article className="metric-card" style={{ padding: "14px" }}>
+              <div className="metric-info">
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Réaction immédiate (Lag 0)</span>
+                <strong style={{ fontSize: "22px", color: "#f59e0b", margin: "4px 0" }}>
+                  {correlationData.r0 > 0 ? `+${correlationData.r0}` : correlationData.r0}
+                </strong>
+                <span style={{ fontSize: "10.5px", color: "#64748b" }}>Même mois de pluie</span>
+              </div>
+            </article>
+
+            <article className="metric-card" style={{ padding: "14px", borderLeft: "4px solid #16a34a" }}>
+              <div className="metric-info">
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Reverdissement décalé (Lag 1)</span>
+                <strong style={{ fontSize: "22px", color: "#16a34a", margin: "4px 0" }}>
+                  {correlationData.r1 > 0 ? `+${correlationData.r1}` : correlationData.r1}
+                </strong>
+                <span style={{ fontSize: "10.5px", color: "#16a34a", fontWeight: "700" }}>★ Réponse maximale</span>
+              </div>
+            </article>
+
+            <article className="metric-card" style={{ padding: "14px" }}>
+              <div className="metric-info">
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Délai optimal de repousse</span>
+                <strong style={{ fontSize: "22px", color: "var(--primary)", margin: "4px 0" }}>
+                  {correlationData.optLag} mois
+                </strong>
+                <span style={{ fontSize: "10.5px", color: "#64748b" }}>Latence physiologique</span>
+              </div>
+            </article>
+
+            <article className="metric-card" style={{ padding: "14px" }}>
+              <div className="metric-info">
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Sensibilité Végétale</span>
+                <strong style={{ fontSize: "22px", color: "#2563eb", margin: "4px 0" }}>
+                  +{correlationData.slopePer100mm}
+                </strong>
+                <span style={{ fontSize: "10.5px", color: "#64748b" }}>NDVI / 100 mm pluie</span>
+              </div>
+            </article>
+
+            <article className="metric-card" style={{ padding: "14px" }}>
+              <div className="metric-info">
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Variance expliquée (R²)</span>
+                <strong style={{ fontSize: "22px", color: "var(--text-main)", margin: "4px 0" }}>
+                  {correlationData.r2}%
+                </strong>
+                <span style={{ fontSize: "10.5px", color: "#64748b" }}>Régie par la pluviométrie</span>
+              </div>
+            </article>
+          </section>
+
+          {/* Graphique 1 : Chronologie Double Axe Précipitations (Barres) & NDVI (Courbe) */}
+          <div className="panel" style={{ padding: "20px", backgroundColor: "var(--bg-panel)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "var(--text-main)" }}>
+                  🌧️ Synchronisation Temporelle : Pluies CHIRPS (mm) & Couvert Végétal NDVI (MODIS)
+                </h4>
+                <span style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                  Observation conjointe sur {correlationData.totalMonths} mois &bull; Visualisez l'effet direct des averses sur la repousse végétale
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: "16px", fontSize: "11px", fontWeight: "700" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#3b82f6" }}>
+                  <span style={{ width: "12px", height: "12px", backgroundColor: "#3b82f6", borderRadius: "2px" }} />
+                  Précipitations (mm)
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "#16a34a" }}>
+                  <span style={{ width: "12px", height: "3px", backgroundColor: "#16a34a" }} />
+                  NDVI Végétation
+                </span>
+              </div>
+            </div>
+
+            <div style={{ width: "100%", height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={correlationData.pairs} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis
+                    dataKey="dateLabel"
+                    tick={{ fontSize: 10 }}
+                    interval={Math.ceil(correlationData.pairs.length / 15)}
+                    angle={-30}
+                    textAnchor="end"
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    orientation="left"
+                    stroke="#3b82f6"
+                    tick={{ fontSize: 10 }}
+                    domain={[0, "auto"]}
+                    label={{ value: "Pluie (mm)", angle: -90, position: "insideLeft", fontSize: 10, fill: "#3b82f6" }}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="#16a34a"
+                    tick={{ fontSize: 10 }}
+                    domain={[0.1, 0.7]}
+                    label={{ value: "Indice NDVI", angle: 90, position: "insideRight", fontSize: 10, fill: "#16a34a" }}
+                  />
+                  <RechartsTooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload || !payload.length) return null;
+                      const d = payload[0]?.payload;
+                      if (!d) return null;
+                      return (
+                        <div style={{ backgroundColor: "#0f172a", color: "#ffffff", padding: "10px 14px", borderRadius: "8px", fontSize: "11px", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                          <strong style={{ fontSize: "12px", color: "#f8fafc" }}>{d.dateLabel}</strong>
+                          <div style={{ marginTop: "6px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <div style={{ color: "#93c5fd" }}>🌧️ Pluie : <strong>{d.precip} mm</strong></div>
+                            <div style={{ color: "#86efac" }}>🌿 NDVI : <strong>{d.ndvi}</strong></div>
+                            {d.baseline && <div style={{ color: "#cbd5e1" }}>📏 Normale : {d.baseline}</div>}
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Bar yAxisId="left" dataKey="precip" fill="#3b82f6" opacity={0.65} barSize={8} radius={[2, 2, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: "#16a34a" }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Grille 2 Colonnes : Profil des Délais (Lags) & Droite de Régression */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "16px" }}>
+            {/* Graphique 2 : Profil des Délais (Lag 0 à Lag 3) */}
+            <div className="panel" style={{ padding: "18px", backgroundColor: "var(--bg-panel)" }}>
+              <h4 style={{ margin: 0, fontSize: "13px", fontWeight: "800", color: "var(--text-main)" }}>
+                ⏱️ Temps de Réponse de la Végétation (Décalage en Mois)
+              </h4>
+              <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "4px 0 14px 0" }}>
+                Comparaison de la corrélation selon le délai après les pluies (le pic indique le délai optimal)
+              </p>
+
+              <div style={{ width: "100%", height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsBarChart data={correlationData.lagProfiles} margin={{ top: 10, right: 15, left: 0, bottom: 15 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} domain={[0, 1]} />
+                    <RechartsTooltip
+                      formatter={(val) => [`Corrélation r = +${val}`, "Liaison"]}
+                    />
+                    <Bar dataKey="r" radius={[4, 4, 0, 0]}>
+                      {correlationData.lagProfiles.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.lag === correlationData.optLag ? "#16a34a" : "#94a3b8"} />
+                      ))}
+                    </Bar>
+                  </RechartsBarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "rgba(22, 163, 74, 0.08)", borderRadius: "6px", border: "1px solid rgba(22, 163, 74, 0.2)", fontSize: "11.5px", color: "#16a34a" }}>
+                💡 <strong>Conclusion Phénologique :</strong> Le reverdissement maximal intervient <strong>{correlationData.optLag === 0 ? "le mois même de la pluie" : correlationData.optLag === 1 ? "1 mois après la pluie" : `${correlationData.optLag} mois après la pluie`}</strong> (r = +{correlationData.optLagR}).
+              </div>
+            </div>
+
+            {/* Graphique 3 : Nuage de Points & Régression Linéaire */}
+            <div className="panel" style={{ padding: "18px", backgroundColor: "var(--bg-panel)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                <h4 style={{ margin: 0, fontSize: "13px", fontWeight: "800", color: "var(--text-main)" }}>
+                  📈 Sensibilité Linéaire : Pluie (t-1) vs NDVI (t)
+                </h4>
+                <span style={{ fontSize: "11px", fontWeight: "800", color: "#2563eb", background: "rgba(37, 99, 235, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>
+                  R² = {correlationData.r2}%
+                </span>
+              </div>
+              <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 14px 0" }}>
+                Pente : +{correlationData.slopePer100mm} points NDVI par 100 mm de pluie
+              </p>
+
+              <div style={{ width: "100%", height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={correlationData.scatterData} margin={{ top: 10, right: 15, left: 0, bottom: 15 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="precip" type="number" domain={[0, "auto"]} tick={{ fontSize: 10 }} label={{ value: "Pluie mois précédent (mm)", position: "insideBottom", offset: -5, fontSize: 10 }} />
+                    <YAxis dataKey="ndvi" type="number" domain={["auto", "auto"]} tick={{ fontSize: 10 }} label={{ value: "NDVI", angle: -90, position: "insideLeft", fontSize: 10 }} />
+                    <RechartsTooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        const d = payload[0]?.payload;
+                        return (
+                          <div style={{ backgroundColor: "#0f172a", color: "#ffffff", padding: "8px 12px", borderRadius: "6px", fontSize: "11px" }}>
+                            <div>Date : <strong>{d.date}</strong></div>
+                            <div>Pluie : <strong>{d.precip} mm</strong></div>
+                            <div>NDVI réel : <strong>{d.ndvi}</strong></div>
+                            <div>NDVI ajusté : <strong>{d.trend}</strong></div>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Line type="monotone" dataKey="trend" stroke="#ef4444" strokeWidth={2} dot={false} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="ndvi" stroke="transparent" dot={{ r: 3, fill: "#2563eb", stroke: "transparent" }} isAnimationActive={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "var(--bg-panel-secondary)", borderRadius: "6px", fontSize: "11.5px", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
+                <span>Équation estimée : <strong>NDVI = {correlationData.slope} × Pluie + {correlationData.intercept}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tableau Comparatif des Communes du même District */}
+          {districtComparisonList.length > 0 && (
+            <div className="panel" style={{ padding: "18px", backgroundColor: "var(--bg-panel)" }}>
+              <h4 style={{ margin: 0, fontSize: "13px", fontWeight: "800", color: "var(--text-main)", marginBottom: "4px" }}>
+                🏘️ Comparatif des Communes du District de {activeCommuneObj?.district || "la zone"}
+              </h4>
+              <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 14px 0" }}>
+                Classement par réactivité végétale aux précipitations &bull; Cliquez sur une commune pour afficher son profil détaillé
+              </p>
+
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "2px solid var(--border-color)", textAlign: "left", color: "var(--text-muted)" }}>
+                      <th style={{ padding: "8px 10px" }}>Commune</th>
+                      <th style={{ padding: "8px 10px" }}>Réaction immédiate (Lag 0)</th>
+                      <th style={{ padding: "8px 10px" }}>Reverdissement (Lag 1)</th>
+                      <th style={{ padding: "8px 10px" }}>Délai optimal</th>
+                      <th style={{ padding: "8px 10px" }}>Part de variance (R²)</th>
+                      <th style={{ padding: "8px 10px" }}>Dépendance à la pluie</th>
+                      <th style={{ padding: "8px 10px", textAlign: "right" }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {districtComparisonList.map((row) => (
+                      <tr
+                        key={row.code}
+                        style={{
+                          borderBottom: "1px solid var(--border-color)",
+                          backgroundColor: row.code === activeCommuneObj?.code ? "rgba(22, 163, 74, 0.08)" : "transparent",
+                          fontWeight: row.code === activeCommuneObj?.code ? "700" : "400",
+                        }}
+                      >
+                        <td style={{ padding: "8px 10px", color: "var(--text-main)" }}>
+                          {row.nom} {row.code === activeCommuneObj?.code && "★"}
+                        </td>
+                        <td style={{ padding: "8px 10px", color: "#f59e0b" }}>{row.r0 > 0 ? `+${row.r0}` : row.r0}</td>
+                        <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: "700" }}>{row.r1 > 0 ? `+${row.r1}` : row.r1}</td>
+                        <td style={{ padding: "8px 10px" }}>{row.opt}</td>
+                        <td style={{ padding: "8px 10px", fontWeight: "700" }}>{row.r2}</td>
+                        <td style={{ padding: "8px 10px", color: row.statusColor, fontWeight: "600" }}>{row.status}</td>
+                        <td style={{ padding: "8px 10px", textAlign: "right" }}>
+                          {row.code !== activeCommuneObj?.code ? (
+                            <button
+                              type="button"
+                              onClick={() => handleSelectCommune(row.code)}
+                              style={{
+                                padding: "3px 8px",
+                                fontSize: "11px",
+                                borderRadius: "4px",
+                                border: "1px solid var(--border-color)",
+                                backgroundColor: "var(--bg-panel-secondary)",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Analyser
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: "700" }}>Active</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="panel" style={{ padding: "30px", textAlign: "center", color: "var(--text-muted)" }}>
+          Chargement des séries temporelles de la commune...
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Statistiques({
   communes = [],
   regions = [],
@@ -4278,6 +4985,49 @@ function Statistiques({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* Category Switcher Tabs */}
+      <div className="stats-category-tabs" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+        {[
+          { id: "precip", label: "🌧️ Pluviométrie" },
+          { id: "vegetation", label: "🌿 Suivi Végétation" },
+          { id: "correlation", label: "📊 Végétation & Pluie (Corrélation)" },
+        ].map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`btn-subtab ${statsCategory === cat.id ? "active" : ""}`}
+            style={{
+              padding: "8px 16px",
+              fontWeight: 700,
+              fontSize: "12.5px",
+              borderRadius: "8px",
+              border: statsCategory === cat.id ? "2px solid var(--primary)" : "1px solid var(--border-color)",
+              backgroundColor: statsCategory === cat.id ? "var(--primary)" : "var(--bg-panel)",
+              color: statsCategory === cat.id ? "#ffffff" : "var(--text-main)",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+            onClick={() => setStatsCategory(cat.id)}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {statsCategory === "correlation" && (
+        <StatistiquesCorrelation
+          communes={communes}
+          regions={regions}
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+          selectedCommune={appSelectedCommune || selectedCommune}
+          setSelectedCommune={appSetSelectedCommune || setSelectedCommune}
+          selectedCommuneName={selectedCommuneName}
+          vegData={vegData}
+          precipRecords={precipRecords}
+        />
+      )}
+
       {statsCategory === "vegetation" && (
         <SuiviVegetation
           communes={communes}
