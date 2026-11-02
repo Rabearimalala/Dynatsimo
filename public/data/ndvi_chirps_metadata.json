@@ -13,8 +13,8 @@
   "classes": [
     {
       "id": 1,
-      "label": "Sécheresse sévère",
-      "description": "Déficit pluviométrique aigu & végétation très dégradée",
+      "label": "Grande sécheresse",
+      "description": "Végétation très sèche, manque d'eau critique",
       "color": "#dc2626",
       "rgba": [
         220,
@@ -25,8 +25,8 @@
     },
     {
       "id": 2,
-      "label": "Stress hydrique",
-      "description": "Précipitations insuffisantes, végétation sous tension",
+      "label": "Manque d'eau",
+      "description": "Peu de pluie, la végétation jaunit",
       "color": "#ea580c",
       "rgba": [
         234,
@@ -37,8 +37,8 @@
     },
     {
       "id": 3,
-      "label": "Équilibre / Normal",
-      "description": "Pluviométrie et vigueur conformes aux normales saisonnières",
+      "label": "Situation normale",
+      "description": "Pluie et verdure habituelles pour la saison",
       "color": "#eab308",
       "rgba": [
         234,
@@ -49,8 +49,8 @@
     },
     {
       "id": 4,
-      "label": "Conditions favorables",
-      "description": "Pluie suffisante & bonne régénération végétale",
+      "label": "Bonne pousse",
+      "description": "Bonnes pluies, la végétation reverdit bien",
       "color": "#16a34a",
       "rgba": [
         22,
@@ -61,8 +61,8 @@
     },
     {
       "id": 5,
-      "label": "Vigueur maximale",
-      "description": "Pluies abondantes & végétation exceptionnellement dense",
+      "label": "Très verdoyant",
+      "description": "Pluies abondantes, végétation dense et verte",
       "color": "#15803d",
       "rgba": [
         21,

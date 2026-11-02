@@ -111,11 +111,11 @@ SLD_RELATION_5CLASSES = f"""<?xml version="1.0" encoding="UTF-8"?>
           <RasterSymbolizer>
             <ColorMap type="values">
               <ColorMapEntry color="#000000" quantity="0" opacity="0.0" label="NoData"/>
-              <ColorMapEntry color="#dc2626" quantity="1" opacity="0.9" label="Sécheresse sévère"/>
-              <ColorMapEntry color="#ea580c" quantity="2" opacity="0.9" label="Stress hydrique"/>
-              <ColorMapEntry color="#eab308" quantity="3" opacity="0.85" label="Normal"/>
-              <ColorMapEntry color="#16a34a" quantity="4" opacity="0.9" label="Favorable"/>
-              <ColorMapEntry color="#15803d" quantity="5" opacity="0.95" label="Vigueur maximale"/>
+              <ColorMapEntry color="#dc2626" quantity="1" opacity="0.9" label="Grande sécheresse"/>
+              <ColorMapEntry color="#ea580c" quantity="2" opacity="0.9" label="Manque d'eau"/>
+              <ColorMapEntry color="#eab308" quantity="3" opacity="0.85" label="Situation normale"/>
+              <ColorMapEntry color="#16a34a" quantity="4" opacity="0.9" label="Bonne pousse"/>
+              <ColorMapEntry color="#15803d" quantity="5" opacity="0.95" label="Très verdoyant"/>
             </ColorMap>
           </RasterSymbolizer>
         </Rule>

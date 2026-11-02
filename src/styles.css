@@ -610,6 +610,25 @@ input[type="checkbox"] {
   align-items: stretch;
 }
 
+.metric-grid-5cols {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-bottom: 18px !important;
+  align-items: stretch !important;
+}
+
+.metric-grid-5cols .metric-card {
+  min-height: 92px !important;
+  height: 100% !important;
+}
+
+@media (max-width: 860px) {
+  .metric-grid-5cols {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+  }
+}
+
 .metric-card {
   background-color: var(--bg-panel);
   border: 1px solid var(--border-color);

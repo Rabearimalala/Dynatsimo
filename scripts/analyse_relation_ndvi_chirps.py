@@ -89,36 +89,36 @@ MONTH_SHORT_FR = {
 RELATION_CLASSES = [
     {
         "id": 1,
-        "label": "Sécheresse sévère",
-        "description": "Déficit pluviométrique aigu & végétation très dégradée",
+        "label": "Grande sécheresse",
+        "description": "Végétation très sèche, manque d'eau critique",
         "color": "#dc2626",
         "rgba": [220, 38, 38, 230]
     },
     {
         "id": 2,
-        "label": "Stress hydrique",
-        "description": "Précipitations insuffisantes, végétation sous tension",
+        "label": "Manque d'eau",
+        "description": "Peu de pluie, la végétation jaunit",
         "color": "#ea580c",
         "rgba": [234, 88, 12, 230]
     },
     {
         "id": 3,
-        "label": "Équilibre / Normal",
-        "description": "Pluviométrie et vigueur conformes aux normales saisonnières",
+        "label": "Situation normale",
+        "description": "Pluie et verdure habituelles pour la saison",
         "color": "#eab308",
         "rgba": [234, 179, 8, 220]
     },
     {
         "id": 4,
-        "label": "Conditions favorables",
-        "description": "Pluie suffisante & bonne régénération végétale",
+        "label": "Bonne pousse",
+        "description": "Bonnes pluies, la végétation reverdit bien",
         "color": "#16a34a",
         "rgba": [22, 163, 74, 230]
     },
     {
         "id": 5,
-        "label": "Vigueur maximale",
-        "description": "Pluies abondantes & végétation exceptionnellement dense",
+        "label": "Très verdoyant",
+        "description": "Pluies abondantes, végétation dense et verte",
         "color": "#15803d",
         "rgba": [21, 128, 61, 240]
     }
@@ -136,11 +136,11 @@ SLD_RELATION_5CLASSES = f"""<?xml version="1.0" encoding="UTF-8"?>
           <RasterSymbolizer>
             <ColorMap type="values">
               <ColorMapEntry color="#000000" quantity="0" opacity="0.0" label="NoData"/>
-              <ColorMapEntry color="#dc2626" quantity="1" opacity="0.9" label="Sécheresse sévère"/>
-              <ColorMapEntry color="#ea580c" quantity="2" opacity="0.9" label="Stress hydrique"/>
-              <ColorMapEntry color="#eab308" quantity="3" opacity="0.85" label="Normal"/>
-              <ColorMapEntry color="#16a34a" quantity="4" opacity="0.9" label="Favorable"/>
-              <ColorMapEntry color="#15803d" quantity="5" opacity="0.95" label="Vigueur maximale"/>
+              <ColorMapEntry color="#dc2626" quantity="1" opacity="0.9" label="Grande sécheresse"/>
+              <ColorMapEntry color="#ea580c" quantity="2" opacity="0.9" label="Manque d'eau"/>
+              <ColorMapEntry color="#eab308" quantity="3" opacity="0.85" label="Situation normale"/>
+              <ColorMapEntry color="#16a34a" quantity="4" opacity="0.9" label="Bonne pousse"/>
+              <ColorMapEntry color="#15803d" quantity="5" opacity="0.95" label="Très verdoyant"/>
             </ColorMap>
           </RasterSymbolizer>
         </Rule>

@@ -3939,39 +3939,112 @@ function StatistiquesCorrelation({
     };
   }, [activeCommuneObj, vegData, precipRecords, timeFilter]);
 
-  // Tableau comparatif des communes du même district
-  const districtComparisonList = React.useMemo(() => {
-    if (!activeCommuneObj?.district || !vegData?.timeSeries?.modis || !precipRecords) return [];
-    const sameDistrictCommunes = communes.filter((c) => c.district === activeCommuneObj.district);
+  // Scope et pagination du tableau comparatif des communes
+  const [comparisonScope, setComparisonScope] = React.useState("district"); // 'district' | 'region' | 'all'
+  const [comparisonSearch, setComparisonSearch] = React.useState("");
+  const [comparisonPage, setComparisonPage] = React.useState(1);
+  const comparisonPageSize = 10;
 
-    return sameDistrictCommunes.map((c) => {
-      const seasons = vegData.timeSeries.modis[c.code];
-      if (!Array.isArray(seasons) || seasons.length === 0) {
-        return { code: c.code, nom: c.nom || c.code, r0: "-", r1: "-", opt: "-", r2: "-" };
+  // Réinitialisation de la page en cas de changement
+  React.useEffect(() => {
+    setComparisonPage(1);
+  }, [comparisonScope, comparisonSearch, activeCommuneObj?.district, activeCommuneObj?.region]);
+
+  const districtCount = React.useMemo(() => {
+    return communes.filter((c) => c.district && c.district === activeCommuneObj?.district).length;
+  }, [communes, activeCommuneObj]);
+
+  const regionCount = React.useMemo(() => {
+    return communes.filter((c) => c.region && c.region === activeCommuneObj?.region).length;
+  }, [communes, activeCommuneObj]);
+
+  // Communes ciblées selon le périmètre choisi
+  const comparisonPool = React.useMemo(() => {
+    if (!communes || communes.length === 0) return [];
+    if (comparisonScope === "district") {
+      return activeCommuneObj?.district ? communes.filter((c) => c.district === activeCommuneObj.district) : communes;
+    }
+    if (comparisonScope === "region") {
+      return activeCommuneObj?.region ? communes.filter((c) => c.region === activeCommuneObj.region) : communes;
+    }
+    return communes; // 'all'
+  }, [communes, activeCommuneObj, comparisonScope]);
+
+  // Filtrage par texte de recherche
+  const searchedComparisonPool = React.useMemo(() => {
+    if (!comparisonSearch.trim()) return comparisonPool;
+    const q = comparisonSearch.toLowerCase().trim();
+    return comparisonPool.filter((c) => {
+      const nom = (c.nom || "").toLowerCase();
+      const code = (c.code || "").toLowerCase();
+      const dist = (c.district || "").toLowerCase();
+      const reg = (c.region || "").toLowerCase();
+      return nom.includes(q) || code.includes(q) || dist.includes(q) || reg.includes(q);
+    });
+  }, [comparisonPool, comparisonSearch]);
+
+  // Calcul dynamique des statistiques de réactivité pour les communes
+  const fullComparisonList = React.useMemo(() => {
+    if (!vegData?.timeSeries?.modis || !precipRecords || precipRecords.length === 0) return [];
+
+    const pIndex = {};
+    precipRecords.forEach((r) => {
+      if (r.code && r.year != null && r.month != null && Number.isFinite(r.precip)) {
+        if (!pIndex[r.code]) pIndex[r.code] = {};
+        pIndex[r.code][`${r.year}_${r.month}`] = Number(r.precip);
       }
+    });
 
-      // Quick lag 0 & lag 1 computation
-      const pMap = {};
-      precipRecords.forEach((r) => {
-        if (r.code === c.code && r.year != null && r.month != null) {
-          pMap[`${r.year}_${r.month}`] = Number(r.precip);
-        }
-      });
+    const mDefs = [
+      { m: 10, yOffset: 0 }, { m: 11, yOffset: 0 }, { m: 12, yOffset: 0 },
+      { m: 1, yOffset: 1 }, { m: 2, yOffset: 1 }, { m: 3, yOffset: 1 },
+      { m: 4, yOffset: 1 }, { m: 5, yOffset: 1 }, { m: 6, yOffset: 1 },
+      { m: 7, yOffset: 1 }, { m: 8, yOffset: 1 }, { m: 9, yOffset: 1 },
+    ];
+
+    const calcQuickR = (x, y) => {
+      const n = Math.min(x.length, y.length);
+      if (n < 6) return 0;
+      const mx = x.slice(0, n).reduce((a, b) => a + b, 0) / n;
+      const my = y.slice(0, n).reduce((a, b) => a + b, 0) / n;
+      let cv = 0, vx = 0, vy = 0;
+      for (let i = 0; i < n; i++) {
+        const dx = x[i] - mx;
+        const dy = y[i] - my;
+        cv += dx * dy;
+        vx += dx * dx;
+        vy += dy * dy;
+      }
+      const den = Math.sqrt(vx * vy);
+      return den > 1e-9 ? cv / den : 0;
+    };
+
+    return searchedComparisonPool.map((c) => {
+      const seasons = vegData.timeSeries.modis[c.code];
+      const pMap = pIndex[c.code] || {};
+      if (!Array.isArray(seasons) || seasons.length === 0) {
+        return {
+          code: c.code,
+          nom: c.nom || c.code,
+          district: c.district || "n/d",
+          region: c.region || "n/d",
+          r0: "-",
+          r1: "-",
+          opt: "-",
+          r2: "-",
+          status: "Données n/d",
+          statusColor: "#94a3b8",
+        };
+      }
 
       const pVals = [];
       const nVals = [];
       seasons.forEach((s) => {
         const sYear = s.startYear || Number(String(s.season).split(/[-–]/)[0]);
         if (!sYear || !Array.isArray(s.ndvi)) return;
-        const mDefs = [
-          { m: 10, y: sYear }, { m: 11, y: sYear }, { m: 12, y: sYear },
-          { m: 1, y: sYear + 1 }, { m: 2, y: sYear + 1 }, { m: 3, y: sYear + 1 },
-          { m: 4, y: sYear + 1 }, { m: 5, y: sYear + 1 }, { m: 6, y: sYear + 1 },
-          { m: 7, y: sYear + 1 }, { m: 8, y: sYear + 1 }, { m: 9, y: sYear + 1 },
-        ];
         mDefs.forEach((def, idx) => {
           const nv = s.ndvi[idx];
-          const pv = pMap[`${def.y}_${def.m}`];
+          const pv = pMap[`${sYear + def.yOffset}_${def.m}`];
           if (Number.isFinite(nv) && Number.isFinite(pv)) {
             pVals.push(pv);
             nVals.push(nv);
@@ -3980,24 +4053,19 @@ function StatistiquesCorrelation({
       });
 
       if (pVals.length < 12) {
-        return { code: c.code, nom: c.nom || c.code, r0: "-", r1: "-", opt: "-", r2: "-" };
+        return {
+          code: c.code,
+          nom: c.nom || c.code,
+          district: c.district || "n/d",
+          region: c.region || "n/d",
+          r0: "-",
+          r1: "-",
+          opt: "-",
+          r2: "-",
+          status: "Données n/d",
+          statusColor: "#94a3b8",
+        };
       }
-
-      const calcQuickR = (x, y) => {
-        const n = Math.min(x.length, y.length);
-        const mx = x.slice(0, n).reduce((a, b) => a + b, 0) / n;
-        const my = y.slice(0, n).reduce((a, b) => a + b, 0) / n;
-        let cv = 0, vx = 0, vy = 0;
-        for (let i = 0; i < n; i++) {
-          const dx = x[i] - mx;
-          const dy = y[i] - my;
-          cv += dx * dy;
-          vx += dx * dx;
-          vy += dy * dy;
-        }
-        const den = Math.sqrt(vx * vy);
-        return den > 1e-9 ? cv / den : 0;
-      };
 
       const qR0 = calcQuickR(pVals, nVals);
       const qR1 = calcQuickR(pVals.slice(0, -1), nVals.slice(1));
@@ -4011,6 +4079,8 @@ function StatistiquesCorrelation({
       return {
         code: c.code,
         nom: c.nom || c.code,
+        district: c.district || "n/d",
+        region: c.region || "n/d",
         r0: Number(qR0.toFixed(2)),
         r1: Number(qR1.toFixed(2)),
         opt: `${opt} mois`,
@@ -4019,7 +4089,14 @@ function StatistiquesCorrelation({
         statusColor: maxR >= 0.7 ? "#16a34a" : maxR >= 0.5 ? "#2563eb" : "#d97706",
       };
     }).sort((a, b) => (typeof b.r1 === "number" ? b.r1 : 0) - (typeof a.r1 === "number" ? a.r1 : 0));
-  }, [activeCommuneObj, communes, vegData, precipRecords]);
+  }, [searchedComparisonPool, vegData, precipRecords]);
+
+  // Pagination calculée
+  const totalComparisonPages = Math.max(1, Math.ceil(fullComparisonList.length / comparisonPageSize));
+  const paginatedComparisonList = React.useMemo(() => {
+    const start = (comparisonPage - 1) * comparisonPageSize;
+    return fullComparisonList.slice(start, start + comparisonPageSize);
+  }, [fullComparisonList, comparisonPage, comparisonPageSize]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -4118,55 +4195,84 @@ function StatistiquesCorrelation({
 
       {correlationData ? (
         <>
-          {/* Grille des 5 KPIs Clés */}
-          <section className="metric-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
-            <article className="metric-card" style={{ padding: "14px" }}>
-              <div className="metric-info">
-                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Réaction immédiate (Lag 0)</span>
-                <strong style={{ fontSize: "22px", color: "#f59e0b", margin: "4px 0" }}>
+          {/* Grille des 5 KPIs Clés sur une seule ligne avec hauteur optimisée */}
+          <section
+            className="metric-grid metric-grid-5cols"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+              gap: "10px",
+              marginBottom: "18px",
+              alignItems: "stretch",
+            }}
+          >
+            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #f59e0b", boxSizing: "border-box" }}>
+              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Réaction immédiate (Lag 0)">
+                  Réaction immédiate (Lag 0)
+                </span>
+                <strong style={{ fontSize: "21px", color: "#f59e0b", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
                   {correlationData.r0 > 0 ? `+${correlationData.r0}` : correlationData.r0}
                 </strong>
-                <span style={{ fontSize: "10.5px", color: "#64748b" }}>Même mois de pluie</span>
+                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  Même mois de pluie
+                </span>
               </div>
             </article>
 
-            <article className="metric-card" style={{ padding: "14px", borderLeft: "4px solid #16a34a" }}>
-              <div className="metric-info">
-                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Reverdissement décalé (Lag 1)</span>
-                <strong style={{ fontSize: "22px", color: "#16a34a", margin: "4px 0" }}>
+            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #16a34a", boxSizing: "border-box" }}>
+              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Reverdissement décalé (Lag 1)">
+                  Reverdissement décalé (Lag 1)
+                </span>
+                <strong style={{ fontSize: "21px", color: "#16a34a", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
                   {correlationData.r1 > 0 ? `+${correlationData.r1}` : correlationData.r1}
                 </strong>
-                <span style={{ fontSize: "10.5px", color: "#16a34a", fontWeight: "700" }}>★ Réponse maximale</span>
+                <span style={{ fontSize: "9.5px", color: "#16a34a", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  ★ Réponse maximale
+                </span>
               </div>
             </article>
 
-            <article className="metric-card" style={{ padding: "14px" }}>
-              <div className="metric-info">
-                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Délai optimal de repousse</span>
-                <strong style={{ fontSize: "22px", color: "var(--primary)", margin: "4px 0" }}>
+            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #0284c7", boxSizing: "border-box" }}>
+              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Délai optimal de repousse">
+                  Délai optimal de repousse
+                </span>
+                <strong style={{ fontSize: "21px", color: "var(--primary)", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
                   {correlationData.optLag} mois
                 </strong>
-                <span style={{ fontSize: "10.5px", color: "#64748b" }}>Latence physiologique</span>
+                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  Latence physiologique
+                </span>
               </div>
             </article>
 
-            <article className="metric-card" style={{ padding: "14px" }}>
-              <div className="metric-info">
-                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Sensibilité Végétale</span>
-                <strong style={{ fontSize: "22px", color: "#2563eb", margin: "4px 0" }}>
+            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #2563eb", boxSizing: "border-box" }}>
+              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Sensibilité Végétale">
+                  Sensibilité Végétale
+                </span>
+                <strong style={{ fontSize: "21px", color: "#2563eb", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
                   +{correlationData.slopePer100mm}
                 </strong>
-                <span style={{ fontSize: "10.5px", color: "#64748b" }}>NDVI / 100 mm pluie</span>
+                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  NDVI / 100 mm pluie
+                </span>
               </div>
             </article>
 
-            <article className="metric-card" style={{ padding: "14px" }}>
-              <div className="metric-info">
-                <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Variance expliquée (R²)</span>
-                <strong style={{ fontSize: "22px", color: "var(--text-main)", margin: "4px 0" }}>
+            <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #8b5cf6", boxSizing: "border-box" }}>
+              <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title="Variance expliquée (R²)">
+                  Variance expliquée (R²)
+                </span>
+                <strong style={{ fontSize: "21px", color: "var(--text-main)", margin: "2px 0", lineHeight: "1.1", fontWeight: "800" }}>
                   {correlationData.r2}%
                 </strong>
-                <span style={{ fontSize: "10.5px", color: "#64748b" }}>Régie par la pluviométrie</span>
+                <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  Régie par la pluie
+                </span>
               </div>
             </article>
           </section>
@@ -4325,21 +4431,80 @@ function StatistiquesCorrelation({
             </div>
           </div>
 
-          {/* Tableau Comparatif des Communes du même District */}
-          {districtComparisonList.length > 0 && (
-            <div className="panel" style={{ padding: "18px", backgroundColor: "var(--bg-panel)" }}>
-              <h4 style={{ margin: 0, fontSize: "13px", fontWeight: "800", color: "var(--text-main)", marginBottom: "4px" }}>
-                🏘️ Comparatif des Communes du District de {activeCommuneObj?.district || "la zone"}
-              </h4>
-              <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "0 0 14px 0" }}>
-                Classement par réactivité végétale aux précipitations &bull; Cliquez sur une commune pour afficher son profil détaillé
-              </p>
+          {/* Tableau Comparatif Multi-Échelles des Communes (District / Région / Grand Sud) */}
+          {fullComparisonList.length > 0 && (
+            <div className="panel" style={{ padding: "20px", backgroundColor: "var(--bg-panel)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "14px" }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span>🏘️ Comparatif des Communes : {comparisonScope === "district" ? `District de ${activeCommuneObj?.district || "la zone"}` : comparisonScope === "region" ? `Région ${activeCommuneObj?.region || "Grand Sud"}` : "Tout le Grand Sud"}</span>
+                    <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--primary)", backgroundColor: "rgba(37,99,235,0.08)", padding: "2px 8px", borderRadius: "12px" }}>
+                      {fullComparisonList.length} commune{fullComparisonList.length > 1 ? "s" : ""}
+                    </span>
+                  </h4>
+                  <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+                    Classement par réactivité végétale aux précipitations &bull; Cliquez sur « Analyser » pour charger les graphiques d'une commune
+                  </p>
+                </div>
+
+                {/* Contrôles de Périmètre & Recherche */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  <div className="scale-tabs" style={{ display: "flex", gap: "4px", backgroundColor: "var(--bg-panel-secondary)", padding: "3px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                    <button
+                      type="button"
+                      className={`scale-tab-btn ${comparisonScope === "district" ? "active" : ""}`}
+                      onClick={() => setComparisonScope("district")}
+                      style={{ fontSize: "11px", padding: "4px 9px", fontWeight: 700 }}
+                    >
+                      📍 District ({districtCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={`scale-tab-btn ${comparisonScope === "region" ? "active" : ""}`}
+                      onClick={() => setComparisonScope("region")}
+                      style={{ fontSize: "11px", padding: "4px 9px", fontWeight: 700 }}
+                    >
+                      🏛️ Région ({regionCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={`scale-tab-btn ${comparisonScope === "all" ? "active" : ""}`}
+                      onClick={() => setComparisonScope("all")}
+                      style={{ fontSize: "11px", padding: "4px 9px", fontWeight: 700 }}
+                    >
+                      🌍 Tout le Grand Sud ({communes.length})
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="🔍 Filtrer une commune..."
+                    value={comparisonSearch}
+                    onChange={(e) => setComparisonSearch(e.target.value)}
+                    style={{
+                      padding: "5px 10px",
+                      fontSize: "11.5px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border-color)",
+                      backgroundColor: "var(--bg-panel-secondary)",
+                      color: "var(--text-main)",
+                      width: "180px",
+                    }}
+                  />
+                </div>
+              </div>
 
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
                   <thead>
                     <tr style={{ borderBottom: "2px solid var(--border-color)", textAlign: "left", color: "var(--text-muted)" }}>
                       <th style={{ padding: "8px 10px" }}>Commune</th>
+                      {comparisonScope !== "district" && (
+                        <th style={{ padding: "8px 10px" }}>District</th>
+                      )}
+                      {comparisonScope === "all" && (
+                        <th style={{ padding: "8px 10px" }}>Région</th>
+                      )}
                       <th style={{ padding: "8px 10px" }}>Réaction immédiate (Lag 0)</th>
                       <th style={{ padding: "8px 10px" }}>Reverdissement (Lag 1)</th>
                       <th style={{ padding: "8px 10px" }}>Délai optimal</th>
@@ -4349,48 +4514,108 @@ function StatistiquesCorrelation({
                     </tr>
                   </thead>
                   <tbody>
-                    {districtComparisonList.map((row) => (
-                      <tr
-                        key={row.code}
-                        style={{
-                          borderBottom: "1px solid var(--border-color)",
-                          backgroundColor: row.code === activeCommuneObj?.code ? "rgba(22, 163, 74, 0.08)" : "transparent",
-                          fontWeight: row.code === activeCommuneObj?.code ? "700" : "400",
-                        }}
-                      >
-                        <td style={{ padding: "8px 10px", color: "var(--text-main)" }}>
-                          {row.nom} {row.code === activeCommuneObj?.code && "★"}
-                        </td>
-                        <td style={{ padding: "8px 10px", color: "#f59e0b" }}>{row.r0 > 0 ? `+${row.r0}` : row.r0}</td>
-                        <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: "700" }}>{row.r1 > 0 ? `+${row.r1}` : row.r1}</td>
-                        <td style={{ padding: "8px 10px" }}>{row.opt}</td>
-                        <td style={{ padding: "8px 10px", fontWeight: "700" }}>{row.r2}</td>
-                        <td style={{ padding: "8px 10px", color: row.statusColor, fontWeight: "600" }}>{row.status}</td>
-                        <td style={{ padding: "8px 10px", textAlign: "right" }}>
-                          {row.code !== activeCommuneObj?.code ? (
-                            <button
-                              type="button"
-                              onClick={() => handleSelectCommune(row.code)}
-                              style={{
-                                padding: "3px 8px",
-                                fontSize: "11px",
-                                borderRadius: "4px",
-                                border: "1px solid var(--border-color)",
-                                backgroundColor: "var(--bg-panel-secondary)",
-                                cursor: "pointer",
-                              }}
-                            >
-                              Analyser
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: "700" }}>Active</span>
+                    {paginatedComparisonList.map((row) => {
+                      const isActive = row.code === activeCommuneObj?.code;
+                      return (
+                        <tr
+                          key={row.code}
+                          style={{
+                            borderBottom: "1px solid var(--border-color)",
+                            backgroundColor: isActive ? "rgba(22, 163, 74, 0.08)" : "transparent",
+                            fontWeight: isActive ? "700" : "400",
+                          }}
+                        >
+                          <td style={{ padding: "8px 10px", color: "var(--text-main)" }}>
+                            <strong style={{ color: isActive ? "#16a34a" : "var(--text-main)" }}>{row.nom}</strong>
+                            {isActive && <span style={{ marginLeft: "6px", color: "#16a34a" }}>★</span>}
+                          </td>
+                          {comparisonScope !== "district" && (
+                            <td style={{ padding: "8px 10px", color: "var(--text-muted)", fontSize: "11px" }}>{row.district}</td>
                           )}
-                        </td>
-                      </tr>
-                    ))}
+                          {comparisonScope === "all" && (
+                            <td style={{ padding: "8px 10px", color: "var(--text-muted)", fontSize: "11px" }}>{row.region}</td>
+                          )}
+                          <td style={{ padding: "8px 10px", color: "#f59e0b" }}>{row.r0 > 0 ? `+${row.r0}` : row.r0}</td>
+                          <td style={{ padding: "8px 10px", color: "#16a34a", fontWeight: "700" }}>{row.r1 > 0 ? `+${row.r1}` : row.r1}</td>
+                          <td style={{ padding: "8px 10px" }}>{row.opt}</td>
+                          <td style={{ padding: "8px 10px", fontWeight: "700" }}>{row.r2}</td>
+                          <td style={{ padding: "8px 10px", color: row.statusColor, fontWeight: "600" }}>{row.status}</td>
+                          <td style={{ padding: "8px 10px", textAlign: "right" }}>
+                            {!isActive ? (
+                              <button
+                                type="button"
+                                onClick={() => handleSelectCommune(row.code)}
+                                style={{
+                                  padding: "4px 10px",
+                                  fontSize: "11px",
+                                  fontWeight: "700",
+                                  borderRadius: "5px",
+                                  border: "1px solid var(--border-color)",
+                                  backgroundColor: "var(--bg-panel-secondary)",
+                                  color: "var(--primary)",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Analyser
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: "800", padding: "3px 8px", backgroundColor: "rgba(22, 163, 74, 0.12)", borderRadius: "4px" }}>
+                                Active
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
+
+              {/* Contrôles de Pagination */}
+              {totalComparisonPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "14px", paddingTop: "12px", borderTop: "1px solid var(--border-color)", flexWrap: "wrap", gap: "8px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                    Affichage <strong>{(comparisonPage - 1) * comparisonPageSize + 1}</strong> à <strong>{Math.min(comparisonPage * comparisonPageSize, fullComparisonList.length)}</strong> sur <strong>{fullComparisonList.length}</strong> communes
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <button
+                      type="button"
+                      disabled={comparisonPage <= 1}
+                      onClick={() => setComparisonPage((p) => Math.max(1, p - 1))}
+                      style={{
+                        padding: "4px 10px",
+                        fontSize: "11px",
+                        borderRadius: "5px",
+                        border: "1px solid var(--border-color)",
+                        backgroundColor: comparisonPage <= 1 ? "var(--bg-app)" : "var(--bg-panel-secondary)",
+                        color: comparisonPage <= 1 ? "var(--text-muted)" : "var(--text-main)",
+                        cursor: comparisonPage <= 1 ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      ◀ Préc.
+                    </button>
+                    <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-main)", padding: "0 6px" }}>
+                      Page {comparisonPage} / {totalComparisonPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={comparisonPage >= totalComparisonPages}
+                      onClick={() => setComparisonPage((p) => Math.min(totalComparisonPages, p + 1))}
+                      style={{
+                        padding: "4px 10px",
+                        fontSize: "11px",
+                        borderRadius: "5px",
+                        border: "1px solid var(--border-color)",
+                        backgroundColor: comparisonPage >= totalComparisonPages ? "var(--bg-app)" : "var(--bg-panel-secondary)",
+                        color: comparisonPage >= totalComparisonPages ? "var(--text-muted)" : "var(--text-main)",
+                        cursor: comparisonPage >= totalComparisonPages ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      Suiv. ▶
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -6529,6 +6754,9 @@ function Carte({
 
   const handleNdviChirpsTimelineStep = (direction) => {
     if (ndviChirpsPeriods.length === 0) return;
+    if (ndviChirpsViewMode !== "monthly") {
+      setNdviChirpsViewMode("monthly");
+    }
     let nextIndex = activeNdviChirpsIndex + direction;
     if (nextIndex < 0) nextIndex = ndviChirpsPeriods.length - 1;
     if (nextIndex >= ndviChirpsPeriods.length) nextIndex = 0;
@@ -6542,6 +6770,9 @@ function Carte({
   const handleNdviChirpsTimelineScrub = (index) => {
     const period = ndviChirpsPeriods[index];
     if (period) {
+      if (ndviChirpsViewMode !== "monthly") {
+        setNdviChirpsViewMode("monthly");
+      }
       setNdviChirpsYear(period.year);
       setNdviChirpsMonth(period.month);
     }
@@ -7487,58 +7718,62 @@ function Carte({
 
             {/* Sélecteur de type d'affichage en termes simples et intuitifs */}
             <div className="filter-group">
-              <label style={{ fontSize: "11px", fontWeight: "750", color: "var(--text-main)" }}>
+              <label style={{ fontSize: "10.5px", fontWeight: "750", color: "var(--text-main)", textTransform: "none", letterSpacing: "normal" }}>
                 Que souhaitez-vous observer ?
               </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "7px", marginTop: "5px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11.5px", cursor: "pointer" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginTop: "4px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "10px", textTransform: "none", letterSpacing: "normal", cursor: "pointer", lineHeight: "1.3" }}>
                   <input
                     type="radio"
                     name="ndvi_chirps_mode"
                     value="monthly"
                     checked={ndviChirpsViewMode === "monthly"}
                     onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                    style={{ margin: 0, flexShrink: 0 }}
                   />
-                  <span style={{ color: "var(--text-main)", fontWeight: "650" }}>
+                  <span style={{ color: "var(--text-main)", fontWeight: "550", textTransform: "none", letterSpacing: "normal" }}>
                     🗓️ Suivi mensuel de la végétation selon la pluie
                   </span>
                 </label>
 
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11.5px", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "10px", textTransform: "none", letterSpacing: "normal", cursor: "pointer", lineHeight: "1.3" }}>
                   <input
                     type="radio"
                     name="ndvi_chirps_mode"
                     value="lag0"
                     checked={ndviChirpsViewMode === "lag0"}
                     onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                    style={{ margin: 0, flexShrink: 0 }}
                   />
-                  <span style={{ color: "var(--text-main)", fontWeight: "650" }}>
+                  <span style={{ color: "var(--text-main)", fontWeight: "550", textTransform: "none", letterSpacing: "normal" }}>
                     🌧️ Reverdissement immédiat (Même mois de pluie)
                   </span>
                 </label>
 
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11.5px", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "10px", textTransform: "none", letterSpacing: "normal", cursor: "pointer", lineHeight: "1.3" }}>
                   <input
                     type="radio"
                     name="ndvi_chirps_mode"
                     value="lag1"
                     checked={ndviChirpsViewMode === "lag1"}
                     onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                    style={{ margin: 0, flexShrink: 0 }}
                   />
-                  <span style={{ color: "var(--text-main)", fontWeight: "650" }}>
+                  <span style={{ color: "var(--text-main)", fontWeight: "550", textTransform: "none", letterSpacing: "normal" }}>
                     🌱 Reverdissement différé (1 mois après la pluie)
                   </span>
                 </label>
 
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11.5px", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "10px", textTransform: "none", letterSpacing: "normal", cursor: "pointer", lineHeight: "1.3" }}>
                   <input
                     type="radio"
                     name="ndvi_chirps_mode"
                     value="lag_opt"
                     checked={ndviChirpsViewMode === "lag_opt"}
                     onChange={(e) => setNdviChirpsViewMode(e.target.value)}
+                    style={{ margin: 0, flexShrink: 0 }}
                   />
-                  <span style={{ color: "var(--text-main)", fontWeight: "650" }}>
+                  <span style={{ color: "var(--text-main)", fontWeight: "550", textTransform: "none", letterSpacing: "normal" }}>
                     ⏱️ Délai de repousse de la végétation (0, 1 ou 2 mois)
                   </span>
                 </label>
@@ -7577,70 +7812,81 @@ function Carte({
                     ))}
                   </select>
                 </div>
-
-                {/* Animation Timeline Player */}
-                <div className="timeline-player-panel">
-                  <div className="timeline-header">
-                    <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase" }}>
-                      Animation Temporelle :
-                    </span>
-                    <span className="timeline-period-badge">
-                      {activeNdviChirpsPeriod ? activeNdviChirpsPeriod.label : `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`}
-                    </span>
-                  </div>
-
-                  <div className="timeline-buttons">
-                    <button
-                      type="button"
-                      className="timeline-btn"
-                      onClick={() => handleNdviChirpsTimelineStep(-1)}
-                      title="Mois précédent"
-                    >
-                      ⏮ Préc.
-                    </button>
-                    <button
-                      type="button"
-                      className={`timeline-btn ${isPlayingNdviChirpsTimeline ? "play-active" : ""}`}
-                      onClick={() => setIsPlayingNdviChirpsTimeline(!isPlayingNdviChirpsTimeline)}
-                      title={isPlayingNdviChirpsTimeline ? "Mettre en pause" : "Lancer l'animation chronologique"}
-                    >
-                      {isPlayingNdviChirpsTimeline ? "⏸ Pause" : "▶ Lecture"}
-                    </button>
-                    <button
-                      type="button"
-                      className="timeline-btn"
-                      onClick={() => handleNdviChirpsTimelineStep(1)}
-                      title="Mois suivant"
-                    >
-                      Suiv. ⏭
-                    </button>
-                  </div>
-
-                  <input
-                    type="range"
-                    className="timeline-scrubber"
-                    min={0}
-                    max={Math.max(0, ndviChirpsPeriods.length - 1)}
-                    value={activeNdviChirpsIndex}
-                    onChange={(e) => handleNdviChirpsTimelineScrub(Number(e.target.value))}
-                    title="Glissez pour changer de mois"
-                  />
-
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "var(--text-muted)" }}>
-                    <span>Vitesse :</span>
-                    <select
-                      value={ndviChirpsPlaySpeed}
-                      onChange={(e) => setNdviChirpsPlaySpeed(Number(e.target.value))}
-                      style={{ fontSize: "10px", padding: "2px 4px" }}
-                    >
-                      <option value={2000}>Lente (2.0s)</option>
-                      <option value={1200}>Normale (1.2s)</option>
-                      <option value={700}>Rapide (0.7s)</option>
-                    </select>
-                  </div>
-                </div>
               </>
             )}
+
+            {/* Animation Timeline Player (Toujours visible et accessible) */}
+            <div className="timeline-player-panel">
+              <div className="timeline-header">
+                <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase" }}>
+                  Animation Temporelle :
+                </span>
+                <span className="timeline-period-badge">
+                  {activeNdviChirpsPeriod ? activeNdviChirpsPeriod.label : `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`}
+                </span>
+              </div>
+
+              <div className="timeline-buttons">
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={() => handleNdviChirpsTimelineStep(-1)}
+                  title="Mois précédent"
+                >
+                  ⏮ Préc.
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-btn ${isPlayingNdviChirpsTimeline ? "play-active" : ""}`}
+                  onClick={() => {
+                    if (!isPlayingNdviChirpsTimeline && ndviChirpsViewMode !== "monthly") {
+                      setNdviChirpsViewMode("monthly");
+                    }
+                    setIsPlayingNdviChirpsTimeline(!isPlayingNdviChirpsTimeline);
+                  }}
+                  title={isPlayingNdviChirpsTimeline ? "Mettre en pause" : "Lancer l'animation chronologique"}
+                >
+                  {isPlayingNdviChirpsTimeline ? "⏸ Pause" : "▶ Lecture"}
+                </button>
+                <button
+                  type="button"
+                  className="timeline-btn"
+                  onClick={() => handleNdviChirpsTimelineStep(1)}
+                  title="Mois suivant"
+                >
+                  Suiv. ⏭
+                </button>
+              </div>
+
+              <input
+                type="range"
+                className="timeline-scrubber"
+                min={0}
+                max={Math.max(0, ndviChirpsPeriods.length - 1)}
+                value={activeNdviChirpsIndex}
+                onChange={(e) => handleNdviChirpsTimelineScrub(Number(e.target.value))}
+                title="Glissez pour changer de mois"
+              />
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "var(--text-muted)" }}>
+                <span>Vitesse :</span>
+                <select
+                  value={ndviChirpsPlaySpeed}
+                  onChange={(e) => setNdviChirpsPlaySpeed(Number(e.target.value))}
+                  style={{ fontSize: "10px", padding: "2px 4px" }}
+                >
+                  <option value={2000}>Lente (2.0s)</option>
+                  <option value={1200}>Normale (1.2s)</option>
+                  <option value={700}>Rapide (0.7s)</option>
+                </select>
+              </div>
+
+              {ndviChirpsViewMode !== "monthly" && (
+                <div style={{ fontSize: "10px", color: "var(--primary)", marginTop: "6px", textAlign: "center", fontWeight: "600", background: "rgba(37,99,235,0.06)", padding: "4px 8px", borderRadius: "4px" }}>
+                  💡 Cliquez sur Lecture ou déplacez le curseur pour lancer l'animation des 320 mois
+                </div>
+              )}
+            </div>
 
             {/* Réglage d'Opacité */}
             <div className="filter-group">
@@ -8737,12 +8983,12 @@ function Carte({
               <div className="ndvi-legend-header">
                 <span className="ndvi-legend-title">
                   {ndviChirpsViewMode === "monthly"
-                    ? "État de la végétation selon les pluies (Suivi mensuel)"
+                    ? "Santé de la végétation selon la pluie (Suivi mois par mois)"
                     : ndviChirpsViewMode === "lag_opt"
-                    ? "Délai de reverdissement : combien de mois met la végétation à pousser après la pluie ?"
+                    ? "Délai de repousse : combien de mois met la végétation à reverdir ?"
                     : ndviChirpsViewMode === "lag0"
-                    ? "Sensibilité immédiate : la végétation reverdit-elle au cours du même mois ?"
-                    : "Sensibilité avec 1 mois de retard : la végétation reverdit-elle le mois suivant ?"}
+                    ? "Réaction immédiate : la végétation reverdit-elle le mois même de la pluie ?"
+                    : "Réaction différée : la végétation reverdit-elle le mois suivant la pluie ?"}
                 </span>
                 <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                   {ndviChirpsViewMode === "monthly"
@@ -8754,11 +9000,11 @@ function Carte({
               {ndviChirpsViewMode === "monthly" ? (
                 <div className="ndvi-legend-grid">
                   {(ndviChirpsClasses.length > 0 ? ndviChirpsClasses : [
-                    { id: 1, label: "Sécheresse sévère", description: "Déficit pluviométrique aigu & végétation dégradée", color: "#dc2626" },
-                    { id: 2, label: "Stress hydrique", description: "Précipitations faibles, végétation sous tension", color: "#ea580c" },
-                    { id: 3, label: "Équilibre / Normal", description: "Pluie et végétation conformes aux normales", color: "#eab308" },
-                    { id: 4, label: "Conditions favorables", description: "Pluie suffisante & bonne régénération", color: "#16a34a" },
-                    { id: 5, label: "Vigueur maximale", description: "Pluies abondantes & végétation très dense", color: "#15803d" },
+                    { id: 1, label: "Grande sécheresse", description: "Végétation très sèche, manque d'eau critique", color: "#dc2626" },
+                    { id: 2, label: "Manque d'eau", description: "Peu de pluie, la végétation jaunit", color: "#ea580c" },
+                    { id: 3, label: "Situation normale", description: "Pluie et verdure habituelles pour la saison", color: "#eab308" },
+                    { id: 4, label: "Bonne pousse", description: "Bonnes pluies, la végétation reverdit bien", color: "#16a34a" },
+                    { id: 5, label: "Très verdoyant", description: "Pluies abondantes, végétation dense et verte", color: "#15803d" },
                   ]).map((cls) => (
                     <div key={cls.id} className="ndvi-legend-item">
                       <span className="ndvi-legend-color-box" style={{ backgroundColor: cls.color }} />
@@ -11329,24 +11575,24 @@ function GuideMethodologie({
               </p>
               <div className="guide-param-list">
                 <div className="guide-param-row">
-                  <span className="guide-param-name">1. Sécheresse sévère (Rouge) :</span>
-                  <span className="guide-param-desc">Indice &lt; -1.0 (Déficit pluviométrique aigu & végétation très flétrie).</span>
+                  <span className="guide-param-name">1. Grande sécheresse (Rouge) :</span>
+                  <span className="guide-param-desc">Indice &lt; -1.0 (Manque d'eau critique, végétation très sèche).</span>
                 </div>
                 <div className="guide-param-row">
-                  <span className="guide-param-name">2. Stress hydrique (Orange) :</span>
-                  <span className="guide-param-desc">-1.0 ≤ Indice &lt; -0.3 (Apport en eau insuffisant, début de fanaison).</span>
+                  <span className="guide-param-name">2. Manque d'eau (Orange) :</span>
+                  <span className="guide-param-desc">-1.0 ≤ Indice &lt; -0.3 (Peu de pluie, la végétation jaunit).</span>
                 </div>
                 <div className="guide-param-row">
-                  <span className="guide-param-name">3. Normal (Jaune) :</span>
-                  <span className="guide-param-desc">-0.3 ≤ Indice ≤ +0.3 (Conditions conformes aux normales saisonnières).</span>
+                  <span className="guide-param-name">3. Situation normale (Jaune) :</span>
+                  <span className="guide-param-desc">-0.3 ≤ Indice ≤ +0.3 (Pluie et verdure habituelles pour la saison).</span>
                 </div>
                 <div className="guide-param-row">
-                  <span className="guide-param-name">4. Favorable (Vert) :</span>
-                  <span className="guide-param-desc">+0.3 &lt; Indice ≤ +1.0 (Bonne pluie, régénération vigoureuse).</span>
+                  <span className="guide-param-name">4. Bonne pousse (Vert) :</span>
+                  <span className="guide-param-desc">+0.3 &lt; Indice ≤ +1.0 (Bonnes pluies, la végétation reverdit bien).</span>
                 </div>
                 <div className="guide-param-row">
-                  <span className="guide-param-name">5. Vigueur max (Vert foncé) :</span>
-                  <span className="guide-param-desc">Indice &gt; +1.0 (Pluies exceptionnelles et biomasse maximale).</span>
+                  <span className="guide-param-name">5. Très verdoyant (Vert foncé) :</span>
+                  <span className="guide-param-desc">Indice &gt; +1.0 (Pluies abondantes, végétation dense et très verte).</span>
                 </div>
               </div>
             </div>
