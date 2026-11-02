@@ -42,7 +42,7 @@ except ImportError:
 
 def print_step_header(num: int, title: str) -> None:
     print("\n" + "=" * 75)
-    print(f"[{num}/5] {title.upper()}")
+    print(f"[{num}/7] {title.upper()}")
     print("=" * 75)
 
 
@@ -148,8 +148,25 @@ def run_sync_ndvi() -> bool:
         return False
 
 
+def run_ndvi_chirps_relation() -> bool:
+    print_step_header(5, "Analyse Spatio-Temporelle Relation NDVI vs CHIRPS")
+    script_path = SCRIPTS_DIR / "analyse_relation_ndvi_chirps.py"
+    if not script_path.exists():
+        print(f"ℹ Script non trouvé ({script_path}), étape ignorée.")
+        return True
+
+    t0 = time.time()
+    try:
+        res = subprocess.run([sys.executable, str(script_path)], check=True)
+        print(f"✓ Analyse NDVI-CHIRPS terminée en {time.time() - t0:.1f}s.")
+        return res.returncode == 0
+    except Exception as e:
+        print(f"⚠ Erreur lors de l'analyse NDVI-CHIRPS : {e}")
+        return False
+
+
 def run_export_react() -> bool:
-    print_step_header(5, "Exportation des données pour l'interface React")
+    print_step_header(6, "Exportation des données pour l'interface React")
     data_script = SCRIPTS_DIR / "import-chirps-and-export.py"
     spec = importlib.util.spec_from_file_location("dynatsimo_data", data_script)
     if not spec or not spec.loader:
@@ -171,7 +188,7 @@ def run_export_react() -> bool:
 
 
 def run_geoserver_sync() -> bool:
-    print_step_header(6, "Publication des Rasters dans GeoServer")
+    print_step_header(7, "Publication des Rasters dans GeoServer")
     script_path = SCRIPTS_DIR / "geoserver_publisher.py"
     if not script_path.exists():
         print(f"ℹ Script GeoServer non trouvé ({script_path}), étape ignorée.")
@@ -195,7 +212,13 @@ def run_geoserver_sync() -> bool:
         return False
 
 
-def run_full_pipeline(skip_download: bool = False, force_rebuild_db: bool = False, skip_ndvi: bool = False, skip_geoserver: bool = False) -> bool:
+def run_full_pipeline(
+    skip_download: bool = False,
+    force_rebuild_db: bool = False,
+    skip_ndvi: bool = False,
+    skip_ndvi_chirps: bool = False,
+    skip_geoserver: bool = False
+) -> bool:
     print("\n" + "=" * 75)
     print("🚀 DYNATSIMO — DÉBUT DU PIPELINE GLOBAL DE SYNCHRONISATION")
     print("=" * 75)
@@ -224,17 +247,23 @@ def run_full_pipeline(skip_download: bool = False, force_rebuild_db: bool = Fals
     else:
         print("\nℹ Étape 4 : NDVI ignoré (--skip-ndvi).")
 
-    # 5. Export React
+    # 5. Relation NDVI-CHIRPS
+    if not skip_ndvi_chirps:
+        run_ndvi_chirps_relation()
+    else:
+        print("\nℹ Étape 5 : Analyse NDVI-CHIRPS ignorée (--skip-ndvi-chirps).")
+
+    # 6. Export React
     react_ok = run_export_react()
     if not react_ok:
         print("❌ Échec lors de l'export React.")
         return False
 
-    # 6. GeoServer Publish
+    # 7. GeoServer Publish
     if not skip_geoserver:
         run_geoserver_sync()
     else:
-        print("\nℹ Étape 6 : GeoServer ignoré (--skip-geoserver).")
+        print("\nℹ Étape 7 : GeoServer ignoré (--skip-geoserver).")
 
     total_time = time.time() - total_t0
     print("\n" + "=" * 75)
@@ -248,6 +277,7 @@ def main():
     parser.add_argument("--skip-download", action="store_true", help="Ne pas télécharger les rasters CHIRPS")
     parser.add_argument("--force-rebuild-db", action="store_true", help="Recalculer toute la base PostgreSQL depuis zéro")
     parser.add_argument("--skip-ndvi", action="store_true", help="Ignorer la synchronisation NDVI")
+    parser.add_argument("--skip-ndvi-chirps", action="store_true", help="Ignorer l'analyse de relation NDVI-CHIRPS")
     parser.add_argument("--skip-geoserver", action="store_true", help="Ignorer la publication GeoServer")
     args = parser.parse_args()
 
@@ -255,9 +285,11 @@ def main():
         skip_download=args.skip_download,
         force_rebuild_db=args.force_rebuild_db,
         skip_ndvi=args.skip_ndvi,
+        skip_ndvi_chirps=args.skip_ndvi_chirps,
         skip_geoserver=args.skip_geoserver,
     )
     sys.exit(0 if success else 1)
+
 
 
 if __name__ == "__main__":

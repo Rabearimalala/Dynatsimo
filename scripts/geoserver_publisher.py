@@ -32,6 +32,7 @@ except ImportError:
 
 CHIRPS_DIR = ROOT_DIR / "CHIRPS_data"
 MODIS_DIR = ROOT_DIR / "NDVI_MODIS"
+NDVI_CHIRPS_DIR = ROOT_DIR / "NDVI_CHIRPS"
 
 # --- Paramètres GeoServer (configurables via variables d'environnement) ---
 GEOSERVER_URL = os.getenv("GEOSERVER_URL", "http://localhost:8080/geoserver").rstrip("/")
@@ -98,6 +99,102 @@ SLD_NDVI_6CLASSES = f"""<?xml version="1.0" encoding="UTF-8"?>
   </NamedLayer>
 </StyledLayerDescriptor>
 """
+
+SLD_CORRELATION = f"""<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
+  <NamedLayer>
+    <Name>style_correlation_ndvi_chirps</Name>
+    <UserStyle>
+      <Title>Corrélation NDVI vs CHIRPS (-1 à +1)</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="ramp">
+              <ColorMapEntry color="#d73027" quantity="-1.0" opacity="0.9" label="-1.0 (Forte négative)"/>
+              <ColorMapEntry color="#f46d43" quantity="-0.5" opacity="0.9" label="-0.5"/>
+              <ColorMapEntry color="#fee08b" quantity="-0.1" opacity="0.8" label="-0.1"/>
+              <ColorMapEntry color="#ffffbf" quantity="0.0" opacity="0.5" label="0.0 (Nulle)"/>
+              <ColorMapEntry color="#d9ef8b" quantity="0.2" opacity="0.8" label="0.2 (Faible)"/>
+              <ColorMapEntry color="#91cf60" quantity="0.5" opacity="0.9" label="0.5 (Modérée)"/>
+              <ColorMapEntry color="#1a9850" quantity="0.8" opacity="0.95" label="0.8 (Forte)"/>
+              <ColorMapEntry color="#006837" quantity="1.0" opacity="1.0" label="1.0 (Très forte)"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+"""
+
+SLD_PVALUE = f"""<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
+  <NamedLayer>
+    <Name>style_pvalue_significativite</Name>
+    <UserStyle>
+      <Title>Significativité p-value</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="intervals">
+              <ColorMapEntry color="#006d2c" quantity="0.01" opacity="0.9" label="Très significatif (p &lt; 0.01)"/>
+              <ColorMapEntry color="#74c476" quantity="0.05" opacity="0.8" label="Significatif (p &lt; 0.05)"/>
+              <ColorMapEntry color="#cccccc" quantity="1.00" opacity="0.3" label="Non significatif (p &gt;= 0.05)"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+"""
+
+SLD_LAG = f"""<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
+  <NamedLayer>
+    <Name>style_lag_optimal</Name>
+    <UserStyle>
+      <Title>Décalage Optimal NDVI-CHIRPS (Mois)</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="values">
+              <ColorMapEntry color="#ffff33" quantity="0" opacity="0.85" label="Lag 0 (Même mois)"/>
+              <ColorMapEntry color="#4daf4a" quantity="1" opacity="0.85" label="Lag 1 (1 mois de retard)"/>
+              <ColorMapEntry color="#377eb8" quantity="2" opacity="0.85" label="Lag 2 (2 mois de retard)"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+"""
+
+SLD_SLOPE = f"""<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld">
+  <NamedLayer>
+    <Name>style_regression_slope</Name>
+    <UserStyle>
+      <Title>Sensibilité NDVI / Pluie (Pente x 100mm)</Title>
+      <FeatureTypeStyle>
+        <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="ramp">
+              <ColorMapEntry color="#b2182b" quantity="-0.001" opacity="0.8" label="Négatif"/>
+              <ColorMapEntry color="#ffffff" quantity="0.0" opacity="0.4" label="0.0"/>
+              <ColorMapEntry color="#c7eae5" quantity="0.0005" opacity="0.8" label="Faible sensibilité"/>
+              <ColorMapEntry color="#35978f" quantity="0.0015" opacity="0.9" label="Sensibilité moyenne"/>
+              <ColorMapEntry color="#003c30" quantity="0.0030" opacity="0.95" label="Forte sensibilité"/>
+            </ColorMap>
+          </RasterSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
+    </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+"""
+
 
 
 def test_connection() -> bool:
@@ -250,6 +347,10 @@ def sync_geoserver(max_recent: int | None = None) -> bool:
     ensure_workspace()
     ensure_style("chirps_style", SLD_CHIRPS)
     ensure_style("ndvi_6classes_style", SLD_NDVI_6CLASSES)
+    ensure_style("style_correlation_ndvi_chirps", SLD_CORRELATION)
+    ensure_style("style_pvalue_significativite", SLD_PVALUE)
+    ensure_style("style_lag_optimal", SLD_LAG)
+    ensure_style("style_regression_slope", SLD_SLOPE)
 
     existing_stores = get_existing_coveragestores()
     print(f"ℹ Couches GeoServer actuellement publiées : {len(existing_stores)}")
@@ -304,6 +405,31 @@ def sync_geoserver(max_recent: int | None = None) -> bool:
         print(f"→ Envoi NDVI MODIS : {tif.name} -> {WORKSPACE}:{store_name}")
         if publish_geotiff(tif, store_name, default_style="ndvi_6classes_style"):
             published_count += 1
+
+    # 3. Traitement des Rasters de Relation NDVI-CHIRPS
+    if NDVI_CHIRPS_DIR.exists():
+        ndvi_chirps_files = sorted(NDVI_CHIRPS_DIR.glob("*.tif"))
+        if ndvi_chirps_files:
+            print(f"\n📂 Détection des rasters NDVI-CHIRPS ({len(ndvi_chirps_files)} fichiers trouvés)...")
+            style_mapping = {
+                "correlation": "style_correlation_ndvi_chirps",
+                "r_squared": "style_correlation_ndvi_chirps",
+                "pvalue": "style_pvalue_significativite",
+                "lag_optimal": "style_lag_optimal",
+                "regression": "style_regression_slope"
+            }
+            for tif in ndvi_chirps_files:
+                store_name = tif.stem
+                if store_name not in existing_stores:
+                    # Choisir le style approprié
+                    matched_style = "style_correlation_ndvi_chirps"
+                    for kw, st in style_mapping.items():
+                        if kw in store_name:
+                            matched_style = st
+                            break
+                    print(f"→ Envoi NDVI-CHIRPS : {tif.name} -> {WORKSPACE}:{store_name} (Style: {matched_style})")
+                    if publish_geotiff(tif, store_name, default_style=matched_style):
+                        published_count += 1
 
     print("\n" + "=" * 75)
     print(f"✨ SYNCHRONISATION GEOSERVER TERMINÉE : {published_count} nouvelle(s) couche(s) publiée(s).")
