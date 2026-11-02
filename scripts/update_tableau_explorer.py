@@ -17,7 +17,7 @@ if start_pos == -1 or end_pos == -1:
     print(f"Error: Markers not found! start_pos={start_pos}, end_pos={end_pos}")
     sys.exit(1)
 
-new_func = b'''function TableauExplorer({
+new_func = """function TableauExplorer({
   geojson = { type: 'FeatureCollection', features: [] },
   communesList = [],
   datasetType: propDatasetType,
