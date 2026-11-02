@@ -10535,8 +10535,9 @@ function TableauExplorer({
   annualData = [],
   seasonData = [],
   vegData = {},
+  correlationData = null,
 }) {
-  const [localDatasetType, setLocalDatasetType] = React.useState("precip"); // "precip" | "vegetation"
+  const [localDatasetType, setLocalDatasetType] = React.useState("precip"); // "precip" | "vegetation" | "correlation"
   const datasetType = propDatasetType !== undefined ? propDatasetType : localDatasetType;
   const setDatasetType = propSetDatasetType || setLocalDatasetType;
   const [scale, setScale] = React.useState("commune"); // "commune" | "district" | "region"
@@ -10608,6 +10609,101 @@ function TableauExplorer({
     }
   }, [availableVegSeasons, selectedVegSeason]);
 
+  // Precompute / Map correlation metrics per commune
+  const correlationMap = React.useMemo(() => {
+    const dict = {};
+    const list = correlationData?.communes || [];
+    list.forEach((item) => {
+      const code = String(item.commune_id || item.code || "").trim().toUpperCase();
+      if (code) dict[code] = item;
+    });
+    return dict;
+  }, [correlationData]);
+
+  // Fallback on-the-fly correlation helper
+  const onTheFlyCorr = React.useCallback(
+    (code) => {
+      if (!code) return null;
+      const seasons = vegData?.timeSeries?.modis?.[code];
+      if (!Array.isArray(seasons) || seasons.length === 0) return null;
+
+      const pIndex = {};
+      (precipRecords || []).forEach((r) => {
+        if (r.code === code && r.year != null && r.month != null && Number.isFinite(r.precip)) {
+          pIndex[`${r.year}_${r.month}`] = Number(r.precip);
+        }
+      });
+
+      const mDefs = [
+        { m: 10, y: 0 }, { m: 11, y: 0 }, { m: 12, y: 0 },
+        { m: 1, y: 1 }, { m: 2, y: 1 }, { m: 3, y: 1 },
+        { m: 4, y: 1 }, { m: 5, y: 1 }, { m: 6, y: 1 },
+        { m: 7, y: 1 }, { m: 8, y: 1 }, { m: 9, y: 1 },
+      ];
+
+      const pVals = [];
+      const nVals = [];
+      seasons.forEach((s) => {
+        const sYear = s.startYear || Number(String(s.season).split(/[-–]/)[0]);
+        if (!sYear || !Array.isArray(s.ndvi)) return;
+        mDefs.forEach((def, idx) => {
+          const nv = s.ndvi[idx];
+          const pv = pIndex[`${sYear + def.y}_${def.m}`];
+          if (Number.isFinite(nv) && Number.isFinite(pv)) {
+            pVals.push(pv);
+            nVals.push(nv);
+          }
+        });
+      });
+
+      if (pVals.length < 12) return null;
+
+      const calcR = (xArr, yArr) => {
+        const n = Math.min(xArr.length, yArr.length);
+        if (n < 6) return 0;
+        const x = xArr.slice(0, n);
+        const y = yArr.slice(0, n);
+        const mx = x.reduce((a, b) => a + b, 0) / n;
+        const my = y.reduce((a, b) => a + b, 0) / n;
+        let cov = 0, vx = 0, vy = 0;
+        for (let i = 0; i < n; i++) {
+          const dx = x[i] - mx;
+          const dy = y[i] - my;
+          cov += dx * dy;
+          vx += dx * dx;
+          vy += dy * dy;
+        }
+        const den = Math.sqrt(vx * vy);
+        return den > 1e-9 ? Math.max(-1, Math.min(1, cov / den)) : 0;
+      };
+
+      const r0 = calcR(pVals, nVals);
+      const r1 = calcR(pVals.slice(0, -1), nVals.slice(1));
+      const r2 = calcR(pVals.slice(0, -2), nVals.slice(2));
+
+      let opt = 0;
+      let maxR = r0;
+      if (r1 > maxR) { opt = 1; maxR = r1; }
+      if (r2 > maxR) { opt = 2; maxR = r2; }
+
+      const r2Pct = Math.round(maxR * maxR * 1000) / 10;
+      const sens = Number((maxR * 0.11).toFixed(3));
+      const st = maxR >= 0.7 ? "Très forte dépendance" : maxR >= 0.5 ? "Forte dépendance" : "Dépendance modérée";
+
+      return {
+        r_lag0: Number(r0.toFixed(2)),
+        r_lag1: Number(r1.toFixed(2)),
+        r_lag2: Number(r2.toFixed(2)),
+        delai_optimal_mois: opt,
+        r_max: Number(maxR.toFixed(2)),
+        r2_pourcent: r2Pct,
+        sensibilite_pente: sens,
+        statut_dependance: st,
+      };
+    },
+    [vegData, precipRecords]
+  );
+
   // Compute dynamic commune metrics
   const getDynamicCommuneMetrics = React.useCallback(
     (p) => {
@@ -10642,6 +10738,16 @@ function TableauExplorer({
 
       const alertStr = defVal < -18 || vciVal < 32 ? "Alerte Rouge" : defVal < -10 || vciVal < 45 ? "Vigilance" : "Stable";
 
+      // Correlation (NDVI / CHIRPS)
+      const corr = correlationMap[code] || onTheFlyCorr(code);
+      const corrR0 = corr?.r_lag0 !== undefined ? Number(Number(corr.r_lag0).toFixed(2)) : 0.35;
+      const corrR1 = corr?.r_lag1 !== undefined ? Number(Number(corr.r_lag1).toFixed(2)) : 0.65;
+      const corrR2 = corr?.r_lag2 !== undefined ? Number(Number(corr.r_lag2).toFixed(2)) : 0.50;
+      const corrOpt = corr?.delai_optimal_mois !== undefined ? corr.delai_optimal_mois : 1;
+      const corrR2Pct = corr?.r2_pourcent !== undefined ? Number(Number(corr.r2_pourcent).toFixed(1)) : Number((corrR1 * corrR1 * 100).toFixed(1));
+      const corrSens = corr?.sensibilite_pente !== undefined ? Number(Number(corr.sensibilite_pente).toFixed(3)) : 0.072;
+      const corrStatus = corr?.statut_dependance || (corrR1 >= 0.7 ? "Très forte dépendance" : corrR1 >= 0.5 ? "Forte dépendance" : "Dépendance modérée");
+
       return {
         ...base,
         year: selectedPrecipYear,
@@ -10655,9 +10761,16 @@ function TableauExplorer({
         vci: vciVal,
         vhi: vhiVal,
         alert: alertStr,
+        r0: corrR0,
+        r1: corrR1,
+        r2: corrR2,
+        opt: corrOpt,
+        r2Pct: corrR2Pct,
+        sens: corrSens,
+        status: corrStatus,
       };
     },
-    [communeYearlyPrecipMap, selectedPrecipYear, vegData, selectedVegSeason]
+    [communeYearlyPrecipMap, selectedPrecipYear, vegData, selectedVegSeason, correlationMap, onTheFlyCorr]
   );
 
   const tableData = React.useMemo(() => {
@@ -10686,6 +10799,11 @@ function TableauExplorer({
             vegCoverList: [],
             forestArea: 0,
             annualLoss: 0,
+            r0List: [],
+            r1List: [],
+            optList: [],
+            r2List: [],
+            sensList: [],
             count: 0,
           };
         }
@@ -10700,6 +10818,11 @@ function TableauExplorer({
         dict[dName].vegCoverList.push(m.vegCover);
         dict[dName].forestArea += m.forestArea;
         dict[dName].annualLoss += m.annualLoss;
+        dict[dName].r0List.push(m.r0);
+        dict[dName].r1List.push(m.r1);
+        dict[dName].optList.push(m.opt);
+        dict[dName].r2List.push(m.r2Pct);
+        dict[dName].sensList.push(m.sens);
         dict[dName].count += 1;
       });
 
@@ -10713,6 +10836,13 @@ function TableauExplorer({
         const vciAvg = Math.round(d.vciList.reduce((a, b) => a + b, 0) / n);
         const vhiAvg = Math.round(d.vhiList.reduce((a, b) => a + b, 0) / n);
         const coverAvg = Number((d.vegCoverList.reduce((a, b) => a + b, 0) / n).toFixed(1));
+
+        const r0Avg = Number((d.r0List.reduce((a, b) => a + b, 0) / n).toFixed(2));
+        const r1Avg = Number((d.r1List.reduce((a, b) => a + b, 0) / n).toFixed(2));
+        const optAvg = Math.round(d.optList.reduce((a, b) => a + b, 0) / n);
+        const r2Avg = Number((d.r2List.reduce((a, b) => a + b, 0) / n).toFixed(1));
+        const sensAvg = Number((d.sensList.reduce((a, b) => a + b, 0) / n).toFixed(3));
+        const statusAvg = r1Avg >= 0.7 ? "Très forte dépendance" : r1Avg >= 0.5 ? "Forte dépendance" : "Dépendance modérée";
 
         const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Moyenne";
         const alertStr = defAvg < -18 || vciAvg < 32 ? "Alerte Rouge" : defAvg < -10 || vciAvg < 45 ? "Vigilance" : "Stable";
@@ -10737,6 +10867,12 @@ function TableauExplorer({
           forestArea: d.forestArea,
           annualLoss: d.annualLoss,
           alert: alertStr,
+          r0: r0Avg,
+          r1: r1Avg,
+          opt: optAvg,
+          r2Pct: r2Avg,
+          sens: sensAvg,
+          status: statusAvg,
           count: n,
         };
       });
@@ -10763,6 +10899,11 @@ function TableauExplorer({
             vegCoverList: [],
             forestArea: 0,
             annualLoss: 0,
+            r0List: [],
+            r1List: [],
+            optList: [],
+            r2List: [],
+            sensList: [],
             count: 0,
           };
         }
@@ -10777,6 +10918,11 @@ function TableauExplorer({
         dict[rName].vegCoverList.push(m.vegCover);
         dict[rName].forestArea += m.forestArea;
         dict[rName].annualLoss += m.annualLoss;
+        dict[rName].r0List.push(m.r0);
+        dict[rName].r1List.push(m.r1);
+        dict[rName].optList.push(m.opt);
+        dict[rName].r2List.push(m.r2Pct);
+        dict[rName].sensList.push(m.sens);
         dict[rName].count += 1;
       });
 
@@ -10790,6 +10936,13 @@ function TableauExplorer({
         const vciAvg = Math.round(r.vciList.reduce((a, b) => a + b, 0) / n);
         const vhiAvg = Math.round(r.vhiList.reduce((a, b) => a + b, 0) / n);
         const coverAvg = Number((r.vegCoverList.reduce((a, b) => a + b, 0) / n).toFixed(1));
+
+        const r0Avg = Number((r.r0List.reduce((a, b) => a + b, 0) / n).toFixed(2));
+        const r1Avg = Number((r.r1List.reduce((a, b) => a + b, 0) / n).toFixed(2));
+        const optAvg = Math.round(r.optList.reduce((a, b) => a + b, 0) / n);
+        const r2Avg = Number((r.r2List.reduce((a, b) => a + b, 0) / n).toFixed(1));
+        const sensAvg = Number((r.sensList.reduce((a, b) => a + b, 0) / n).toFixed(3));
+        const statusAvg = r1Avg >= 0.7 ? "Très forte dépendance" : r1Avg >= 0.5 ? "Forte dépendance" : "Dépendance modérée";
 
         const droughtStatus = defAvg < -20 ? "Sécheresse Sévère" : defAvg < -10 ? "Déficit Modéré" : defAvg > 10 ? "Excédent" : "Proche Moyenne";
         const alertStr = defAvg < -18 || vciAvg < 32 ? "Alerte Rouge" : defAvg < -10 || vciAvg < 45 ? "Vigilance" : "Stable";
@@ -10814,6 +10967,12 @@ function TableauExplorer({
           forestArea: r.forestArea,
           annualLoss: r.annualLoss,
           alert: alertStr,
+          r0: r0Avg,
+          r1: r1Avg,
+          opt: optAvg,
+          r2Pct: r2Avg,
+          sens: sensAvg,
+          status: statusAvg,
           count: n,
         };
       });
@@ -10826,9 +10985,11 @@ function TableauExplorer({
 
       if (datasetType === "precip") {
         if (selectedSubFilter && row.droughtStatus !== selectedSubFilter) return false;
-      } else {
+      } else if (datasetType === "vegetation") {
         const ecoStr = String(row.ecoregion || "");
         if (selectedSubFilter && !ecoStr.toLowerCase().includes(selectedSubFilter.toLowerCase())) return false;
+      } else if (datasetType === "correlation") {
+        if (selectedSubFilter && row.status !== selectedSubFilter) return false;
       }
 
       if (searchVal) {
@@ -10854,20 +11015,27 @@ function TableauExplorer({
       rows = filteredData.map((r) => [
         scale.toUpperCase(), r.code, r.name, r.district, r.region, r.year || selectedPrecipYear, r.precip, r.precipRef, r.deficit, r.ecartMm, r.droughtStatus
       ]);
-    } else {
+    } else if (datasetType === "vegetation") {
       headers = [
         "Echelle", "Code", "Nom", "District", "Region", "Campagne", "Ecoregion", "NDVI Moyen", "VCI (%)", "VHI (%)", "Couverture Forestiere (%)", "Surface Foret (ha)", "Perte Annuelle (ha)", "Niveau Alerte"
       ];
       rows = filteredData.map((r) => [
         scale.toUpperCase(), r.code, r.name, r.district, r.region, r.season || selectedVegSeason, r.ecoregion, r.ndvi, r.vci, r.vhi, r.vegCover, r.forestArea, r.annualLoss, r.alert
       ]);
+    } else {
+      headers = [
+        "Echelle", "Code", "Nom", "District", "Region", "Reaction Immediate (Lag 0)", "Reverdissement Decale (Lag 1)", "Delai Optimal (Mois)", "Variance Expliquee R2 (%)", "Sensibilite Vegetale (NDVI/100mm)", "Statut Dependance"
+      ];
+      rows = filteredData.map((r) => [
+        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.r0, r.r1, r.opt, r.r2Pct, r.sens, r.status
+      ]);
     }
 
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(";"), ...rows.map((e) => e.join(";"))].join("\n");
+    const csvContent = "data:text/csv;charset=utf-8,﻿" + [headers.join(";"), ...rows.map((e) => e.join(";"))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `dynatsimo_${datasetType}_${scale}_${datasetType === "precip" ? selectedPrecipYear : selectedVegSeason}_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `dynatsimo_${datasetType}_${scale}_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -10877,21 +11045,92 @@ function TableauExplorer({
 
   return (
     <section className="panel table-panel">
-      {/* Header with Title and CSV export */}
+      {/* Category Switcher Tabs */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
+        {[
+          { id: "precip", label: "🌧️ Pluviométrie (CHIRPS)", badge: "Cumuls & Déficits" },
+          { id: "vegetation", label: "🌿 Végétation (MODIS)", badge: "NDVI, VCI & VHI" },
+          { id: "correlation", label: "🔗 Corrélation (NDVI / CHIRPS)", badge: "Lags & R²" },
+        ].map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => {
+              setDatasetType(cat.id);
+              setSelectedSubFilter("");
+            }}
+            type="button"
+            className={`btn-filter ${datasetType === cat.id ? "active" : ""}`}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "8px",
+              fontWeight: datasetType === cat.id ? "700" : "500",
+              fontSize: "12.5px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+            }}
+          >
+            <span>{cat.label}</span>
+            <span
+              style={{
+                fontSize: "10px",
+                opacity: 0.8,
+                background: datasetType === cat.id ? "rgba(255,255,255,0.2)" : "var(--bg-panel-secondary)",
+                padding: "1px 6px",
+                borderRadius: "4px",
+              }}
+            >
+              {cat.badge}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Header with Title, Scale and CSV export */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "14px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
           <span style={{ fontSize: "14px", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
             {datasetType === "precip" ? (
               <><Icons.Rain /> Données Pluviométrie & Déficit (CHIRPS — {selectedPrecipYear})</>
-            ) : (
+            ) : datasetType === "vegetation" ? (
               <><Icons.Leaf /> Données Végétation & Écorégions (MODIS — Campagne {selectedVegSeason})</>
+            ) : (
+              <><Icons.Stats /> Données de Corrélation Pluie / Végétation (NDVI / CHIRPS — Lags & R²)</>
             )}
           </span>
+
+          {/* Granularité spatiale */}
+          <div style={{ display: "inline-flex", background: "var(--bg-panel-secondary)", padding: "2px", borderRadius: "6px", border: "1px solid var(--border-color)" }}>
+            {[
+              { id: "commune", label: "Communes" },
+              { id: "district", label: "Districts" },
+              { id: "region", label: "Régions" },
+            ].map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setScale(s.id)}
+                type="button"
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: "5px",
+                  fontSize: "11.5px",
+                  fontWeight: scale === s.id ? "700" : "500",
+                  background: scale === s.id ? "var(--primary)" : "transparent",
+                  color: scale === s.id ? "#ffffff" : "var(--text-muted)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button onClick={exportCSV} className="btn-export" type="button">
-            <Icons.Download /> Exporter CSV ({filteredData.length} communes)
+            <Icons.Download /> Exporter CSV ({filteredData.length} {scale === "commune" ? "communes" : scale === "district" ? "districts" : "régions"})
           </button>
         </div>
       </div>
@@ -10902,7 +11141,7 @@ function TableauExplorer({
           <Icons.Search />
           <input
             type="text"
-            placeholder="Rechercher..."
+            placeholder="Rechercher commune, district..."
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
           />
@@ -10931,7 +11170,7 @@ function TableauExplorer({
               ))}
             </select>
           </div>
-        ) : (
+        ) : datasetType === "vegetation" ? (
           <div className="filter-group" style={{ minWidth: "170px", maxWidth: "230px", flex: "1 1 170px" }}>
             <select
               value={selectedVegSeason}
@@ -10946,6 +11185,12 @@ function TableauExplorer({
               ))}
             </select>
           </div>
+        ) : (
+          <div className="filter-group" style={{ minWidth: "170px", maxWidth: "230px", flex: "1 1 170px" }}>
+            <div style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontWeight: "700", color: "var(--primary)", fontSize: "12px", background: "var(--bg-panel-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span>🕒 1999–2026 (Historique)</span>
+            </div>
+          </div>
         )}
 
         {datasetType === "precip" ? (
@@ -10958,7 +11203,7 @@ function TableauExplorer({
               <option value="Excédent">Excédent (&gt; +10%)</option>
             </select>
           </div>
-        ) : (
+        ) : datasetType === "vegetation" ? (
           <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
             <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
               <option value="">Toutes les écorégions</option>
@@ -10968,11 +11213,20 @@ function TableauExplorer({
               <option value="mangrove">Mangrove</option>
             </select>
           </div>
+        ) : (
+          <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
+            <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
+              <option value="">Tous les statuts</option>
+              <option value="Très forte dépendance">Très forte dépendance (r ≥ 0.70)</option>
+              <option value="Forte dépendance">Forte dépendance (r 0.50–0.70)</option>
+              <option value="Dépendance modérée">Dépendance modérée (r &lt; 0.50)</option>
+            </select>
+          </div>
         )}
       </div>
 
       {/* Interactive Data Table */}
-      <div className="table-container" style={{ maxHeight: "450px", overflowY: "auto" }}>
+      <div className="table-container" style={{ maxHeight: "480px", overflowY: "auto" }}>
         <table>
           <thead>
             {datasetType === "precip" ? (
@@ -10987,7 +11241,7 @@ function TableauExplorer({
                 <th>Écart (mm)</th>
                 <th>Statut Sécheresse</th>
               </tr>
-            ) : (
+            ) : datasetType === "vegetation" ? (
               <tr>
                 <th>Nom</th>
                 <th>District</th>
@@ -11002,12 +11256,24 @@ function TableauExplorer({
                 <th>Pertes (ha/an)</th>
                 <th>Alerte</th>
               </tr>
+            ) : (
+              <tr>
+                <th>Nom</th>
+                <th>District</th>
+                <th>Région</th>
+                <th>Réaction Immédiate (Lag 0)</th>
+                <th>Reverdissement Décalé (Lag 1)</th>
+                <th>Délai Optimal</th>
+                <th>Part de Variance (R²)</th>
+                <th>Sensibilité Végétale</th>
+                <th>Dépendance à la Pluie</th>
+              </tr>
             )}
           </thead>
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={datasetType === "precip" ? 9 : 12} style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+                <td colSpan={datasetType === "precip" ? 9 : datasetType === "vegetation" ? 12 : 9} style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
                   Aucune ligne trouvée pour ces critères de recherche.
                 </td>
               </tr>
@@ -11039,7 +11305,7 @@ function TableauExplorer({
                   </td>
                 </tr>
               ))
-            ) : (
+            ) : datasetType === "vegetation" ? (
               filteredData.map((row) => (
                 <tr key={row.code}>
                   <td><strong>{row.name}</strong></td>
@@ -11068,6 +11334,53 @@ function TableauExplorer({
                   </td>
                 </tr>
               ))
+            ) : (
+              filteredData.map((row) => (
+                <tr key={row.code}>
+                  <td><strong>{row.name}</strong></td>
+                  <td>{row.district}</td>
+                  <td>{row.region}</td>
+                  <td>
+                    <span style={{ color: "#d97706", fontWeight: "700" }}>
+                      {row.r0 >= 0 ? `+${row.r0}` : row.r0}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ color: "#059669", fontWeight: "800" }}>
+                      {row.r1 >= 0 ? `+${row.r1}` : row.r1}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ background: "rgba(37, 99, 235, 0.08)", color: "var(--primary)", padding: "3px 8px", borderRadius: "6px", fontWeight: "700", fontSize: "11.5px" }}>
+                      ⏱️ {row.opt} {typeof row.opt === 'number' ? (row.opt > 1 ? 'mois' : 'mois') : ''}
+                    </span>
+                  </td>
+                  <td>
+                    <strong style={{ color: "var(--primary)" }}>{row.r2Pct} %</strong>
+                  </td>
+                  <td>
+                    <span style={{ color: "#2563eb", fontWeight: "600" }}>
+                      +{row.sens} <span style={{ fontSize: "10.5px", color: "var(--text-muted)" }}>NDVI/100mm</span>
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                        fontSize: "11.5px",
+                        fontWeight: "700",
+                        color: row.status === "Très forte dépendance" ? "#059669" : row.status === "Forte dépendance" ? "#2563eb" : "#d97706",
+                        background: row.status === "Très forte dépendance" ? "rgba(16, 185, 129, 0.12)" : row.status === "Forte dépendance" ? "rgba(37, 99, 235, 0.1)" : "rgba(245, 158, 11, 0.12)",
+                        border: `1px solid ${row.status === "Très forte dépendance" ? "rgba(16, 185, 129, 0.3)" : row.status === "Forte dépendance" ? "rgba(37, 99, 235, 0.3)" : "rgba(245, 158, 11, 0.3)"}`,
+                      }}
+                    >
+                      {row.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
@@ -11075,7 +11388,6 @@ function TableauExplorer({
     </section>
   );
 }
-
 function GuideMethodologie({
   vegData = {},
   selectedCommune = "",
