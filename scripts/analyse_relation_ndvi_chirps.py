@@ -1,26 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-DYNATSIMO — Analyse Spatio-Temporelle des Relations entre NDVI et CHIRPS (Par Mois / Année & Globale)
-
-Ce script :
-1. Calcule la relation couplée mensuelle pixel par pixel pour chaque mois et chaque année (2000 à 2026+) :
-   - Indice de Couplage Agro-Climatique (Joint Drought & Vigor Index basé sur anomalies standardisées)
-   - Classification en 5 états d'interaction Eau-Végétation (Sécheresse, Stress hydrique, Normal, Favorable, Vigueur max).
-2. Sauvegarde tous les rasters bruts GeoTIFF par mois/année dans 'NDVI_CHIRPS/{annee}/NDVI_CHIRPS_{annee}_{mois}.tif'.
-3. Génère les calques Web PNG transparents optimisés pour Leaflet dans 'public/data/raster/ndvi_chirps/{annee}/'.
-4. Calcule les métriques globales multi-annuelles (Corrélation de Pearson Lag 0, Lag 1, Décalage optimal, Pente de régression, p-value).
-5. Met à jour automatiquement 'public/data/ndvi_chirps_metadata.json' pour l'affichage interactif dans React.
-6. Publie l'ensemble des rasters et styles SLD dans GeoServer (optionnel avec --publish-geoserver).
-
-Usage :
-    python scripts/analyse_relation_ndvi_chirps.py
-    python scripts/analyse_relation_ndvi_chirps.py --publish-geoserver
-    python scripts/analyse_relation_ndvi_chirps.py --start-year 2015 --end-year 2026
-"""
-
 from __future__ import annotations
-
 import argparse
 import json
 import os

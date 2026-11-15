@@ -394,6 +394,49 @@ input[type="checkbox"] {
   font-weight: 700;
 }
 
+.nav-sub-item svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: currentColor;
+  transition: transform var(--transition-fast);
+}
+
+.nav-sub-item:hover svg,
+.nav-sub-item.active svg {
+  transform: scale(1.08);
+}
+
+.basemap-icon svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.guide-tab-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.scale-tab-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.btn-subtab svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.btn-filter svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
 .sidebar-footer {
   display: flex;
   flex-direction: column;
@@ -2879,6 +2922,8 @@ tr:hover td {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 6px;
 }
