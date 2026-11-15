@@ -24,12 +24,12 @@ import {
 } from "recharts";
 
 const tabs = [
-  { id: "all", label: "Vue Complète (Page Unique)" },
   { id: "overview", label: "Vue d'ensemble" },
   { id: "carte", label: "Cartographie" },
   { id: "stats", label: "Statistiques" },
   { id: "data", label: "Base de Données" },
   { id: "guide", label: "Guide & Méthodologie" },
+  { id: "all", label: "Vue Complète" },
 ];
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -52,271 +52,322 @@ const staticDataFiles = {
 
 const Icons = {
   Dashboard: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25A2.25 2.25 0 0010.5 14.25V3.75A2.25 2.25 0 008.25 1.5H6A2.25 2.25 0 003.75 3.75zM13.5 3v6A2.25 2.25 0 0015.75 11.25h2.25A2.25 2.25 0 0020.25 9V3.75A2.25 2.25 0 0018 1.5h-2.25A2.25 2.25 0 0013.5 3.75zM13.5 15.75v4.5A2.25 2.25 0 0015.75 22.5h2.25A2.25 2.25 0 0020.25 20.25v-4.5A2.25 2.25 0 0018 13.5h-2.25A2.25 2.25 0 0013.5 15.75zM3.75 20.25v.75A1.5 1.5 0 005.25 22.5h3A1.5 1.5 0 009.75 21v-.75A1.5 1.5 0 008.25 18.75h-3A1.5 1.5 0 003.75 20.25z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <rect x="3" y="3" width="7" height="9" rx="1.5" />
+      <rect x="14" y="3" width="7" height="5" rx="1.5" />
+      <rect x="14" y="12" width="7" height="9" rx="1.5" />
+      <rect x="3" y="16" width="7" height="5" rx="1.5" />
     </svg>
   ),
   Overview: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
     </svg>
   ),
   Rain: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19.5v2.25m3-2.25v2.25m3-2.25v2.25" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M4 14.899A7 7 0 1115.71 8h1.79a4.5 4.5 0 012.5 8.242" />
+      <path d="M16 14v6m-4-4v6m-4-4v6" />
     </svg>
   ),
   Stats: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 18.375v-5.25zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-9.75zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <line x1="18" y1="20" x2="18" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+      <line x1="12" y1="20" x2="12" y2="10" />
     </svg>
   ),
   Map: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75h12m-12 5.25h12m-12 5.25h12M3 6.75h.008v.008H3V6.75zm0 5.25h.008v.008H3V12zm0 5.25h.008v.008H3v-.008z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+      <line x1="9" y1="3" x2="9" y2="18" />
+      <line x1="15" y1="6" x2="15" y2="21" />
     </svg>
   ),
   Table: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18M3 15h18M9 9v12M15 9v12" />
     </svg>
   ),
   Sun: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m0 13.5V21m6.364-16.364l-1.591 1.591M6.343 17.657l-1.591 1.591m12.728 0l-1.591-1.591M6.343 6.343L4.752 4.752M3 12h2.25m13.5 0H21M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m14.14-14.14l-1.41 1.41" />
     </svg>
   ),
   Moon: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
     </svg>
   ),
   Search: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   ),
   Download: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   ),
   Info: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
     </svg>
   ),
   Database: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75M3.75 10.125v3.75m16.5 0v3.75M3.75 13.875v3.75" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
     </svg>
   ),
   Leaf: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21V9m0 0a4.5 4.5 0 00-4.5 4.5M12 9a4.5 4.5 0 014.5 4.5m-4.5-4.5V3" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M11 20A7 7 0 014 13C4 7 11 3 20 3c0 9-4 16-9 17z" />
+      <path d="M4 21c4-4 7-8 9-14" />
     </svg>
   ),
   Layers: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L12 7.5l5.571 2.25m1.179 2.25l4.179-2.25-4.179-2.25m0 4.5l-5.571 3-5.571-3M2.25 12l4.179 2.25m11.142 0L21.75 12M6.429 14.25v3.5A2.25 2.25 0 008.679 20h6.642a2.25 2.25 0 002.25-2.25v-3.5" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+      <polyline points="2 17 12 22 22 17" />
+      <polyline points="2 12 12 17 22 12" />
     </svg>
   ),
   Alert: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   ),
   Menu: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   ),
   Close: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   ),
   Guide: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
     </svg>
   ),
   Calendar: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   TrendingUp: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
     </svg>
   ),
   TrendingDown: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6L9 12.75l4.286-4.286a11.948 11.948 0 014.306 6.43l.776 2.876m0 0l-3.182-5.51m3.182 5.51l-5.51-3.182" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+      <polyline points="17 18 23 18 23 12" />
     </svg>
   ),
   Pin: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+      <circle cx="12" cy="10" r="3" />
     </svg>
   ),
   Scale: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0H7.5m4.5 0h4.5M3.75 6.75h16.5M6 6.75l-2.25 6.75h4.5L6 6.75zm12 0l-2.25 6.75h4.5L18 6.75z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M12 3v18M7 21h10M4 7l4 8M20 7l-4 8M1 7h6M17 7h6" />
     </svg>
   ),
   Droplet: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75c-3.75 4.5-6.75 8.25-6.75 11.25a6.75 6.75 0 0013.5 0c0-3-3-6.75-6.75-11.25z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
     </svg>
   ),
   Ruler: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21l16.5-16.5M6 18.75l1.5-1.5m1.5 4.5l1.5-1.5m1.5 4.5l1.5-1.5m1.5 4.5l1.5-1.5M4.5 4.5h15v15" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M21.3 8.7l-6-6a1 1 0 00-1.4 0l-11.2 11.2a1 1 0 000 1.4l6 6a1 1 0 001.4 0l11.2-11.2a1 1 0 000-1.4zM7.5 10.5l2-2M10.5 13.5l2-2M13.5 16.5l2-2" />
     </svg>
   ),
   Clock: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
     </svg>
   ),
   Hourglass: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 3h12M6 21h12M7.5 3v4.5a4.5 4.5 0 004.5 4.5 4.5 4.5 0 00-4.5 4.5V21m9-18v4.5a4.5 4.5 0 01-4.5 4.5 4.5 4.5 0 014.5 4.5V21" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 00-.586-1.414L12 12l-4.414 4.414A2 2 0 007 17.828V22M7 2v4.172a2 2 0 00.586 1.414L12 12l4.414-4.414A2 2 0 0017 6.172V2" />
     </svg>
   ),
   Sprout: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-7m0 0c0-3.314-2.686-6-6-6 0 3.314 2.686 6 6 6zm0 0c0-3.314 2.686-6 6-6 0 3.314-2.686 6-6 6z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M7 20h10M12 20v-8M12 12a5 5 0 015-5c0 4.5-3.5 7-5 7M12 13a5 5 0 00-5-5c0 4.5 3.5 7 5 7" />
     </svg>
   ),
   Tree: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-3m0 0l-5-4h2.5L6.5 10h2.5L12 4l3 6h2.5l-3 4H17l-5 4z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M12 22v-5M12 2l-6 7h3l-4 6h14l-4-6h3z" />
     </svg>
   ),
   Satellite: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6L18 10.5m-4.5-4.5l-2.25 2.25m6.75 2.25l-2.25 2.25m-6.75-2.25l4.5 4.5m-6.75 6.75a13.5 13.5 0 010-19.092m0 19.092a13.5 13.5 0 0019.092 0M3 21l3.75-3.75" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M13 7l4 4M9 11l4 4M8 12l-5 5a2 2 0 000 2.83 2 2 0 002.83 0l5-5M16 4l5 5M12 8l4-4a2 2 0 012.83 0 2 2 0 010 2.83l-4 4" />
+      <path d="M17 17a5 5 0 01-7-7" />
     </svg>
   ),
   Globe: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0c-2.5 0-4.5-4-4.5-9s2-9 4.5-9 4.5 4 4.5 9-2 9-4.5 9zm-9-9h18" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
     </svg>
   ),
   Play: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="5 3 19 12 5 21 5 3" />
     </svg>
   ),
   Pause: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75.75v12a.75.75 0 01-1.5 0v-12a.75.75 0 01.75-.75zm9 0a.75.75 0 01.75.75v12a.75.75 0 01-1.5 0v-12a.75.75 0 01.75-.75z" clipRule="evenodd" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
     </svg>
   ),
   SkipBack: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M5.25 4.5a.75.75 0 01.75.75v13.5a.75.75 0 01-1.5 0V5.25a.75.75 0 01.75-.75zm13.916 2.054a.75.75 0 00-1.166-.63l-9 6a.75.75 0 000 1.26l9 6a.75.75 0 001.166-.63V6.554z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="19 20 9 12 19 4 19 20" />
+      <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
     </svg>
   ),
   SkipForward: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4.834 6.554a.75.75 0 011.166-.63l9 6a.75.75 0 010 1.26l-9 6A.75.75 0 014.834 18.5V6.554zm13.916-2.054a.75.75 0 01.75.75v13.5a.75.75 0 01-1.5 0V5.25a.75.75 0 01.75-.75z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="5 4 15 12 5 20 5 4" />
+      <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
     </svg>
   ),
   Check: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   ),
   Crosshair: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v3m0 12v3M3 12h3m12 0h3m-4.5 0a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="22" y1="12" x2="18" y2="12" />
+      <line x1="6" y1="12" x2="2" y2="12" />
+      <line x1="12" y1="6" x2="12" y2="2" />
+      <line x1="12" y1="22" x2="12" y2="18" />
     </svg>
   ),
   Zap: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
     </svg>
   ),
   Flame: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 3.75 3.75 0 001.43 3.921z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z" />
     </svg>
   ),
   Lightbulb: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6 6 0 10-6-6 6 6 0 006 6zm-3.75 8.25h7.5m-6 3h4.5" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M9 18h6M10 22h4M15 14a6 6 0 10-6 0c0 1.5.5 2.5 1 3h4c.5-.5 1-1.5 1-3z" />
     </svg>
   ),
   Star: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   ),
   Link: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.636l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
     </svg>
   ),
   Clipboard: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 3.75H6.75A2.25 2.25 0 004.5 6v13.5A2.25 2.25 0 006.75 21h10.5A2.25 2.25 0 0019.5 19.5V6a2.25 2.25 0 00-2.25-2.25H15M9 3.75A2.25 2.25 0 0111.25 1.5h1.5A2.25 2.25 0 0115 3.75M9 3.75h6m-6 6h6m-6 3.75h6m-6 3.75h3" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
     </svg>
   ),
   BookOpen: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
     </svg>
   ),
   Mountain: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 19.5L8.25 7.5l4.5 9 3-4.5 6 7.5H2.25z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M8 3l4 8 5-5 5 15H2L8 3z" />
     </svg>
   ),
   Box: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
     </svg>
   ),
   Sparkles: (props) => (
-    <svg width={18} height={18} style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ width: "18px", height: "18px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z" />
     </svg>
   ),
   ArrowUp: (props) => (
-    <svg width={14} height={14} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clipRule="evenodd" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
     </svg>
   ),
   ArrowDown: (props) => (
-    <svg width={14} height={14} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clipRule="evenodd" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <polyline points="19 12 12 19 5 12" />
     </svg>
   ),
   Circle: (props) => (
-    <svg width={14} height={14} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill={props?.fill || "currentColor"}>
-      <circle cx="10" cy="10" r="7" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill={props?.fill || "currentColor"} stroke="none" style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="8" />
     </svg>
   ),
   CircleDot: (props) => (
-    <svg width={14} height={14} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-      <circle cx="10" cy="10" r="5" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="3" fill="currentColor" />
     </svg>
   ),
   Diamond: (props) => (
-    <svg width={14} height={14} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={props?.fill || "currentColor"} stroke={props?.stroke || "none"} strokeWidth={props?.strokeWidth || 0}>
-      <path d="M12 2.25L21.75 12 12 21.75 2.25 12z" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill={props?.fill || "currentColor"} stroke="none" style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <polygon points="12 2 22 12 12 22 2 12" />
     </svg>
   ),
   Square: (props) => (
-    <svg width={14} height={14} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={props?.fill || "none"} stroke={props?.stroke || "currentColor"} strokeWidth={props?.strokeWidth || 2}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
+    <svg width={14} height={14} viewBox="0 0 24 24" fill={props?.fill || "none"} stroke="currentColor" strokeWidth={2} style={{ width: "14px", height: "14px", flexShrink: 0, ...props?.style }} className={props?.className}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
     </svg>
   ),
 };
@@ -592,7 +643,7 @@ function CommuneSearchBar({
             }}
             title="Effacer la recherche"
           >
-            &times;
+            <Icons.Close style={{ width: 13, height: 13 }} />
           </button>
         )}
       </div>
@@ -778,7 +829,7 @@ class ErrorBoundary extends React.Component {
 
 function App() {
 
-  const [activeTab, setActiveTab] = React.useState("all");
+  const [activeTab, setActiveTab] = React.useState("overview");
   const [statsCategory, setStatsCategory] = React.useState("precip");
   const [mapSubItem, setMapSubItem] = React.useState("precip");
   const [dataCategory, setDataCategory] = React.useState("precip");
@@ -1250,7 +1301,6 @@ function App() {
               annualData={data.annualData}
               ndviClasses={data.ndviClasses}
               isohyetesMeta={data.isohyetesMeta}
-          ndviChirpsMeta={data.ndviChirpsMeta}
               ndviChirpsMeta={data.ndviChirpsMeta}
               mapSubItem={mapSubItem}
               setMapSubItem={setMapSubItem}
@@ -1358,22 +1408,22 @@ function UnifiedSinglePage({
       <div className="unified-nav-bar">
         <div className="unified-nav-scroll">
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-overview")}>
-            <span className="pill-num">01</span> <Icons.Overview style={{ width: 13, height: 13 }} /> Vue d'ensemble
+            <Icons.Overview style={{ width: 14, height: 14 }} /> <span>Vue d'ensemble</span>
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-carte")}>
-            <span className="pill-num">02</span> <Icons.Map style={{ width: 13, height: 13 }} /> Cartographie Agrandie
+            <Icons.Map style={{ width: 14, height: 14 }} /> <span>Cartographie</span>
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-stats-precip")}>
-            <span className="pill-num">03</span> <Icons.Rain style={{ width: 13, height: 13 }} /> Pluviométrie
+            <Icons.Rain style={{ width: 14, height: 14 }} /> <span>Pluviométrie</span>
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-stats-veg")}>
-            <span className="pill-num">04</span> <Icons.Leaf style={{ width: 13, height: 13 }} /> Végétation NDVI
+            <Icons.Leaf style={{ width: 14, height: 14 }} /> <span>Végétation NDVI</span>
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-data")}>
-            <span className="pill-num">05</span> <Icons.Database style={{ width: 13, height: 13 }} /> Base de Données
+            <Icons.Database style={{ width: 14, height: 14 }} /> <span>Base de Données</span>
           </button>
           <button type="button" className="unified-nav-pill" onClick={() => scrollTo("sec-guide")}>
-            <span className="pill-num">06</span> <Icons.Guide style={{ width: 13, height: 13 }} /> Guide & Capteurs
+            <Icons.Guide style={{ width: 14, height: 14 }} /> <span>Guide & Méthodologie</span>
           </button>
         </div>
       </div>
@@ -3803,7 +3853,7 @@ function Saison({
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>3. Durée de la Saison (D)</span>
-                <span style={{ color: "#10b981", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Clock style={{ width: 13, height: 13 }} /> Durée</span>
+                <span className="svg-chip svg-chip-green"><Icons.Clock style={{ width: 13, height: 13 }} /> Durée</span>
               </div>
               <div className="formula-code">
                 D = (12 - M_début + 1) + M_fin  (en mois)
@@ -3839,7 +3889,7 @@ function Saison({
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>1. Mois le Plus Pluvieux (M_max)</span>
-                <span style={{ color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Rain style={{ width: 13, height: 13 }} /> Pic</span>
+                <span className="svg-chip svg-chip-blue"><Icons.Rain style={{ width: 13, height: 13 }} /> Pic</span>
               </div>
               <div className="formula-code">
                 M_max = argmax_(m ∈ [M_début ... M_fin]) ( P_m )
@@ -3862,7 +3912,7 @@ function Saison({
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>2. Précipitation Maximale (P_max)</span>
-                <span style={{ color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Stats style={{ width: 13, height: 13 }} /> Hauteur</span>
+                <span className="svg-chip svg-chip-purple"><Icons.Stats style={{ width: 13, height: 13 }} /> Hauteur</span>
               </div>
               <div className="formula-code">
                 P_max = max_(m ∈ [M_début ... M_fin]) ( P_m )  (en mm)
@@ -3881,7 +3931,7 @@ function Saison({
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>3. Contribution au Bilan Annuel</span>
-                <span style={{ color: "#f59e0b", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Droplet style={{ width: 13, height: 13 }} /> % Annuel</span>
+                <span className="svg-chip svg-chip-amber"><Icons.Droplet style={{ width: 13, height: 13 }} /> % Annuel</span>
               </div>
               <div className="formula-code">
                 Part_max = (P_max / P_annuel) × 100 %
@@ -3917,7 +3967,7 @@ function Saison({
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>1. Fenêtre Pluvieuse Active</span>
-                <span style={{ color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Calendar style={{ width: 13, height: 13 }} /> Période</span>
+                <span className="svg-chip svg-chip-blue"><Icons.Calendar style={{ width: 13, height: 13 }} /> Période</span>
               </div>
               <div className="formula-code">
                 Saison = [ M_début → M_fin ]  sur cycle hydrologique (Oct à Sep)
@@ -3936,7 +3986,7 @@ function Saison({
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>2. Positionnement sur l'Axe</span>
-                <span style={{ color: "#10b981", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Ruler style={{ width: 13, height: 13 }} /> Échelle</span>
+                <span className="svg-chip svg-chip-green"><Icons.Ruler style={{ width: 13, height: 13 }} /> Échelle</span>
               </div>
               <div className="formula-code">
                 Départ = (Index_début / 12) × 100%,  Largeur = (D / 12) × 100%
@@ -5437,39 +5487,6 @@ function Statistiques({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      {/* Category Switcher Tabs */}
-      <div className="stats-category-tabs" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
-        {[
-          { id: "precip", label: "Pluviométrie", icon: Icons.Rain },
-          { id: "vegetation", label: "Suivi Végétation", icon: Icons.Leaf },
-          { id: "correlation", label: "Végétation & Pluie (Corrélation)", icon: Icons.Stats },
-        ].map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            className={`btn-subtab ${statsCategory === cat.id ? "active" : ""}`}
-            style={{
-              padding: "8px 16px",
-              fontWeight: 700,
-              fontSize: "12.5px",
-              borderRadius: "8px",
-              border: statsCategory === cat.id ? "2px solid var(--primary)" : "1px solid var(--border-color)",
-              backgroundColor: statsCategory === cat.id ? "var(--primary)" : "var(--bg-panel)",
-              color: statsCategory === cat.id ? "#ffffff" : "var(--text-main)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-            onClick={() => setStatsCategory(cat.id)}
-          >
-            {cat.icon && <cat.icon style={{ width: 15, height: 15, flexShrink: 0 }} />}
-            <span>{cat.label}</span>
-          </button>
-        ))}
-      </div>
-
       {statsCategory === "correlation" && (
         <StatistiquesCorrelation
           communes={communes}
@@ -6326,7 +6343,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>3. Durée de la Saison (D)</span>
-                    <span style={{ color: "#10b981", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Clock style={{ width: 13, height: 13 }} /> Durée</span>
+                    <span className="svg-chip svg-chip-green"><Icons.Clock style={{ width: 13, height: 13 }} /> Durée</span>
                   </div>
                   <div className="formula-code">
                     D = (12 - M_début + 1) + M_fin  (en mois)
@@ -6362,7 +6379,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Mois le Plus Pluvieux (M_max)</span>
-                    <span style={{ color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Rain style={{ width: 13, height: 13 }} /> Pic</span>
+                    <span className="svg-chip svg-chip-blue"><Icons.Rain style={{ width: 13, height: 13 }} /> Pic</span>
                   </div>
                   <div className="formula-code">
                     M_max = argmax_(m ∈ [M_début ... M_fin]) ( P_m )
@@ -6385,7 +6402,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>2. Précipitation Maximale (P_max)</span>
-                    <span style={{ color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Stats style={{ width: 13, height: 13 }} /> Hauteur</span>
+                    <span className="svg-chip svg-chip-purple"><Icons.Stats style={{ width: 13, height: 13 }} /> Hauteur</span>
                   </div>
                   <div className="formula-code">
                     P_max = max_(m ∈ [M_début ... M_fin]) ( P_m )  (en mm)
@@ -6404,7 +6421,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>3. Contribution au Bilan Annuel</span>
-                    <span style={{ color: "#f59e0b", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Droplet style={{ width: 13, height: 13 }} /> % Annuel</span>
+                    <span className="svg-chip svg-chip-amber"><Icons.Droplet style={{ width: 13, height: 13 }} /> % Annuel</span>
                   </div>
                   <div className="formula-code">
                     Part_max = (P_max / P_annuel) × 100 %
@@ -6440,7 +6457,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Fenêtre Pluvieuse Active</span>
-                    <span style={{ color: "var(--primary)", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Calendar style={{ width: 13, height: 13 }} /> Période</span>
+                    <span className="svg-chip svg-chip-blue"><Icons.Calendar style={{ width: 13, height: 13 }} /> Période</span>
                   </div>
                   <div className="formula-code">
                     Saison = [ M_début → M_fin ]  sur cycle hydrologique (Oct à Sep)
@@ -6459,7 +6476,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>2. Positionnement sur l'Axe</span>
-                    <span style={{ color: "#10b981", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Ruler style={{ width: 13, height: 13 }} /> Échelle</span>
+                    <span className="svg-chip svg-chip-green"><Icons.Ruler style={{ width: 13, height: 13 }} /> Échelle</span>
                   </div>
                   <div className="formula-code">
                     Départ = (Index_début / 12) × 100%,  Largeur = (D / 12) × 100%
@@ -6538,7 +6555,7 @@ function Statistiques({
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>2. Calcul de l'Anomalie Annuelle</span>
-                    <span style={{ color: "#2563eb", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Droplet style={{ width: 13, height: 13 }} /> Écart Net (mm)</span>
+                    <span className="svg-chip svg-chip-blue"><Icons.Droplet style={{ width: 13, height: 13 }} /> Écart Net (mm)</span>
                   </div>
                   <div className="formula-code">
                     Anomalie_y = P_y - P_ref,clim
@@ -7024,6 +7041,7 @@ function Carte({
         label: "OpenStreetMap",
         shortLabel: "Plan OSM",
         icon: Icons.Map,
+        themeClass: "basemap-theme-osm",
         desc: "Cartographie standard OSM",
         url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -7033,6 +7051,7 @@ function Carte({
         label: "Google Satellite",
         shortLabel: "Satellite",
         icon: Icons.Satellite,
+        themeClass: "basemap-theme-satellite",
         desc: "Imagerie satellite HD",
         url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
         attribution: "&copy; Google Satellites",
@@ -7042,6 +7061,7 @@ function Carte({
         label: "Google Hybride",
         shortLabel: "Hybride",
         icon: Icons.Globe,
+        themeClass: "basemap-theme-hybrid",
         desc: "Satellite + routes & noms",
         url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
         attribution: "&copy; Google Hybride",
@@ -7051,6 +7071,7 @@ function Carte({
         label: "CartoDB Clair",
         shortLabel: "Clair",
         icon: Icons.Sun,
+        themeClass: "basemap-theme-positron",
         desc: "Fond clair épuré (idéal choroplèthe)",
         url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
         attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
@@ -7060,6 +7081,7 @@ function Carte({
         label: "CartoDB Sombre",
         shortLabel: "Sombre",
         icon: Icons.Moon,
+        themeClass: "basemap-theme-dark",
         desc: "Fond sombre contrasté",
         url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
@@ -7069,6 +7091,7 @@ function Carte({
         label: "Topographique",
         shortLabel: "Relief",
         icon: Icons.Mountain,
+        themeClass: "basemap-theme-topo",
         desc: "Relief et courbes de niveau",
         url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
         attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
@@ -8836,7 +8859,7 @@ function Carte({
                       onClick={() => setShowBasemapMenu(false)}
                       title="Fermer"
                     >
-                      &times;
+                      <Icons.Close style={{ width: 14, height: 14 }} />
                     </button>
                   </div>
                   <div className="map-basemap-options-grid">
@@ -8852,7 +8875,7 @@ function Carte({
                             setShowBasemapMenu(false);
                           }}
                         >
-                          <span className="basemap-icon">{typeof opt.icon === "function" ? <opt.icon style={{ width: 18, height: 18 }} /> : opt.icon}</span>
+                          <span className="basemap-icon">{typeof opt.icon === "function" ? <opt.icon style={{ width: 16, height: 16 }} /> : opt.icon}</span>
                           <div className="basemap-card-info">
                             <span className="basemap-title">{opt.label}</span>
                             <span className="basemap-desc">{opt.desc}</span>
@@ -9418,7 +9441,7 @@ function Carte({
           <div className="formula-item">
             <div className="formula-item-title">
               <span>1. Moyenne de Précipitation de Référence (P_ref)</span>
-              <span style={{ color: "#2563eb", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Stats style={{ width: 13, height: 13 }} /> Réf. 1981–2026</span>
+              <span className="svg-chip svg-chip-blue"><Icons.Stats style={{ width: 13, height: 13 }} /> Réf. 1981–2026</span>
             </div>
             <div className="formula-code" style={{ color: "#2563eb" }}>
               P_ref,m(c) = (1 / N) * Σ (y=1981 à 2026) P_y,m(c)
@@ -9449,7 +9472,7 @@ function Carte({
           <div className="formula-item">
             <div className="formula-item-title">
               <span>2. Déficit Absolu en Eau (D_abs)</span>
-              <span style={{ color: "#d97706", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Droplet style={{ width: 13, height: 13 }} /> Écart (mm)</span>
+              <span className="svg-chip svg-chip-amber"><Icons.Droplet style={{ width: 13, height: 13 }} /> Écart (mm)</span>
             </div>
             <div className="formula-code" style={{ color: "#d97706" }}>
               D_abs(c, t) = P_obs(c, t) - P_ref(c, t)  (en mm)
@@ -9480,7 +9503,7 @@ function Carte({
           <div className="formula-item">
             <div className="formula-item-title">
               <span>3. Anomalie Pluviométrique Relative (A_%)</span>
-              <span style={{ color: "#ef4444", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.TrendingDown style={{ width: 13, height: 13 }} /> Taux (%)</span>
+              <span className="svg-chip svg-chip-red"><Icons.TrendingDown style={{ width: 13, height: 13 }} /> Taux (%)</span>
             </div>
             <div className="formula-code" style={{ color: "#ef4444" }}>
               Anomalie_% = [(P_obs(c, t) - P_ref(c, t)) / P_ref(c, t)] × 100 %
@@ -9507,7 +9530,7 @@ function Carte({
           <div className="formula-item">
             <div className="formula-item-title">
               <span>4. Épisodes Majeurs & Crise Triennale (2020–2022)</span>
-              <span style={{ color: "#b91c1c", display: "inline-flex", alignItems: "center", gap: "4px" }}><Icons.Flame style={{ width: 13, height: 13 }} /> Sécheresse Triennale</span>
+              <span className="svg-chip svg-chip-red"><Icons.Flame style={{ width: 13, height: 13 }} /> Sécheresse Triennale</span>
             </div>
             <div className="formula-code" style={{ color: "#b91c1c" }}>
               Déficit_Triennal = 1/3 Σ (y=2020..2022) Déficit_% (y)
@@ -11782,7 +11805,7 @@ function GuideMethodologie({
             {/* Fourré Épineux */}
             <div className="guide-card">
               <div className="guide-card-header">
-                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><Icons.Sprout style={{ width: 15, height: 15, color: "#ea580c" }} /> Fourré Épineux du Sud (Spiny Thicket)</span>
+                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><Icons.Sprout style={{ width: 16, height: 16, color: "#ea580c" }} /> Fourré Épineux du Sud (Spiny Thicket)</span>
                 <span className="guide-card-badge" style={{ background: "rgba(234, 88, 12, 0.12)", color: "#ea580c", borderColor: "rgba(234, 88, 12, 0.3)" }}>Androy & Sud</span>
               </div>
               <p className="guide-desc-text">
@@ -11803,7 +11826,7 @@ function GuideMethodologie({
             {/* Forêt Sèche Décidue */}
             <div className="guide-card">
               <div className="guide-card-header">
-                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><Icons.Tree style={{ width: 15, height: 15, color: "#16a34a" }} /> Forêt Sèche Décidue du Sud-Ouest</span>
+                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><Icons.Tree style={{ width: 16, height: 16, color: "#16a34a" }} /> Forêt Sèche Décidue du Sud-Ouest</span>
                 <span className="guide-card-badge green">Atsimo-Andrefana</span>
               </div>
               <p className="guide-desc-text">
@@ -11824,7 +11847,7 @@ function GuideMethodologie({
             {/* Fourré de Transition */}
             <div className="guide-card">
               <div className="guide-card-header">
-                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><Icons.Leaf style={{ width: 15, height: 15, color: "#059669" }} /> Fourré de Transition & Savanes</span>
+                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><Icons.Leaf style={{ width: 16, height: 16, color: "#059669" }} /> Fourré de Transition & Savanes</span>
                 <span className="guide-card-badge">Anosy & Betroka</span>
               </div>
               <p className="guide-desc-text">
@@ -11845,7 +11868,7 @@ function GuideMethodologie({
             {/* Formule des Pertes Forestières */}
             <div className="guide-card">
               <div className="guide-card-header">
-                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><Icons.TrendingDown style={{ width: 15, height: 15, color: "var(--danger)" }} /> Modèle d'Estimation des Pertes Annuelles</span>
+                <span className="guide-card-title" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><Icons.TrendingDown style={{ width: 16, height: 16, color: "var(--danger)" }} /> Modèle d'Estimation des Pertes Annuelles</span>
                 <span className="guide-card-badge red">Déforestation & Pertes (ha/an)</span>
               </div>
               <div className="guide-formula-box red">
