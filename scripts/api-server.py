@@ -77,6 +77,43 @@ ROUTES = {
 
 
 import sys
+import threading
+
+SYNC_STATE_LOCK = threading.Lock()
+SYNC_RUN_LOCK = threading.Lock()
+SYNC_STATE = {
+    "syncing": False,
+    "last_sync_at": None,
+    "last_sync_success": None,
+    "last_sync_source": None,
+}
+
+
+def mark_sync_finished(success: bool, source: str):
+    global data_module
+    if success:
+        data_module = load_data_module()
+    with SYNC_STATE_LOCK:
+        SYNC_STATE["syncing"] = False
+        SYNC_STATE["last_sync_at"] = time.time()
+        SYNC_STATE["last_sync_success"] = bool(success)
+        SYNC_STATE["last_sync_source"] = source
+
+
+def execute_pipeline_sync(skip_download: bool = False, skip_ndvi: bool = False, source: str = "manual") -> bool:
+    pipe_mod = load_pipeline_module()
+    if not (pipe_mod and hasattr(pipe_mod, "run_full_pipeline")):
+        return False
+    with SYNC_RUN_LOCK:
+        with SYNC_STATE_LOCK:
+            SYNC_STATE["syncing"] = True
+            SYNC_STATE["last_sync_source"] = source
+        success = False
+        try:
+            success = bool(pipe_mod.run_full_pipeline(skip_download=skip_download, skip_ndvi=skip_ndvi))
+        finally:
+            mark_sync_finished(success, source)
+        return success
 
 
 class ApiHandler(BaseHTTPRequestHandler):
@@ -99,14 +136,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "ok"})
                 return
 
+            if path == "/api/sync/status":
+                with SYNC_STATE_LOCK:
+                    self.send_json(dict(SYNC_STATE))
+                return
+
             if path in ("/api/sync/all", "/api/sync/precipitation"):
                 pipe_mod = load_pipeline_module()
                 if pipe_mod and hasattr(pipe_mod, "run_full_pipeline"):
                     skip_ndvi = (path == "/api/sync/precipitation")
-                    success = pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=skip_ndvi)
-                    global data_module
-                    data_module = load_data_module()
-                    self.send_json({"status": "success" if success else "error", "message": "Synchronisation terminée avec succès"})
+                    success = execute_pipeline_sync(skip_download=False, skip_ndvi=skip_ndvi, source="api")
+                    self.send_json({"status": "success" if success else "error", "message": "Synchronisation terminée avec succès" if success else "Erreur lors de la synchronisation"})
                     return
                 self.send_json({"error": "Module de pipeline introuvable"}, HTTPStatus.INTERNAL_SERVER_ERROR)
                 return
@@ -132,6 +172,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                                 subprocess.run([sys.executable, str(gs_script)], check=False)
                         except Exception as e:
                             print(f"Erreur publication GeoServer NDVI : {e}")
+                        mark_sync_finished(True, "ndvi-sync")
                         self.send_json(meta)
                         return
 
@@ -173,6 +214,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                 try:
                     with corr_path.open("r", encoding="utf-8") as f:
                         payload["correlationNdviChirps"] = json.load(f)
+                except Exception:
+                    pass
+
+            ndvi_chirps_meta_path = ROOT_DIR / "public" / "data" / "ndvi_chirps_metadata.json"
+            if ndvi_chirps_meta_path.exists():
+                try:
+                    with ndvi_chirps_meta_path.open("r", encoding="utf-8") as f:
+                        payload["ndviChirpsMeta"] = json.load(f)
                 except Exception:
                     pass
 
@@ -227,9 +276,6 @@ class DynatsimoServer(ThreadingHTTPServer):
         super().handle_error(request, client_address)
 
 
-import threading
-
-
 def start_background_auto_sync():
     """Lance un thread d'arrière-plan pour synchroniser automatiquement les données vers GeoServer périodiquement."""
     auto_sync_enabled = os.getenv("DYNATSIMO_AUTO_SYNC", "true").lower() in ("true", "1", "yes")
@@ -250,15 +296,11 @@ def start_background_auto_sync():
                 print("\n" + "=" * 70)
                 print("⏰ DÉCLENCHEMENT DE LA SYNCHRONISATION AUTOMATIQUE EN ARRIÈRE-PLAN")
                 print("=" * 70)
-                pipe_mod = load_pipeline_module()
-                if pipe_mod and hasattr(pipe_mod, "run_full_pipeline"):
-                    success = pipe_mod.run_full_pipeline(skip_download=False, skip_ndvi=False)
-                    global data_module
-                    data_module = load_data_module()
-                    if success:
-                        print("✓ Synchronisation automatique d'arrière-plan terminée avec succès.")
-                    else:
-                        print("⚠ La synchronisation automatique s'est arrêtée suite à des erreurs.")
+                success = execute_pipeline_sync(skip_download=False, skip_ndvi=False, source="background")
+                if success:
+                    print("✓ Synchronisation automatique d'arrière-plan terminée avec succès.")
+                else:
+                    print("⚠ La synchronisation automatique s'est arrêtée suite à des erreurs.")
             except Exception as e:
                 print(f"⚠ Erreur lors de la synchronisation automatique d'arrière-plan : {e}")
 

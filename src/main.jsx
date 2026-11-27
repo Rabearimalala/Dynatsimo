@@ -985,7 +985,7 @@ function getIsohyeteColor(val, minVal = 0, maxVal = 1000) {
 }
 
 async function fetchJson(path, options = {}) {
-  const response = await fetch(path, options);
+  const response = await fetch(path, { cache: "no-store", ...options });
   if (!response.ok) {
     throw new Error(`Impossible de charger ${path}`);
   }
@@ -1233,6 +1233,37 @@ function App() {
       setDataSource(result.source);
     }
   }, []);
+
+  // Rechargement automatique dès que la synchronisation d'arrière-plan publie de nouvelles données
+  const lastSyncAtRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!isApiConnected) return;
+    let active = true;
+
+    const checkSyncStatus = async () => {
+      try {
+        const status = await fetchJson(`${API_BASE_URL}/api/sync/status`);
+        if (!active || !status) return;
+        if (status.last_sync_at != null) {
+          if (lastSyncAtRef.current === null) {
+            lastSyncAtRef.current = status.last_sync_at;
+          } else if (status.last_sync_at !== lastSyncAtRef.current) {
+            lastSyncAtRef.current = status.last_sync_at;
+            await handleReloadData();
+          }
+        }
+      } catch {
+        // Ignorer les erreurs réseau transitoires lors de la vérification en arrière-plan
+      }
+    };
+
+    checkSyncStatus();
+    const timer = setInterval(checkSyncStatus, 20000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [isApiConnected, handleReloadData]);
 
   const handleGlobalSync = async () => {
     setIsGlobalSyncing(true);
@@ -5197,7 +5228,20 @@ function Statistiques({
   const [typeGraph, setTypeGraph] = React.useState("Début et fin de pluie");
   const [seasonSubTab, setSeasonSubTab] = React.useState("start_end"); // 'start_end', 'max_month', 'timeline'
   const [ordrePoly, setOrdrePoly] = React.useState(4);
-  const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(2026);
+  const latestAnnualYear = React.useMemo(() => {
+    if (!annualData || annualData.length === 0) return 2026;
+    return Math.max(...annualData.map((d) => Number(d.year)).filter(Number.isFinite));
+  }, [annualData]);
+  const [selectedYearForMonth, setSelectedYearForMonth] = React.useState(latestAnnualYear);
+  const prevLatestAnnualYearRef = React.useRef(latestAnnualYear);
+  React.useEffect(() => {
+    if (latestAnnualYear !== prevLatestAnnualYearRef.current) {
+      if (selectedYearForMonth === prevLatestAnnualYearRef.current) {
+        setSelectedYearForMonth(latestAnnualYear);
+      }
+      prevLatestAnnualYearRef.current = latestAnnualYear;
+    }
+  }, [latestAnnualYear, selectedYearForMonth]);
 
   const availableSeasons = React.useMemo(() => {
     if (!seasonData || seasonData.length === 0) return [1980, 2026];
@@ -7012,8 +7056,24 @@ function Carte({
   const [typeCarte, setTypeCarte] = React.useState("Choroplèthe"); // 'Choroplèthe' vs 'Isohyètes'
   const [typePeriode, setTypePeriode] = React.useState("Mensuel"); // 'Mensuel' | 'Annuel' | 'Décennies'
   const [selectedDecades, setSelectedDecades] = React.useState(["2020–2026"]);
-  const [selectedYears, setSelectedYears] = React.useState([2026]);
-  const [selectedMonth, setSelectedMonth] = React.useState("Aou");
+  const initialMaxYear = annualData && annualData.length > 0 ? annualData[annualData.length - 1].year : 2026;
+  const [selectedYears, setSelectedYears] = React.useState([initialMaxYear]);
+  const [selectedMonth, setSelectedMonth] = React.useState(() => {
+    const monthCodes = ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"];
+    let maxM = 0;
+    (precipRecords || []).forEach((r) => {
+      if (Number(r.year) === Number(initialMaxYear) && r.month != null) {
+        maxM = Math.max(maxM, Number(r.month));
+      }
+    });
+    if (isohyetesMeta?.items) {
+      Object.keys(isohyetesMeta.items).forEach((k) => {
+        const match = k.match(new RegExp(`^isohyete_${Number(initialMaxYear)}_(\\d{2})$`));
+        if (match) maxM = Math.max(maxM, parseInt(match[1], 10));
+      });
+    }
+    return maxM >= 1 && maxM <= 12 ? monthCodes[maxM - 1] : "Sep";
+  });
   const [basemap, setBasemap] = React.useState("OpenStreetMap");
   const [showBasemapMenu, setShowBasemapMenu] = React.useState(false);
   const basemapRef = React.useRef(null);
@@ -7143,8 +7203,11 @@ function Carte({
     [localNdviClasses]
   );
 
-  const [ndviYear, setNdviYear] = React.useState(2026);
-  const [ndviMonth, setNdviMonth] = React.useState(8);
+  const initialNdviPeriod = (ndviClasses?.periods && ndviClasses.periods.length > 0)
+    ? ndviClasses.periods[ndviClasses.periods.length - 1]
+    : { year: 2026, month: 11 };
+  const [ndviYear, setNdviYear] = React.useState(initialNdviPeriod.year);
+  const [ndviMonth, setNdviMonth] = React.useState(initialNdviPeriod.month);
   const [ndviOpacity, setNdviOpacity] = React.useState(0.85);
   const [useGeoServerWms, setUseGeoServerWms] = React.useState(false);
   const [isGeoServerAvailable, setIsGeoServerAvailable] = React.useState(false);
@@ -7170,6 +7233,27 @@ function Carte({
   const [communeOverlayStyle, setCommuneOverlayStyle] = React.useState("borders_only"); // 'borders_only' | 'light_tint'
   const [isPlayingTimeline, setIsPlayingTimeline] = React.useState(false);
   const [playSpeed, setPlaySpeed] = React.useState(1200);
+
+  const prevLatestNdviPeriodRef = React.useRef(
+    periods.length > 0 ? periods[periods.length - 1] : null
+  );
+  React.useEffect(() => {
+    if (periods.length === 0) return;
+    const latest = periods[periods.length - 1];
+    const prevLatest = prevLatestNdviPeriodRef.current;
+    if (!prevLatest) {
+      setNdviYear(latest.year);
+      setNdviMonth(latest.month);
+    } else if (
+      (latest.year !== prevLatest.year || latest.month !== prevLatest.month) &&
+      ndviYear === prevLatest.year &&
+      ndviMonth === prevLatest.month
+    ) {
+      setNdviYear(latest.year);
+      setNdviMonth(latest.month);
+    }
+    prevLatestNdviPeriodRef.current = latest;
+  }, [periods, ndviYear, ndviMonth]);
 
   React.useEffect(() => {
     if (availableNdviYears.length > 0 && !availableNdviYears.includes(ndviYear)) {
@@ -7256,8 +7340,31 @@ function Carte({
   );
   const ndviChirpsClasses = React.useMemo(() => localNdviChirpsMeta?.classes || [], [localNdviChirpsMeta]);
 
-  const [ndviChirpsYear, setNdviChirpsYear] = React.useState(2026);
-  const [ndviChirpsMonth, setNdviChirpsMonth] = React.useState(8);
+  const initialNdviChirpsPeriod = (ndviChirpsMeta?.periods && ndviChirpsMeta.periods.length > 0)
+    ? ndviChirpsMeta.periods[ndviChirpsMeta.periods.length - 1]
+    : { year: 2026, month: 9 };
+  const [ndviChirpsYear, setNdviChirpsYear] = React.useState(initialNdviChirpsPeriod.year);
+  const [ndviChirpsMonth, setNdviChirpsMonth] = React.useState(initialNdviChirpsPeriod.month);
+  const prevLatestNdviChirpsRef = React.useRef(
+    ndviChirpsPeriods.length > 0 ? ndviChirpsPeriods[ndviChirpsPeriods.length - 1] : null
+  );
+  React.useEffect(() => {
+    if (ndviChirpsPeriods.length === 0) return;
+    const latest = ndviChirpsPeriods[ndviChirpsPeriods.length - 1];
+    const prevLatest = prevLatestNdviChirpsRef.current;
+    if (!prevLatest) {
+      setNdviChirpsYear(latest.year);
+      setNdviChirpsMonth(latest.month);
+    } else if (
+      (latest.year !== prevLatest.year || latest.month !== prevLatest.month) &&
+      ndviChirpsYear === prevLatest.year &&
+      ndviChirpsMonth === prevLatest.month
+    ) {
+      setNdviChirpsYear(latest.year);
+      setNdviChirpsMonth(latest.month);
+    }
+    prevLatestNdviChirpsRef.current = latest;
+  }, [ndviChirpsPeriods, ndviChirpsYear, ndviChirpsMonth]);
   const [ndviChirpsViewMode, setNdviChirpsViewMode] = React.useState("monthly"); // 'monthly' | 'lag0' | 'lag1' | 'lag_opt'
   const [ndviChirpsOpacity, setNdviChirpsOpacity] = React.useState(0.85);
   const [isPlayingNdviChirpsTimeline, setIsPlayingNdviChirpsTimeline] = React.useState(false);
@@ -7373,12 +7480,14 @@ function Carte({
     return list.length ? list : Array.from({ length: 46 }, (_, i) => 1981 + i);
   }, [annualData]);
 
+  const prevMaxYearRef = React.useRef(availableYears[availableYears.length - 1]);
   React.useEffect(() => {
     if (availableYears.length > 0) {
       const maxYear = availableYears[availableYears.length - 1];
-      if (!selectedYears[0] || !availableYears.includes(selectedYears[0])) {
+      if (!selectedYears[0] || !availableYears.includes(selectedYears[0]) || (maxYear !== prevMaxYearRef.current && selectedYears[0] === prevMaxYearRef.current)) {
         setSelectedYears([maxYear]);
       }
+      prevMaxYearRef.current = maxYear;
     }
   }, [availableYears]);
 
@@ -7448,12 +7557,15 @@ function Carte({
     return getAvailableMonthsForPrecipYear(selectedYears[0] || availableYears[0] || 2026);
   }, [getAvailableMonthsForPrecipYear, selectedYears, availableYears]);
 
+  const prevLatestPrecipMonthRef = React.useRef(null);
   React.useEffect(() => {
     if (typePeriode === "Mensuel" && availablePrecipMonthsForSelectedYear.length > 0) {
+      const latestCode = availablePrecipMonthsForSelectedYear[availablePrecipMonthsForSelectedYear.length - 1].code;
       const isCurrentMonthValid = availablePrecipMonthsForSelectedYear.some((m) => m.code === selectedMonth);
-      if (!isCurrentMonthValid) {
-        setSelectedMonth(availablePrecipMonthsForSelectedYear[availablePrecipMonthsForSelectedYear.length - 1].code);
+      if (!selectedMonth || !isCurrentMonthValid || (prevLatestPrecipMonthRef.current && latestCode !== prevLatestPrecipMonthRef.current && selectedMonth === prevLatestPrecipMonthRef.current)) {
+        setSelectedMonth(latestCode);
       }
+      prevLatestPrecipMonthRef.current = latestCode;
     }
   }, [availablePrecipMonthsForSelectedYear, selectedMonth, typePeriode]);
 
@@ -10860,11 +10972,16 @@ function TableauExplorer({
     return [2026, 2025, 2024, 2023, 2022, 2021, 2020];
   }, [precipRecords, annualData]);
 
-  const [selectedPrecipYear, setSelectedPrecipYear] = React.useState(2026);
+  const [selectedPrecipYear, setSelectedPrecipYear] = React.useState(availablePrecipYears[0] || 2026);
+  const prevTopPrecipYearRef = React.useRef(availablePrecipYears[0]);
 
   React.useEffect(() => {
-    if (availablePrecipYears.length > 0 && !availablePrecipYears.includes(selectedPrecipYear)) {
-      setSelectedPrecipYear(availablePrecipYears[0]);
+    if (availablePrecipYears.length > 0) {
+      const latest = availablePrecipYears[0];
+      if (!availablePrecipYears.includes(selectedPrecipYear) || (latest !== prevTopPrecipYearRef.current && selectedPrecipYear === prevTopPrecipYearRef.current)) {
+        setSelectedPrecipYear(latest);
+      }
+      prevTopPrecipYearRef.current = latest;
     }
   }, [availablePrecipYears, selectedPrecipYear]);
 
@@ -10902,11 +11019,16 @@ function TableauExplorer({
     return ["2025-2026", "2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"];
   }, [vegData]);
 
-  const [selectedVegSeason, setSelectedVegSeason] = React.useState("2025-2026");
+  const [selectedVegSeason, setSelectedVegSeason] = React.useState(availableVegSeasons[0] || "2025-2026");
+  const prevTopVegSeasonRef = React.useRef(availableVegSeasons[0]);
 
   React.useEffect(() => {
-    if (availableVegSeasons.length > 0 && !availableVegSeasons.includes(selectedVegSeason)) {
-      setSelectedVegSeason(availableVegSeasons[0]);
+    if (availableVegSeasons.length > 0) {
+      const latest = availableVegSeasons[0];
+      if (!availableVegSeasons.includes(selectedVegSeason) || (latest !== prevTopVegSeasonRef.current && selectedVegSeason === prevTopVegSeasonRef.current)) {
+        setSelectedVegSeason(latest);
+      }
+      prevTopVegSeasonRef.current = latest;
     }
   }, [availableVegSeasons, selectedVegSeason]);
 
