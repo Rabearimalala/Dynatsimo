@@ -1085,8 +1085,7 @@ class ErrorBoundary extends React.Component {
           <div className="state-brand">
             <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
             <div className="state-brand-text">
-              <strong className="state-brand-title">DYNATSIMO</strong>
-              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉ CHLOROPHYLLIENNE</span>
+              <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS CHLOROPHYLLIENNES</span>
             </div>
           </div>
           <strong style={{ fontSize: "18px", color: "var(--danger)" }}>
@@ -1121,6 +1120,7 @@ function App() {
   const [dataCategory, setDataCategory] = React.useState("precip");
   const [guideSection, setGuideSection] = React.useState("precip");
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
   const [selectedCommune, setSelectedCommune] = React.useState("");
   const [selectedRegion, setSelectedRegion] = React.useState("");
   const [communeZoomTrigger, setCommuneZoomTrigger] = React.useState(0);
@@ -1327,7 +1327,6 @@ function App() {
         <div className="state-brand">
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
-            <strong className="state-brand-title">DYNATSIMO</strong>
             <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS CHLOROPHYLLIENNES</span>
           </div>
         </div>
@@ -1344,7 +1343,6 @@ function App() {
         <div className="state-brand">
           <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark brand-mark-lg" />
           <div className="state-brand-text">
-            <strong className="state-brand-title">DYNATSIMO</strong>
             <span className="state-brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS CHLOROPHYLLIENNES</span>
           </div>
         </div>
@@ -1367,10 +1365,9 @@ function App() {
       <aside className={`sidebar ${mobileNavOpen ? "mobile-open" : ""}`}>
         <div>
           <div className="brand">
-            <div className="brand-wrapper" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "12px" }}>
+            <div className="brand-wrapper">
               <img src="/logo.png" alt="Logo Dynatsimo" className="brand-mark" />
-              <div className="brand-text" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center" }}>
-                <strong className="brand-title">DYNATSIMO</strong>
+              <div className="brand-text">
                 <span className="brand-subtitle">PRÉCIPITATIONS & ACTIVITÉS <br/> CHLOROPHYLLIENNES</span>
               </div>
             </div>
@@ -1540,7 +1537,7 @@ function App() {
 
       <div className="main-stage">
         <header className="navbar-top">
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+          <div className="navbar-left-group" style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: "1 1 auto" }}>
             <button
               className="mobile-menu-btn"
               onClick={() => setMobileNavOpen(true)}
@@ -1567,6 +1564,15 @@ function App() {
           </div>
 
           <div className="navbar-right">
+            <button
+              type="button"
+              className={`mobile-search-toggle-btn ${mobileSearchOpen ? "active" : ""}`}
+              onClick={() => setMobileSearchOpen((prev) => !prev)}
+              aria-label="Rechercher une commune"
+              title="Rechercher une commune"
+            >
+              <Icons.Search style={{ width: 17, height: 17 }} />
+            </button>
 
             <button
               onClick={toggleTheme}
@@ -1586,6 +1592,19 @@ function App() {
             </div>
           </div>
         </header>
+
+        {mobileSearchOpen && (
+          <div className="mobile-navbar-search-drawer">
+            <CommuneSearchBar
+              communes={data?.communes || []}
+              placeholder="Rechercher une commune (ex: Ambovombe...)"
+              onSelectCommune={(c) => {
+                handleSelectCommuneGlobal(c, { scrollToMap: true });
+                setMobileSearchOpen(false);
+              }}
+            />
+          </div>
+        )}
 
         <div className="stage-content">
           {activeTab === "all" && (
@@ -2095,7 +2114,7 @@ function Overview({ annualData, communes, overview, vegData }) {
             <span>Séries temporelles historiques régionales avec régression polynomiale harmonisée</span>
           </div>
 
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+          <div className="panel-heading-controls" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
             <span style={{ background: "transparent", border: "none", padding: "0 4px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
               Ordre de tendance (partagé) :
             </span>
@@ -2123,10 +2142,10 @@ function Overview({ annualData, communes, overview, vegData }) {
         </div>
 
         {/* 2-Columns Side-by-Side: Precipitation Left, Vegetation Right */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(440px, 1fr))", gap: "16px", marginTop: "12px" }}>
+        <div className="overview-charts-grid">
           {/* Left Figure: Precipitation */}
           <div className="panel" style={{ background: "var(--bg-panel-secondary)", border: "1px solid var(--border-color)", padding: "14px", borderRadius: "8px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", paddingBottom: "4px", borderBottom: "1px solid var(--border-color)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px", marginBottom: "8px", paddingBottom: "4px", borderBottom: "1px solid var(--border-color)" }}>
               <strong style={{ fontSize: "13px", color: "var(--text-main)" }}>
                 Précipitations Annuelles Moyennes ({periodLabel})
               </strong>
@@ -2197,7 +2216,7 @@ function Overview({ annualData, communes, overview, vegData }) {
 
           {/* Right Figure: Vegetation (NDVI) */}
           <div className="panel" style={{ background: "var(--bg-panel-secondary)", border: "1px solid var(--border-color)", padding: "14px", borderRadius: "8px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", paddingBottom: "4px", borderBottom: "1px solid var(--border-color)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px", marginBottom: "8px", paddingBottom: "4px", borderBottom: "1px solid var(--border-color)" }}>
               <strong style={{ fontSize: "13px", color: "var(--text-main)" }}>
                 Évolution Interannuelle du NDVI Moyen (1999–2026)
               </strong>
@@ -2675,13 +2694,8 @@ function SuiviVegetation({
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {/* Metric Grid aligné sur toute la largeur avant Paramètres Végétation */}
       <section
-        className="metric-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: timeScale === "annual" ? "repeat(4, 1fr)" : "repeat(3, 1fr)",
-          gap: "14px",
-          marginBottom: 0,
-        }}
+        className={`metric-grid ${timeScale === "annual" ? "metric-grid-4cols" : "metric-grid-3cols"}`}
+        style={{ marginBottom: 0 }}
       >
         <article className="metric-card">
           <div className="metric-icon-wrap" style={{ color: "var(--accent)" }}><Icons.Leaf /></div>
@@ -2840,7 +2854,7 @@ function SuiviVegetation({
           )}
         </aside>
 
-        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", minWidth: 0 }}>
 
         {/* Primary Chart */}
         {timeScale === "annual" ? (
@@ -2850,7 +2864,7 @@ function SuiviVegetation({
                 <h2><Icons.Stats /> Évolution Interannuelle du NDVI Moyen — {activeCommuneObj?.nom}</h2>
                 <span>Série temporelle annuelle ({activeSensor.toUpperCase()}) : Moyenne observée par campagne, référence historique et tendance</span>
               </div>
-              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+              <div className="panel-heading-controls" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>Tendance (Ordre {polyOrder}) :</span>
                 <div style={{ display: "inline-flex", gap: "3px" }}>
                   {[1, 2, 3, 4, 5].map((o) => (
@@ -3043,7 +3057,7 @@ function SuiviVegetation({
 
     {/* Secondary Charts — Pleine largeur sur 2 colonnes */}
     {timeScale === "annual" ? (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="charts-grid-2">
         <div className="panel">
           <div className="panel-heading">
             <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Production d'Activité Chlorophyllienne Annuelle — {activeCommuneObj?.nom}</h3>
@@ -3151,7 +3165,7 @@ function SuiviVegetation({
         </div>
       </div>
     ) : (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="charts-grid-2">
         <div className="panel">
           <div className="panel-heading">
             <h3 style={{ fontSize: "13px", fontWeight: "700" }}>Corrélation Pluie (CHIRPS) & Végétation (NDVI) — {activeCommuneObj?.nom}</h3>
@@ -3485,7 +3499,7 @@ function SuiviVegetation({
         </p>
 
         {annualStats.deficitSeasonsList.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "8px", marginTop: "4px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))", gap: "8px", marginTop: "4px" }}>
             {annualStats.deficitSeasonsList.map((item, idx) => (
               <div
                 key={idx}
@@ -3906,7 +3920,7 @@ function Saison({
         </aside>
 
         <div className="panel" ref={saisonRightFigureRef}>
-          <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="panel-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
             <div>
               <h2><Icons.Rain /> Début et fin de pluie — {selectedCommuneName}</h2>
               <span>Début, durée et mois le plus pluvieux ({seasonRange[0]}–{Number(seasonRange[0]) + 1} à {seasonRange[1]}–{Number(seasonRange[1]) + 1})</span>
@@ -4123,7 +4137,7 @@ function Saison({
             <Icons.Info />
             <span>Formules de Calcul du Début, de la Fin et de la Durée de Saison</span>
           </div>
-          <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+          <div className="formula-grid formula-grid-3">
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>1. Mois de Début (M_début)</span>
@@ -4209,7 +4223,7 @@ function Saison({
             <Icons.Rain />
             <span>Formules du Mois le Plus Pluvieux & Précipitations Maximales</span>
           </div>
-          <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+          <div className="formula-grid formula-grid-3">
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>1. Mois le Plus Pluvieux (M_max)</span>
@@ -4287,7 +4301,7 @@ function Saison({
             <Icons.Stats />
             <span>Méthodologie du Chronogramme & Étalement Temporel des Campagnes</span>
           </div>
-          <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+          <div className="formula-grid formula-grid-3">
             <div className="formula-item">
               <div className="formula-item-title">
                 <span>1. Fenêtre Pluvieuse Active</span>
@@ -4644,13 +4658,7 @@ function StatistiquesCorrelation({
       {correlationData && (
         <section
           className="metric-grid metric-grid-5cols"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-            gap: "10px",
-            marginBottom: "4px",
-            alignItems: "stretch",
-          }}
+          style={{ marginBottom: "4px" }}
         >
           <article className="metric-card" style={{ padding: "14px 12px", minHeight: "92px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", borderLeft: "4px solid #f59e0b", boxSizing: "border-box" }}>
             <div className="metric-info" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: "100%", gap: "5px" }}>
@@ -4930,7 +4938,7 @@ function StatistiquesCorrelation({
       {correlationData && (
         <>
           {/* Grille 3 Colonnes : 3 Figures strictement alignées côte à côte sur une seule ligne */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px", alignItems: "stretch", width: "100%" }}>
+          <div className="charts-grid-3">
             {/* Graphique 2 : Profil des Délais (Lag 0 à Lag 3) — Figure 7.6 */}
             <div className="panel" style={{ padding: "18px", backgroundColor: "var(--bg-panel)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
@@ -5013,7 +5021,7 @@ function StatistiquesCorrelation({
                 </ResponsiveContainer>
               </div>
 
-              <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "var(--bg-panel-secondary)", borderRadius: "6px", fontSize: "11.5px", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
+              <div style={{ marginTop: "10px", padding: "8px 12px", backgroundColor: "var(--bg-panel-secondary)", borderRadius: "6px", fontSize: "11.5px", color: "var(--text-muted)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "6px" }}>
                 <span>Équation estimée : <strong>NDVI = {correlationData.slope} × Pluie + {correlationData.intercept}</strong></span>
               </div>
             </div>
@@ -5077,7 +5085,7 @@ function StatistiquesCorrelation({
               <Icons.Info />
               <span>Guide Méthodologique : Analyse du Couplage Pluviométrie (CHIRPS) & Végétation (MODIS)</span>
             </div>
-            <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "12px", alignItems: "stretch", width: "100%" }}>
+            <div className="formula-grid formula-grid-4">
               <div className="formula-item">
                 <div className="formula-item-title">
                   <span>1. Lags Temporels & Délai de Réponse (τ)</span>
@@ -6399,7 +6407,7 @@ function Statistiques({
                     </ResponsiveContainer>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div className="charts-grid-2">
                     <div className="panel" style={{ background: "var(--bg-panel-secondary)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
                       <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
                         <Icons.Zap style={{ width: 14, height: 14, display: "inline-block", verticalAlign: "-2px", marginRight: "6px", color: "#f59e0b" }} /> Déficits & Excédents Mensuels en {selectedYearForMonth}
@@ -6454,7 +6462,7 @@ function Statistiques({
                       <h4 style={{ fontSize: "12px", fontWeight: "700", marginBottom: "8px" }}>
                         <Icons.Clipboard style={{ width: 14, height: 14, display: "inline-block", verticalAlign: "-2px", marginRight: "6px", color: "var(--primary)" }} /> Bilan Pluviométrique de l'Année {selectedYearForMonth}
                       </h4>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "12px" }}>
+                      <div className="bilan-summary-grid" style={{ fontSize: "12px" }}>
                         <div style={{ padding: "8px", background: "var(--bg-app)", borderRadius: "6px" }}>
                           <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>Cumul Annuel Observé</span>
                           <strong style={{ fontSize: "15px" }}>{monthlyStatsSummary.sumObs} mm</strong>
@@ -6625,7 +6633,7 @@ function Statistiques({
                 <Icons.Info />
                 <span>Formules de Calcul du Début, de la Fin et de la Durée de Saison</span>
               </div>
-              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+              <div className="formula-grid formula-grid-3">
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Mois de Début (M_début)</span>
@@ -6711,7 +6719,7 @@ function Statistiques({
                 <Icons.Rain />
                 <span>Formules du Mois le Plus Pluvieux & Précipitations Maximales</span>
               </div>
-              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+              <div className="formula-grid formula-grid-3">
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Mois le Plus Pluvieux (M_max)</span>
@@ -6789,7 +6797,7 @@ function Statistiques({
                 <Icons.Stats />
                 <span>Méthodologie du Chronogramme & Étalement Temporel des Campagnes</span>
               </div>
-              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+              <div className="formula-grid formula-grid-3">
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Fenêtre Pluvieuse Active</span>
@@ -6864,7 +6872,7 @@ function Statistiques({
                 <Icons.Info />
                 <span>Méthodologie & Interprétation du Graphique des Anomalies Pluviométriques (1981–2026)</span>
               </div>
-              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+              <div className="formula-grid formula-grid-3">
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Moyenne & Écart-Type (Zone Grisée)</span>
@@ -6943,7 +6951,7 @@ function Statistiques({
                 <Icons.Info />
                 <span>Méthodologie du Calcul Climatologique et du Déficit Mensuel</span>
               </div>
-              <div className="formula-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+              <div className="formula-grid formula-grid-3">
                 <div className="formula-item">
                   <div className="formula-item-title">
                     <span>1. Pluviométrie de Référence</span>
@@ -9930,7 +9938,7 @@ function Carte({
             <div style={{ fontSize: "10.5px", fontWeight: "700", color: "var(--text-main)", marginBottom: "2px" }}>
               <Icons.BookOpen style={{ width: 13, height: 13, color: "var(--primary)", display: "inline-block", verticalAlign: "-2px", marginRight: "4px" }} /> Légende des Notations & Abréviations :
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "4px 16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "4px 16px" }}>
               <div className="formula-var-row">
                 <span className="formula-var-name">P_obs(c, t) :</span>
                 <span className="formula-var-desc">Précipitation réellement observée/mesurée dans la commune <strong>c</strong> pour la période temporelle <strong>t</strong> (en mm).</span>
@@ -10221,8 +10229,10 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <div
                   className="pixel-grid-wrapper"
                   style={{
-                    width: "270px",
-                    height: "270px",
+                    width: "100%",
+                    maxWidth: "270px",
+                    aspectRatio: "1 / 1",
+                    height: "auto",
                     border: "3px solid #d97706",
                     position: "relative",
                   }}
@@ -10271,8 +10281,10 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <div
                   className="pixel-grid-wrapper"
                   style={{
-                    width: "270px",
-                    height: "270px",
+                    width: "100%",
+                    maxWidth: "270px",
+                    aspectRatio: "1 / 1",
+                    height: "auto",
                     border: "3.5px solid #2563eb",
                     position: "relative",
                   }}
@@ -10317,8 +10329,10 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <div
                   className="pixel-grid-wrapper"
                   style={{
-                    width: "270px",
-                    height: "270px",
+                    width: "100%",
+                    maxWidth: "270px",
+                    aspectRatio: "1 / 1",
+                    height: "auto",
                     border: sentinelShowModis ? "3.5px solid #2563eb" : "4px solid #0f172a",
                     position: "relative",
                   }}
@@ -10363,8 +10377,10 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <div
                   className="pixel-grid-wrapper"
                   style={{
-                    width: "270px",
-                    height: "270px",
+                    width: "100%",
+                    maxWidth: "270px",
+                    aspectRatio: "1 / 1",
+                    height: "auto",
                     border: "3.5px solid #2563eb",
                     position: "relative",
                   }}
@@ -10423,8 +10439,10 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <div
                   className="pixel-grid-wrapper"
                   style={{
-                    width: "270px",
-                    height: "270px",
+                    width: "100%",
+                    maxWidth: "270px",
+                    aspectRatio: "1 / 1",
+                    height: "auto",
                     border: "4px solid #2563eb",
                     position: "relative",
                   }}
@@ -10542,7 +10560,7 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <h3 style={{ fontSize: "15px", fontWeight: "800", color: "#d97706" }}>
                   Emboîtement : Sentinel-2 dans Landsat-8/9
                 </h3>
-                <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
                   <span>Ratio : <strong>9 pixels Sentinel-2 / 1 pixel Landsat</strong></span>
                   <span>Surface : <strong>900 m² (0,09 ha)</strong></span>
                 </div>
@@ -10573,7 +10591,7 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
                 <h3 style={{ fontSize: "15px", fontWeight: "800", color: "#2563eb" }}>
                   Emboîtement : Sentinel & Landsat dans MODIS (250m)
                 </h3>
-                <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
                   <span>Dans MODIS 250m : <strong>625 Sentinel-2</strong> / <strong>~69,4 Landsat</strong></span>
                   <span>Surface : <strong>62 500 m² (6,25 ha)</strong></span>
                 </div>
@@ -10603,7 +10621,7 @@ function ComparaisonCapteurs({ vegData, selectedCommune }) {
             ) : (
               <>
                 <h3 style={{ fontSize: "14px", fontWeight: "800", color: "var(--primary)" }}>{activeSpec.name}</h3>
-                <div style={{ display: "flex", gap: "12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 12px", fontSize: "12px", borderBottom: "1px solid var(--border-color)", paddingBottom: "6px" }}>
                   <span>Résolution : <strong>{activeSpec.resolution}</strong></span>
                   <span>Fréquence : <strong>{activeSpec.frequency}</strong></span>
                 </div>
@@ -11500,8 +11518,8 @@ function TableauExplorer({
       </div>
 
       {/* Filters & Search Row */}
-      <div className="table-header-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-        <div className="table-search-box" style={{ width: "200px", flexShrink: 0 }}>
+      <div className="table-header-row explorer-filters-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+        <div className="table-search-box explorer-search-box">
           <Icons.Search />
           <input
             type="text"
@@ -11511,7 +11529,7 @@ function TableauExplorer({
           />
         </div>
 
-        <div className="filter-group" style={{ minWidth: "140px", maxWidth: "190px", flex: "1 1 140px" }}>
+        <div className="filter-group explorer-filter-group">
           <select value={selectedRegFilter} onChange={(e) => setSelectedRegFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
             <option value="">Toutes les régions</option>
             {regionsList.map((r) => (<option key={r} value={r}>{r}</option>))}
@@ -11520,7 +11538,7 @@ function TableauExplorer({
 
         {/* Temporal Year / Season Selector */}
         {datasetType === "precip" ? (
-          <div className="filter-group" style={{ minWidth: "150px", maxWidth: "210px", flex: "1 1 150px" }}>
+          <div className="filter-group explorer-filter-group">
             <select
               value={selectedPrecipYear}
               onChange={(e) => setSelectedPrecipYear(Number(e.target.value))}
@@ -11535,7 +11553,7 @@ function TableauExplorer({
             </select>
           </div>
         ) : datasetType === "vegetation" ? (
-          <div className="filter-group" style={{ minWidth: "170px", maxWidth: "230px", flex: "1 1 170px" }}>
+          <div className="filter-group explorer-filter-group">
             <select
               value={selectedVegSeason}
               onChange={(e) => setSelectedVegSeason(e.target.value)}
@@ -11550,7 +11568,7 @@ function TableauExplorer({
             </select>
           </div>
         ) : (
-          <div className="filter-group" style={{ minWidth: "170px", maxWidth: "230px", flex: "1 1 170px" }}>
+          <div className="filter-group explorer-filter-group">
             <div style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontWeight: "700", color: "var(--primary)", fontSize: "12px", background: "var(--bg-panel-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}><Icons.Clock style={{ width: 13, height: 13 }} /> 1999–2026 (Historique)</span>
             </div>
@@ -11558,7 +11576,7 @@ function TableauExplorer({
         )}
 
         {datasetType === "precip" ? (
-          <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
+          <div className="filter-group explorer-filter-group">
             <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
               <option value="">Tous les statuts</option>
               <option value="Sécheresse Sévère">Sécheresse Sévère (&gt; 20%)</option>
@@ -11568,7 +11586,7 @@ function TableauExplorer({
             </select>
           </div>
         ) : datasetType === "vegetation" ? (
-          <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
+          <div className="filter-group explorer-filter-group">
             <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
               <option value="">Toutes les écorégions</option>
               <option value="spiny">Forêt Épineuse du Sud</option>
@@ -11578,7 +11596,7 @@ function TableauExplorer({
             </select>
           </div>
         ) : (
-          <div className="filter-group" style={{ minWidth: "160px", maxWidth: "220px", flex: "1 1 160px" }}>
+          <div className="filter-group explorer-filter-group">
             <select value={selectedSubFilter} onChange={(e) => setSelectedSubFilter(e.target.value)} style={{ padding: "7px 10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", width: "100%", fontSize: "12px", background: "var(--bg-panel-secondary)" }}>
               <option value="">Tous les statuts</option>
               <option value="Très forte dépendance">Très forte dépendance (r ≥ 0.70)</option>
