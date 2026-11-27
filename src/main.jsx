@@ -33,6 +33,7 @@ const tabs = [
 ];
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const DATA_DOWNLOAD_URL = "https://data.madatlas.mg/datahub/news";
 
 const staticDataFiles = {
   overview: "/data/overview.json",
@@ -49,6 +50,26 @@ const staticDataFiles = {
   ndviChirpsMeta: "/data/ndvi_chirps_metadata.json",
   correlationNdviChirps: "/data/correlation_ndvi_chirps.json",
 };
+
+const TARGET_REGIONS = ["Androy", "Anosy", "Atsimo Andrefana"];
+const TARGET_REGION_KEYS = new Set(TARGET_REGIONS.map((r) => r.toLowerCase()));
+
+function normalizeRegionName(region) {
+  return String(region || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function isTargetRegion(region) {
+  return TARGET_REGION_KEYS.has(normalizeRegionName(region));
+}
+
+function extractTargetRegions(items) {
+  const present = [...new Set((items || []).map((item) => item?.region).filter((r) => isTargetRegion(r)))].sort();
+  return present.length > 0 ? present : TARGET_REGIONS;
+}
 
 const Icons = {
   Dashboard: (props) => (
@@ -682,6 +703,271 @@ function CommuneSearchBar({
   );
 }
 
+
+// Composant combiné saisie + sélection pour choisir une année rapidement
+function YearCombobox({
+  id,
+  years = [],
+  value,
+  onChange,
+  placeholder = "Année...",
+  formatOptionLabel,
+}) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [hasTyped, setHasTyped] = React.useState(false);
+  const [inputText, setInputText] = React.useState(value != null ? String(value) : "");
+  const [highlightedIndex, setHighlightedIndex] = React.useState(0);
+  const [dropdownStyle, setDropdownStyle] = React.useState(null);
+  const containerRef = React.useRef(null);
+  const controlRef = React.useRef(null);
+  const inputRef = React.useRef(null);
+  const dropdownRef = React.useRef(null);
+  const itemRefs = React.useRef([]);
+
+  const normalizedYears = React.useMemo(
+    () => (years || []).map((y) => Number(y)).filter((y) => Number.isFinite(y)),
+    [years]
+  );
+
+  React.useEffect(() => {
+    if (!hasTyped) {
+      setInputText(value != null ? String(value) : "");
+    }
+  }, [value, hasTyped]);
+
+  const filteredYears = React.useMemo(() => {
+    const q = inputText.trim();
+    if (!hasTyped || !q) return normalizedYears;
+    return normalizedYears.filter((y) => String(y).includes(q));
+  }, [normalizedYears, inputText, hasTyped]);
+
+  const updateDropdownPosition = React.useCallback(() => {
+    if (!controlRef.current) return;
+    const rect = controlRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const openUpward = spaceBelow < 200 && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(120, Math.min(220, (openUpward ? spaceAbove : spaceBelow) - 12));
+
+    setDropdownStyle({
+      position: "fixed",
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      ...(openUpward
+        ? { bottom: `${window.innerHeight - rect.top + 4}px` }
+        : { top: `${rect.bottom + 4}px` }),
+      maxHeight: `${maxHeight}px`,
+    });
+  }, []);
+
+  const commitYear = React.useCallback(
+    (yr) => {
+      if (yr == null || !Number.isFinite(Number(yr))) return;
+      const num = Number(yr);
+      setInputText(String(num));
+      setHasTyped(false);
+      setIsOpen(false);
+      if (onChange && num !== Number(value)) {
+        onChange(num);
+      }
+    },
+    [onChange, value]
+  );
+
+  const revertOrCommitInput = React.useCallback(() => {
+    const q = inputText.trim();
+    const exact = normalizedYears.find((y) => String(y) === q);
+    if (exact != null) {
+      commitYear(exact);
+    } else {
+      setInputText(value != null ? String(value) : "");
+      setHasTyped(false);
+      setIsOpen(false);
+    }
+  }, [inputText, normalizedYears, value, commitYear]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    updateDropdownPosition();
+
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        revertOrCommitInput();
+      }
+    };
+    const handleViewportChange = (e) => {
+      if (dropdownRef.current && dropdownRef.current.contains(e.target)) return;
+      updateDropdownPosition();
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleViewportChange, true);
+    window.addEventListener("resize", handleViewportChange);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleViewportChange, true);
+      window.removeEventListener("resize", handleViewportChange);
+    };
+  }, [isOpen, updateDropdownPosition, revertOrCommitInput]);
+
+  const isDropdownMounted = isOpen && Boolean(dropdownStyle);
+  React.useEffect(() => {
+    if (!isDropdownMounted) return;
+    const activeIdx = hasTyped
+      ? highlightedIndex
+      : Math.max(0, filteredYears.indexOf(Number(value)));
+    setHighlightedIndex(activeIdx);
+    const el = itemRefs.current[activeIdx];
+    if (el && typeof el.scrollIntoView === "function") {
+      el.scrollIntoView({ block: "nearest" });
+    }
+  }, [isDropdownMounted]);
+
+  const handleInputChange = (e) => {
+    const raw = e.target.value.replace(/[^\d]/g, "").slice(0, 4);
+    setInputText(raw);
+    setHasTyped(true);
+    setIsOpen(true);
+    setHighlightedIndex(0);
+
+    if (raw.length === 4) {
+      const exact = normalizedYears.find((y) => String(y) === raw);
+      if (exact != null && onChange && exact !== Number(value)) {
+        onChange(exact);
+      }
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        return;
+      }
+      if (filteredYears.length > 0) {
+        const nextIdx = (highlightedIndex + 1) % filteredYears.length;
+        setHighlightedIndex(nextIdx);
+        itemRefs.current[nextIdx]?.scrollIntoView({ block: "nearest" });
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        return;
+      }
+      if (filteredYears.length > 0) {
+        const prevIdx = (highlightedIndex - 1 + filteredYears.length) % filteredYears.length;
+        setHighlightedIndex(prevIdx);
+        itemRefs.current[prevIdx]?.scrollIntoView({ block: "nearest" });
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const q = inputText.trim();
+      const exact = normalizedYears.find((y) => String(y) === q);
+      if (exact != null) {
+        commitYear(exact);
+      } else if (filteredYears.length > 0) {
+        const idx = highlightedIndex >= 0 && highlightedIndex < filteredYears.length ? highlightedIndex : 0;
+        commitYear(filteredYears[idx]);
+      } else {
+        revertOrCommitInput();
+      }
+    } else if (e.key === "Escape") {
+      setInputText(value != null ? String(value) : "");
+      setHasTyped(false);
+      setIsOpen(false);
+      inputRef.current?.blur();
+    }
+  };
+
+  return (
+    <div className="year-combobox" ref={containerRef}>
+      <div className={`year-combobox-control ${isOpen ? "open" : ""}`} ref={controlRef}>
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          inputMode="numeric"
+          className="year-combobox-input"
+          value={inputText}
+          placeholder={placeholder}
+          onFocus={(e) => {
+            setHasTyped(false);
+            setIsOpen(true);
+            e.target.select();
+          }}
+          onClick={() => {
+            if (!isOpen) {
+              setHasTyped(false);
+              setIsOpen(true);
+            }
+          }}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          autoComplete="off"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-autocomplete="list"
+        />
+        <button
+          type="button"
+          className="year-combobox-toggle"
+          tabIndex={-1}
+          aria-label="Afficher la liste des années"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (isOpen) {
+              revertOrCommitInput();
+            } else {
+              setHasTyped(false);
+              setIsOpen(true);
+              inputRef.current?.focus();
+              inputRef.current?.select();
+            }
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+
+      {isOpen && dropdownStyle && (
+        <div className="year-combobox-dropdown" ref={dropdownRef} style={dropdownStyle} role="listbox">
+          {filteredYears.length === 0 ? (
+            <div className="year-combobox-empty">Aucune année disponible</div>
+          ) : (
+            filteredYears.map((y, idx) => {
+              const isSelected = Number(value) === y;
+              const isHighlighted = idx === highlightedIndex;
+              return (
+                <div
+                  key={y}
+                  ref={(el) => {
+                    itemRefs.current[idx] = el;
+                  }}
+                  role="option"
+                  aria-selected={isSelected}
+                  className={`year-combobox-option ${isSelected ? "selected" : ""} ${isHighlighted ? "highlighted" : ""}`}
+                  onMouseEnter={() => setHighlightedIndex(idx)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    commitYear(y);
+                  }}
+                >
+                  <span>{formatOptionLabel ? formatOptionLabel(y) : y}</span>
+                  {isSelected && <Icons.Check style={{ width: 13, height: 13, flexShrink: 0 }} />}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Palette de référence des précipitations et des courbes isohyètes (6 teintes de bleu contrastées et bien visibles)
 const PRECIP_BLUE_PALETTE = [
   "#dbeafe", // Bleu très clair / ciel
@@ -867,8 +1153,9 @@ function App() {
 
       if (data?.communes) {
         const match = data.communes.find((c) => c.code === code);
-        if (match?.region && selectedRegion !== match.region) {
-          setSelectedRegion(match.region);
+        const nextRegion = isTargetRegion(match?.region) ? match.region : "";
+        if (selectedRegion !== nextRegion) {
+          setSelectedRegion(nextRegion);
         }
       }
 
@@ -971,9 +1258,10 @@ function App() {
 
   React.useEffect(() => {
     if (!selectedCommune && data?.communes?.length > 0) {
-      setSelectedCommune(data.communes[0].code);
-      if (data.communes[0].region) {
-        setSelectedRegion(data.communes[0].region);
+      const firstCommune = data.communes.find((c) => isTargetRegion(c.region)) || data.communes[0];
+      setSelectedCommune(firstCommune.code);
+      if (isTargetRegion(firstCommune.region)) {
+        setSelectedRegion(firstCommune.region);
       }
     }
   }, [data, selectedCommune]);
@@ -981,15 +1269,18 @@ function App() {
   React.useEffect(() => {
     if (selectedCommune && data?.communes?.length > 0) {
       const match = data.communes.find((c) => c.code === selectedCommune);
-      if (match?.region && selectedRegion !== match.region) {
-        setSelectedRegion(match.region);
+      if (match) {
+        const nextRegion = isTargetRegion(match.region) ? match.region : "";
+        if (selectedRegion !== nextRegion) {
+          setSelectedRegion(nextRegion);
+        }
       }
     }
   }, [data, selectedCommune, selectedRegion]);
 
   const regionsList = React.useMemo(() => {
     if (!data?.communes) return [];
-    return [...new Set(data.communes.map((c) => c.region).filter(Boolean))].sort();
+    return extractTargetRegions(data.communes);
   }, [data]);
 
   const selectedCommuneObj = React.useMemo(() => {
@@ -1551,7 +1842,7 @@ function UnifiedSinglePage({
           <div className="section-index-badge">05</div>
           <div>
             <h2 className="section-title">Base de Données des 225 Communes</h2>
-            <p className="section-subtitle">Explorateur tabulaire interactif avec recherche, tri multi-colonnes et export CSV</p>
+            <p className="section-subtitle">Explorateur tabulaire interactif avec recherche, tri multi-colonnes et téléchargement des données</p>
           </div>
         </div>
         <TableauExplorer
@@ -2033,8 +2324,9 @@ function SuiviVegetation({
     if (!selectedCommune || !communes.length) return;
     const cObj = communes.find((c) => c.code === selectedCommune);
     if (cObj) {
-      if (cObj.region && selectedRegion !== cObj.region && setSelectedRegion) {
-        setSelectedRegion(cObj.region);
+      const nextRegion = isTargetRegion(cObj.region) ? cObj.region : "";
+      if (selectedRegion !== nextRegion && setSelectedRegion) {
+        setSelectedRegion(nextRegion);
       }
       if (cObj.district && selectedDistrict !== cObj.district) {
         setSelectedDistrict(cObj.district);
@@ -2067,7 +2359,7 @@ function SuiviVegetation({
     } else {
       const anyCommune = communes.find((c) => c.district === newDist);
       if (anyCommune) {
-        if (anyCommune.region && setSelectedRegion) setSelectedRegion(anyCommune.region);
+        if (setSelectedRegion) setSelectedRegion(isTargetRegion(anyCommune.region) ? anyCommune.region : "");
         if (setSelectedCommune) setSelectedCommune(anyCommune.code);
       }
     }
@@ -2077,7 +2369,7 @@ function SuiviVegetation({
     if (setSelectedCommune) setSelectedCommune(code);
     const cObj = communes.find((c) => c.code === code);
     if (cObj) {
-      if (cObj.region && setSelectedRegion) setSelectedRegion(cObj.region);
+      if (setSelectedRegion) setSelectedRegion(isTargetRegion(cObj.region) ? cObj.region : "");
       if (cObj.district) setSelectedDistrict(cObj.district);
     }
   };
@@ -3281,8 +3573,9 @@ function Saison({
     if (!selectedCommune || !communes.length) return;
     const cObj = communes.find((c) => c.code === selectedCommune);
     if (cObj) {
-      if (cObj.region && selectedRegion !== cObj.region && setSelectedRegion) {
-        setSelectedRegion(cObj.region);
+      const nextRegion = isTargetRegion(cObj.region) ? cObj.region : "";
+      if (selectedRegion !== nextRegion && setSelectedRegion) {
+        setSelectedRegion(nextRegion);
       }
       if (cObj.district && selectedDistrict !== cObj.district) {
         setSelectedDistrict(cObj.district);
@@ -3315,7 +3608,7 @@ function Saison({
     } else {
       const anyCommune = communes.find((c) => c.district === newDist);
       if (anyCommune) {
-        if (anyCommune.region && setSelectedRegion) setSelectedRegion(anyCommune.region);
+        if (setSelectedRegion) setSelectedRegion(isTargetRegion(anyCommune.region) ? anyCommune.region : "");
         if (setSelectedCommune) setSelectedCommune(anyCommune.code);
       }
     }
@@ -3325,7 +3618,7 @@ function Saison({
     if (setSelectedCommune) setSelectedCommune(code);
     const cObj = communes.find((c) => c.code === code);
     if (cObj) {
-      if (cObj.region && setSelectedRegion) setSelectedRegion(cObj.region);
+      if (setSelectedRegion) setSelectedRegion(isTargetRegion(cObj.region) ? cObj.region : "");
       if (cObj.district) setSelectedDistrict(cObj.district);
     }
   };
@@ -4118,9 +4411,10 @@ function StatistiquesCorrelation({
     if (parentSetCommune) parentSetCommune(code);
     const cObj = communes.find((c) => c.code === code);
     if (cObj) {
-      if (cObj.region && cObj.region !== selectedRegion) {
-        setSelectedRegion(cObj.region);
-        if (parentSetRegion) parentSetRegion(cObj.region);
+      const nextRegion = isTargetRegion(cObj.region) ? cObj.region : "";
+      if (nextRegion !== selectedRegion) {
+        setSelectedRegion(nextRegion);
+        if (parentSetRegion) parentSetRegion(nextRegion);
       }
       if (cObj.district && cObj.district !== selectedDistrict) {
         setSelectedDistrict(cObj.district);
@@ -4976,8 +5270,9 @@ function Statistiques({
     if (!selectedCommune || !communes.length) return;
     const cObj = communes.find((c) => c.code === selectedCommune);
     if (cObj) {
-      if (cObj.region && selectedRegion !== cObj.region && setSelectedRegion) {
-        setSelectedRegion(cObj.region);
+      const nextRegion = isTargetRegion(cObj.region) ? cObj.region : "";
+      if (selectedRegion !== nextRegion && setSelectedRegion) {
+        setSelectedRegion(nextRegion);
       }
       if (cObj.district && selectedDistrict !== cObj.district) {
         setSelectedDistrict(cObj.district);
@@ -5010,7 +5305,7 @@ function Statistiques({
     } else {
       const anyCommune = communes.find((c) => c.district === newDist);
       if (anyCommune) {
-        if (anyCommune.region && setSelectedRegion) setSelectedRegion(anyCommune.region);
+        if (setSelectedRegion) setSelectedRegion(isTargetRegion(anyCommune.region) ? anyCommune.region : "");
         handleCommuneChange(anyCommune.code);
       }
     }
@@ -5021,7 +5316,7 @@ function Statistiques({
     if (appSetSelectedCommune) appSetSelectedCommune(code);
     const cObj = communes.find((c) => c.code === code);
     if (cObj) {
-      if (cObj.region && setSelectedRegion) setSelectedRegion(cObj.region);
+      if (setSelectedRegion) setSelectedRegion(isTargetRegion(cObj.region) ? cObj.region : "");
       if (cObj.district) setSelectedDistrict(cObj.district);
     }
   };
@@ -5705,18 +6000,15 @@ function Statistiques({
               {typeGraph === "Climatologie mensuelle" && (
                 <div className="filter-group" style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "10px" }}>
                   <label htmlFor="month-year-select" style={{ fontWeight: "700" }}>Année observée :</label>
-                  <select
+                  <YearCombobox
                     id="month-year-select"
+                    years={availableYears}
                     value={selectedYearForMonth}
-                    onChange={(e) => setSelectedYearForMonth(Number(e.target.value))}
-                    style={{ marginTop: "4px" }}
-                  >
-                    {availableYears.map((yr) => (
-                      <option key={yr} value={yr}>
-                        Année {yr} {yr === 2020 || yr === 2021 || yr === 2022 ? "(Sécheresse Triennale)" : ""}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(yr) => setSelectedYearForMonth(yr)}
+                    formatOptionLabel={(yr) =>
+                      `Année ${yr}${yr === 2020 || yr === 2021 || yr === 2022 ? " (Sécheresse Triennale)" : ""}`
+                    }
+                  />
                 </div>
               )}
             </aside>
@@ -7056,46 +7348,6 @@ function Carte({
         url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
         attribution: "&copy; Google Satellites",
       },
-      {
-        id: "Google Hybrid",
-        label: "Google Hybride",
-        shortLabel: "Hybride",
-        icon: Icons.Globe,
-        themeClass: "basemap-theme-hybrid",
-        desc: "Satellite + routes & noms",
-        url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-        attribution: "&copy; Google Hybride",
-      },
-      {
-        id: "CartoDB Positron",
-        label: "CartoDB Clair",
-        shortLabel: "Clair",
-        icon: Icons.Sun,
-        themeClass: "basemap-theme-positron",
-        desc: "Fond clair épuré (idéal choroplèthe)",
-        url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-      },
-      {
-        id: "CartoDB Dark",
-        label: "CartoDB Sombre",
-        shortLabel: "Sombre",
-        icon: Icons.Moon,
-        themeClass: "basemap-theme-dark",
-        desc: "Fond sombre contrasté",
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-      },
-      {
-        id: "ESRI Topo",
-        label: "Topographique",
-        shortLabel: "Relief",
-        icon: Icons.Mountain,
-        themeClass: "basemap-theme-topo",
-        desc: "Relief et courbes de niveau",
-        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
-      },
     ],
     []
   );
@@ -7802,17 +8054,12 @@ function Carte({
 
             <div className="filter-group">
               <label htmlFor="ndvi-annee-sel">Année :</label>
-              <select
+              <YearCombobox
                 id="ndvi-annee-sel"
+                years={availableNdviYears}
                 value={ndviYear}
-                onChange={(e) => setNdviYear(Number(e.target.value))}
-              >
-                {availableNdviYears.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
+                onChange={(yr) => setNdviYear(yr)}
+              />
             </div>
 
             <div className="filter-group">
@@ -8063,17 +8310,12 @@ function Carte({
               <>
                 <div className="filter-group">
                   <label htmlFor="ndvi-chirps-annee-sel">Année :</label>
-                  <select
+                  <YearCombobox
                     id="ndvi-chirps-annee-sel"
+                    years={availableNdviChirpsYears}
                     value={ndviChirpsYear}
-                    onChange={(e) => setNdviChirpsYear(Number(e.target.value))}
-                  >
-                    {availableNdviChirpsYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(yr) => setNdviChirpsYear(yr)}
+                  />
                 </div>
 
                 <div className="filter-group">
@@ -8421,35 +8663,25 @@ function Carte({
                     ))}
                   </select>
                 </div>
-                <div className="filter-group" style={{ flex: 1 }}>
+                <div className="filter-group" style={{ flex: 1, minWidth: 0 }}>
                   <label htmlFor="annee-sel">Année :</label>
-                  <select
+                  <YearCombobox
                     id="annee-sel"
+                    years={availableYears}
                     value={selectedYears[0]}
-                    onChange={(e) => setSelectedYears([Number(e.target.value)])}
-                  >
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(yr) => setSelectedYears([yr])}
+                  />
                 </div>
               </div>
             ) : (
               <div className="filter-group" style={{ marginTop: "8px" }}>
                 <label htmlFor="annee-sel">Année (Cumul annuel) :</label>
-                <select
+                <YearCombobox
                   id="annee-sel"
+                  years={availableYears}
                   value={selectedYears[0]}
-                  onChange={(e) => setSelectedYears([Number(e.target.value)])}
-                >
-                  {availableYears.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(yr) => setSelectedYears([yr])}
+                />
               </div>
             )}
 
@@ -8622,19 +8854,14 @@ function Carte({
                     ))}
                   </select>
                 </div>
-                <div className="filter-group" style={{ flex: 1 }}>
+                <div className="filter-group" style={{ flex: 1, minWidth: 0 }}>
                   <label htmlFor="deficit-annee-sel">Année :</label>
-                  <select
+                  <YearCombobox
                     id="deficit-annee-sel"
+                    years={availableYears}
                     value={selectedYears[0]}
-                    onChange={(e) => setSelectedYears([Number(e.target.value)])}
-                  >
-                    {availableYears.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(yr) => setSelectedYears([yr])}
+                  />
                 </div>
               </div>
             ) : typePeriode === "Crise 2020–2022" ? (
@@ -8657,17 +8884,12 @@ function Carte({
             ) : (
               <div className="filter-group">
                 <label htmlFor="deficit-annee-annuel-sel">Année (Cumul annuel) :</label>
-                <select
+                <YearCombobox
                   id="deficit-annee-annuel-sel"
+                  years={availableYears}
                   value={selectedYears[0]}
-                  onChange={(e) => setSelectedYears([Number(e.target.value)])}
-                >
-                  {availableYears.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(yr) => setSelectedYears([yr])}
+                />
               </div>
             )}
 
@@ -8816,13 +9038,22 @@ function Carte({
                 <Icons.Crosshair style={{ width: 14, height: 14 }} /> Recentrer tout le Grand Sud
               </button>
             )}
+            <a
+              href={DATA_DOWNLOAD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-export"
+              title="Accéder au portail Madatlas Datahub pour télécharger les cartes et données (accès requis)"
+            >
+              <Icons.Download /> Télécharger les cartes
+            </a>
             <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>
               {mapSubItem === "ndvi_classes"
-                ? "Survolez ou cliquez sur une commune"
+                ? "Cliquez sur une commune"
                 : mapSubItem === "deficit"
-                ? "Cliquez sur une commune pour afficher les détails du déficit"
+                ? "Cliquez sur une commune"
                 : typeCarte === "Isohyètes"
-                ? "Survolez les courbes isohyètes ou communes"
+                ? "Cliquez sur une commune"
                 : "Cliquez sur une commune"}
             </span>
           </div>
@@ -9267,15 +9498,17 @@ function Carte({
                     <><Icons.Sprout style={{ width: 15, height: 15, color: "#16a34a" }} /> Reverdissement différé (1 mois après la pluie)</>
                   )}
                 </span>
-                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                  {ndviChirpsViewMode === "monthly"
-                    ? `Période active : ${activeNdviChirpsPeriod?.label || `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`}`
-                    : "Série multi-annuelle historique 2000–2026 (320 mois)"}
+                <span className="ndvi-legend-period-pill">
+                  {ndviChirpsViewMode === "monthly" ? (
+                    <>Période active : <strong>{activeNdviChirpsPeriod?.label || `${monthNamesFr[ndviChirpsMonth - 1]} ${ndviChirpsYear}`}</strong></>
+                  ) : (
+                    "Série multi-annuelle historique 2000–2026 (320 mois)"
+                  )}
                 </span>
               </div>
 
               {ndviChirpsViewMode === "monthly" ? (
-                <div className="ndvi-legend-grid">
+                <div className="ndvi-legend-grid cols-5">
                   {(ndviChirpsClasses.length > 0 ? ndviChirpsClasses : [
                     { id: 1, label: "Grande sécheresse", description: "Végétation très sèche, manque d'eau critique", color: "#dc2626" },
                     { id: 2, label: "Manque d'eau", description: "Peu de pluie, la végétation jaunit", color: "#ea580c" },
@@ -9283,28 +9516,28 @@ function Carte({
                     { id: 4, label: "Bonne pousse", description: "Bonnes pluies, la végétation reverdit bien", color: "#16a34a" },
                     { id: 5, label: "Très verdoyant", description: "Pluies abondantes, végétation dense et verte", color: "#15803d" },
                   ]).map((cls) => (
-                    <div key={cls.id} className="ndvi-legend-item">
-                      <span className="ndvi-legend-color-box" style={{ backgroundColor: cls.color }} />
-                      <div className="ndvi-legend-text">
+                    <div key={cls.id} className="ndvi-legend-item" style={{ "--legend-accent": cls.color }}>
+                      <div className="ndvi-legend-item-head">
+                        <span className="ndvi-legend-color-box" style={{ backgroundColor: cls.color }} />
                         <span className="ndvi-legend-label">{cls.label}</span>
-                        <span className="ndvi-legend-range">{cls.description}</span>
                       </div>
+                      <span className="ndvi-legend-range">{cls.description}</span>
                     </div>
                   ))}
                 </div>
               ) : ndviChirpsViewMode === "lag_opt" ? (
-                <div className="ndvi-legend-grid">
+                <div className="ndvi-legend-grid cols-3">
                   {[
                     { id: 0, label: "Repousse immédiate", color: "#ffff33", desc: "Reverdit au cours du mois même des pluies" },
                     { id: 1, label: "Repousse après 1 mois", color: "#4daf4a", desc: "Reverdit le mois suivant (le plus fréquent dans le Sud)" },
                     { id: 2, label: "Repousse après 2 mois", color: "#377eb8", desc: "Végétation arbustive à croissance plus lente" },
                   ].map((l) => (
-                    <div key={l.id} className="ndvi-legend-item">
-                      <span className="ndvi-legend-color-box" style={{ backgroundColor: l.color }} />
-                      <div className="ndvi-legend-text">
+                    <div key={l.id} className="ndvi-legend-item" style={{ "--legend-accent": l.color }}>
+                      <div className="ndvi-legend-item-head">
+                        <span className="ndvi-legend-color-box" style={{ backgroundColor: l.color }} />
                         <span className="ndvi-legend-label">{l.label}</span>
-                        <span className="ndvi-legend-range">{l.desc}</span>
                       </div>
+                      <span className="ndvi-legend-range">{l.desc}</span>
                     </div>
                   ))}
                 </div>
@@ -9333,20 +9566,20 @@ function Carte({
             <div className="ndvi-legend-container">
               <div className="ndvi-legend-header">
                 <span className="ndvi-legend-title">Légende des 6 Classes NDVI MODIS</span>
-                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                <span className="ndvi-legend-period-pill">
                   Résolution 250m &bull; Période active : <strong>{activePeriod?.label || `${monthNamesFr[ndviMonth - 1]} ${ndviYear}`}</strong>
                 </span>
               </div>
-              <div className="ndvi-legend-grid">
+              <div className="ndvi-legend-grid cols-6">
                 {classesList.map((cls) => (
-                  <div key={cls.id} className="ndvi-legend-item">
-                    <span className="ndvi-legend-color-box" style={{ backgroundColor: cls.color }} />
-                    <div className="ndvi-legend-text">
+                  <div key={cls.id} className="ndvi-legend-item" style={{ "--legend-accent": cls.color }}>
+                    <div className="ndvi-legend-item-head">
+                      <span className="ndvi-legend-color-box" style={{ backgroundColor: cls.color }} />
                       <span className="ndvi-legend-label">{cls.label}</span>
-                      <span className="ndvi-legend-range">
-                        NDVI {cls.range} &bull; {cls.description}
-                      </span>
                     </div>
+                    <span className="ndvi-legend-range">
+                      NDVI {cls.range} &bull; {cls.description}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -10946,7 +11179,7 @@ function TableauExplorer({
       });
     } else {
       const dict = {};
-      features.forEach((f) => {
+      features.filter((f) => isTargetRegion(f?.properties?.region)).forEach((f) => {
         const m = getDynamicCommuneMetrics(f.properties || {});
         const rName = m.region !== "—" ? m.region : "Région Inconnue";
         if (!dict[rName]) {
@@ -11072,49 +11305,12 @@ function TableauExplorer({
     });
   }, [tableData, selectedRegFilter, selectedSubFilter, searchVal, datasetType]);
 
-  const exportCSV = () => {
-    let headers = [];
-    let rows = [];
-
-    if (datasetType === "precip") {
-      headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Annee", "Precipitation Annuelle (mm)", "Moyenne Ref 1981–2025 (mm)", "Deficit (%)", "Ecart (mm)", "Statut Secheresse"
-      ];
-      rows = filteredData.map((r) => [
-        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.year || selectedPrecipYear, r.precip, r.precipRef, r.deficit, r.ecartMm, r.droughtStatus
-      ]);
-    } else if (datasetType === "vegetation") {
-      headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Campagne", "Ecoregion", "NDVI Moyen", "VCI (%)", "VHI (%)", "Couverture Forestiere (%)", "Surface Foret (ha)", "Perte Annuelle (ha)", "Niveau Alerte"
-      ];
-      rows = filteredData.map((r) => [
-        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.season || selectedVegSeason, r.ecoregion, r.ndvi, r.vci, r.vhi, r.vegCover, r.forestArea, r.annualLoss, r.alert
-      ]);
-    } else {
-      headers = [
-        "Echelle", "Code", "Nom", "District", "Region", "Reaction Immediate (Lag 0)", "Reverdissement Decale (Lag 1)", "Delai Optimal (Mois)", "Variance Expliquee R2 (%)", "Sensibilite Vegetale (NDVI/100mm)", "Statut Dependance"
-      ];
-      rows = filteredData.map((r) => [
-        scale.toUpperCase(), r.code, r.name, r.district, r.region, r.r0, r.r1, r.opt, r.r2Pct, r.sens, r.status
-      ]);
-    }
-
-    const csvContent = "data:text/csv;charset=utf-8,﻿" + [headers.join(";"), ...rows.map((e) => e.join(";"))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `dynatsimo_${datasetType}_${scale}_${new Date().toISOString().split("T")[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const regionsList = [...new Set((communesList || []).map((c) => c?.region).filter(Boolean))].sort();
+  const regionsList = React.useMemo(() => extractTargetRegions(communesList), [communesList]);
 
   return (
     <section className="panel table-panel">
       {/* Category Switcher Tabs */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
+      <div className="dataset-category-tabs">
         {[
           { id: "precip", label: "Pluviométrie (CHIRPS)", icon: Icons.Rain, badge: "Cumuls & Déficits" },
           { id: "vegetation", label: "Végétation (MODIS)", icon: Icons.Leaf, badge: "NDVI, VCI & VHI" },
@@ -11128,30 +11324,10 @@ function TableauExplorer({
             }}
             type="button"
             className={`btn-filter ${datasetType === cat.id ? "active" : ""}`}
-            style={{
-              padding: "8px 14px",
-              borderRadius: "8px",
-              fontWeight: datasetType === cat.id ? "700" : "500",
-              fontSize: "12.5px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              cursor: "pointer",
-            }}
           >
             {cat.icon && <cat.icon style={{ width: 15, height: 15, flexShrink: 0 }} />}
             <span>{cat.label}</span>
-            <span
-              style={{
-                fontSize: "10px",
-                opacity: 0.8,
-                background: datasetType === cat.id ? "rgba(255,255,255,0.2)" : "var(--bg-panel-secondary)",
-                padding: "1px 6px",
-                borderRadius: "4px",
-              }}
-            >
-              {cat.badge}
-            </span>
+            <span className="btn-filter-badge">{cat.badge}</span>
           </button>
         ))}
       </div>
@@ -11198,9 +11374,15 @@ function TableauExplorer({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <button onClick={exportCSV} className="btn-export" type="button">
-            <Icons.Download /> Exporter CSV ({filteredData.length} {scale === "commune" ? "communes" : scale === "district" ? "districts" : "régions"})
-          </button>
+          <a
+            href={DATA_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-export"
+            title="Accéder au portail Madatlas Datahub pour télécharger les données (accès requis)"
+          >
+            <Icons.Download /> Télécharger les données
+          </a>
         </div>
       </div>
 
