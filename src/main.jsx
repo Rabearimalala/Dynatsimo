@@ -9132,8 +9132,8 @@ function Carte({
                 : `Carte des précipitations (Choroplèthe) — ${typePeriode === "Décennies" ? selectedDecades[0] : typePeriode === "Mensuel" ? `${monthNamesFr[(monthNumMap[selectedMonth] || 1) - 1]} ${selectedYears[0]}` : `Année ${selectedYears[0]}`}`}
             </h2>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <div style={{ minWidth: "220px", maxWidth: "300px" }}>
+          <div className="map-header-actions">
+            <div className="map-header-search">
               <CommuneSearchBar
                 communes={communes}
                 placeholder="Zoomer sur une commune..."
@@ -9159,15 +9159,6 @@ function Carte({
             >
               <Icons.Download /> Télécharger les cartes
             </a>
-            <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600" }}>
-              {mapSubItem === "ndvi_classes"
-                ? "Cliquez sur une commune"
-                : mapSubItem === "deficit"
-                ? "Cliquez sur une commune"
-                : typeCarte === "Isohyètes"
-                ? "Cliquez sur une commune"
-                : "Cliquez sur une commune"}
-            </span>
           </div>
         </div>
 
